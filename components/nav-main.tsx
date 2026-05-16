@@ -70,7 +70,6 @@ interface CategoryStyle {
   icon: LucideIcon
   iconColor: string      // Icon color class
   hoverBg: string        // Hover background color
-  activeBorder: string   // Left border accent when items are active
 }
 
 const getCategoryStyle = (label: string): CategoryStyle => {
@@ -80,76 +79,64 @@ const getCategoryStyle = (label: string): CategoryStyle => {
       icon: LayoutGrid,
       iconColor: "text-sky-500 dark:text-sky-400",
       hoverBg: "hover:bg-sky-500/10",
-      activeBorder: "border-l-sky-500",
     },
     "Core Business": {
       icon: Briefcase,
       iconColor: "text-success dark:text-success",
       hoverBg: "hover:bg-success/10",
-      activeBorder: "border-l-emerald-500",
     },
     "Tools": {
       icon: Wrench,
       iconColor: "text-rose-400 dark:text-rose-400/70",
       hoverBg: "hover:bg-rose-400/10",
-      activeBorder: "border-l-rose-400",
     },
     "Network": {
       icon: Globe2,
       iconColor: "text-violet-500 dark:text-violet-400",
       hoverBg: "hover:bg-violet-500/10",
-      activeBorder: "border-l-violet-500",
     },
     "Organization": {
       icon: Building2,
       iconColor: "text-muted-foreground dark:text-muted-foreground",
       hoverBg: "hover:bg-slate-500/10",
-      activeBorder: "border-l-slate-500",
     },
     // Greek
     "Επισκόπηση": {
       icon: LayoutGrid,
       iconColor: "text-sky-500 dark:text-sky-400",
       hoverBg: "hover:bg-sky-500/10",
-      activeBorder: "border-l-sky-500",
     },
     "Βασική Επιχείρηση": {
       icon: Briefcase,
       iconColor: "text-success dark:text-success",
       hoverBg: "hover:bg-success/10",
-      activeBorder: "border-l-emerald-500",
     },
     "Εργαλεία": {
       icon: Wrench,
       iconColor: "text-rose-400 dark:text-rose-400/70",
       hoverBg: "hover:bg-rose-400/10",
-      activeBorder: "border-l-rose-400",
     },
     "Δίκτυο": {
       icon: Globe2,
       iconColor: "text-violet-500 dark:text-violet-400",
       hoverBg: "hover:bg-violet-500/10",
-      activeBorder: "border-l-violet-500",
     },
     "Οργανισμός": {
       icon: Building2,
       iconColor: "text-muted-foreground dark:text-muted-foreground",
       hoverBg: "hover:bg-slate-500/10",
-      activeBorder: "border-l-slate-500",
     },
     // English
     "Archive": {
       icon: Archive,
       iconColor: "text-amber-500 dark:text-amber-400",
       hoverBg: "hover:bg-amber-500/10",
-      activeBorder: "border-l-amber-500",
     },
     // Greek
     "Αρχείο": {
       icon: Archive,
       iconColor: "text-amber-500 dark:text-amber-400",
       hoverBg: "hover:bg-amber-500/10",
-      activeBorder: "border-l-amber-500",
     },
   }
 
@@ -157,7 +144,6 @@ const getCategoryStyle = (label: string): CategoryStyle => {
     icon: LayoutGrid,
     iconColor: "text-sidebar-foreground/70",
     hoverBg: "hover:bg-sidebar-accent/50",
-    activeBorder: "border-l-sidebar-foreground",
   }
 }
 
@@ -205,6 +191,8 @@ function NavMainMenuItem({
             prefetch={true}
             {...(item.url.includes("/crm") ? { "data-tour": "crm-nav" } : {})}
             {...(item.url.includes("/import") ? { "data-tour": "import-nav" } : {})}
+            {...(item.url.includes("/network") ? { "data-tour": "network-nav" } : {})}
+            {...(item.url.includes("/matchmaking") ? { "data-tour": "matchmaking-nav" } : {})}
           >
             <item.icon
               ref={iconRef}
@@ -363,7 +351,7 @@ function NavPinnedSection({
           {label}
         </span>
       </div>
-      <SidebarMenu className="mt-0.5 border-l-2 ml-2 pl-1 border-l-sidebar-foreground/20">
+      <SidebarMenu className="mt-0.5 ml-2 pl-1">
         {items.map((item, index) => (
           <PinnableNavItem
             key={item.url || `pinned-${index}`}
@@ -473,10 +461,7 @@ function CollapsibleNavGroup({
           "transition-all data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down",
           isOpen && "mb-2"
         )}>
-          <SidebarMenu className={cn(
-            "mt-0.5 border-l-2 ml-2 pl-1",
-            categoryStyle.activeBorder
-          )}>
+          <SidebarMenu className="mt-0.5 ml-2 pl-1">
             {group.items.map((item, index) => (
               <PinnableNavItem
                 key={item.url || `${item.title}-${index}`}

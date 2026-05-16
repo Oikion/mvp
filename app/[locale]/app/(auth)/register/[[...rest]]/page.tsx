@@ -30,7 +30,8 @@ export default async function RegisterPage({ params, searchParams }: RegisterPag
       <ReferralCodeCapture referralCode={referralCode} />
       
       <SignUp
-        routing="virtual"
+        routing="path"
+        path={`/${locale}/app/register`}
         fallbackRedirectUrl={`/${locale}/app/onboard`}
         signInUrl={`/${locale}/app/sign-in`}
       />

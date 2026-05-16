@@ -80,7 +80,7 @@ export function SharedAccessBanner({ shareInfo, entityType: _entityType }: Share
           </div>
 
           {shareInfo.message && (
-            <p className="text-sm text-muted-foreground italic border-l-2 border-info/40 pl-3 mt-2">
+            <p className="text-sm text-muted-foreground italic bg-info/8 rounded-md px-3 py-2 mt-2">
               &ldquo;{shareInfo.message}&rdquo;
             </p>
           )}

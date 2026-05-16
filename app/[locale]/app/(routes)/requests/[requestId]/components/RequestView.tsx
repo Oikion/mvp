@@ -33,24 +33,11 @@ import { updateRequestVisibility } from "@/actions/requests";
 import { useTranslations } from "next-intl";
 import { Link } from "@/navigation";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+
+import { StatusBadge } from "@/components/ui/status-badge";
 import { EditRequestForm } from "./EditRequestForm";
 import RequestComments from "./RequestComments";
-
-// ── Status colors ──
-const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  MATCHED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  UNDER_OFFER: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  CLOSED: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  PAUSED: "bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400",
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  BUY: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  RENT: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
-};
 
 function DetailField({
   label,
@@ -240,12 +227,17 @@ export default function RequestView({ request, isReadOnly = false, sharePermissi
               </p>
             </div>
           </div>
-          <Badge className={cn("ml-2", TYPE_COLORS[request.requestType])} variant="secondary">
-            {t(`requestType.${request.requestType}` as Parameters<typeof t>[0])}
-          </Badge>
-          <Badge className={cn(STATUS_COLORS[request.status] || STATUS_COLORS.ACTIVE)} variant="secondary">
-            {t(`status.${request.status}` as Parameters<typeof t>[0])}
-          </Badge>
+          <StatusBadge
+            entityType="request_type"
+            status={request.requestType}
+            label={t(`requestType.${request.requestType}` as Parameters<typeof t>[0])}
+            className="ml-2"
+          />
+          <StatusBadge
+            entityType="request"
+            status={request.status}
+            label={t(`status.${request.status}` as Parameters<typeof t>[0])}
+          />
         </div>
         {!isReadOnly && (
           <div className="flex items-center gap-2">
@@ -381,17 +373,21 @@ export default function RequestView({ request, isReadOnly = false, sharePermissi
               <DetailField
                 label={t("view.status")}
                 value={
-                  <Badge className={cn(STATUS_COLORS[request.status])} variant="secondary">
-                    {t(`status.${request.status}` as Parameters<typeof t>[0])}
-                  </Badge>
+                  <StatusBadge
+                    entityType="request"
+                    status={request.status}
+                    label={t(`status.${request.status}` as Parameters<typeof t>[0])}
+                  />
                 }
               />
               <DetailField
                 label={t("view.requestType")}
                 value={
-                  <Badge className={cn(TYPE_COLORS[request.requestType])} variant="secondary">
-                    {t(`requestType.${request.requestType}` as Parameters<typeof t>[0])}
-                  </Badge>
+                  <StatusBadge
+                    entityType="request_type"
+                    status={request.requestType}
+                    label={t(`requestType.${request.requestType}` as Parameters<typeof t>[0])}
+                  />
                 }
               />
               <DetailField label={t("view.urgency")} value={request.urgency ? t(`urgency.${request.urgency}` as Parameters<typeof t>[0]) : null} />

@@ -105,7 +105,8 @@ export async function syncClerkUser(clerkUserId: string) {
     });
   }
 
-  // If user exists with email but no clerkUserId, link them
+  // If user exists with email but no clerkUserId, link them (re-registration after account deletion)
+  // Reset onboardingCompleted so the new Clerk account goes through onboarding fresh.
   if (existingByEmail && !existingByEmail.clerkUserId) {
     return await prismadb.users.update({
       where: { id: existingByEmail.id },
@@ -114,20 +115,20 @@ export async function syncClerkUser(clerkUserId: string) {
         firstName: firstName || existingByEmail.firstName,
         lastName: lastName || existingByEmail.lastName,
         name: name || existingByEmail.name,
-        // Use Clerk username if available, otherwise keep existing
         username: username || existingByEmail.username,
         avatar: avatar || existingByEmail.avatar,
         userLanguage: userLanguage as "en" | "cz" | "de" | "uk" | "el",
         lastLoginAt: new Date(),
+        // New Clerk identity claiming this email → treat as fresh registration
+        onboardingCompleted: false,
       },
     });
   }
 
-  // If user exists with email and has a different clerkUserId, update the existing user
-  // (This handles the case where the email is already in use)
+  // If user exists with email and has a different clerkUserId, a new Clerk account is claiming
+  // this email (e.g. re-registration after deletion when webhook didn't fire in local dev).
+  // Reset onboardingCompleted so the new account goes through onboarding.
   if (existingByEmail && existingByEmail.clerkUserId && existingByEmail.clerkUserId !== clerkUserId) {
-    // Email is already associated with a different Clerk account
-    // Update the existing user with new Clerk data
     return await prismadb.users.update({
       where: { id: existingByEmail.id },
       data: {
@@ -135,11 +136,12 @@ export async function syncClerkUser(clerkUserId: string) {
         firstName: firstName || existingByEmail.firstName,
         lastName: lastName || existingByEmail.lastName,
         name: name || existingByEmail.name,
-        // Use Clerk username if available, otherwise keep existing
         username: username || existingByEmail.username,
         avatar: avatar || existingByEmail.avatar,
         userLanguage: userLanguage as "en" | "cz" | "de" | "uk" | "el",
         lastLoginAt: new Date(),
+        // Different Clerk identity → treat as fresh registration
+        onboardingCompleted: false,
       },
     });
   }

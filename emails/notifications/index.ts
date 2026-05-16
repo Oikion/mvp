@@ -33,3 +33,12 @@ export { default as ClientCreatedEmail } from "./ClientCreated";
 export { default as PropertyCreatedEmail } from "./PropertyCreated";
 export { default as AccountUpdatedEmail } from "./AccountUpdated";
 export { default as PropertyUpdatedEmail } from "./PropertyUpdated";
+
+// Phase 6 — Requests, Showings, Comments, Deal Stage
+export { default as RequestCreatedEmail } from "./RequestCreated";
+export { default as RequestAssignedEmail } from "./RequestAssigned";
+export { default as RequestStatusChangedEmail } from "./RequestStatusChanged";
+export { default as ShowingScheduledEmail } from "./ShowingScheduled";
+export { default as ShowingStatusChangedEmail } from "./ShowingStatusChanged";
+export { default as CommentAddedEmail } from "./CommentAdded";
+export { default as DealStageChangedEmail } from "./DealStageChanged";

@@ -1,6 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
+import { clerkClient } from "@clerk/nextjs/server";
 import { decryptMessageForOrg } from "@/lib/model-encryption";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 
@@ -257,19 +258,26 @@ export async function searchMentionableUsers(params: {
       });
       userIds = participants.map(p => p.userId);
     } else {
-      // If no channel/conversation, get all org users (for new conversations)
-      const users = await prismadb.users.findMany({
-        where: {
-          userStatus: "ACTIVE",
-          OR: [
-            { name: { contains: params.query, mode: "insensitive" } },
-            { email: { contains: params.query, mode: "insensitive" } },
-          ],
-        },
-        select: { id: true },
-        take: params.limit || 10,
+      // If no channel/conversation, scope to current org members via Clerk.
+      // Users have no organizationId column — membership lives in Clerk.
+      const clerk = await clerkClient();
+      const memberships = await clerk.organizations.getOrganizationMembershipList({
+        organizationId,
+        limit: 500,
       });
-      userIds = users.map(u => u.id);
+      const memberClerkIds = memberships.data
+        .map((m) => m.publicUserData?.userId)
+        .filter((id): id is string => Boolean(id));
+
+      if (memberClerkIds.length === 0) {
+        userIds = [];
+      } else {
+        const orgUsers = await prismadb.users.findMany({
+          where: { clerkUserId: { in: memberClerkIds } },
+          select: { id: true },
+        });
+        userIds = orgUsers.map((u) => u.id);
+      }
     }
 
     // Filter out current user

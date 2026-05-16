@@ -16,6 +16,7 @@ interface DemoModeContextValue {
   advanceTour: () => void;
   completeTour: () => void;
   skipTour: () => void;
+  restartTour: () => void;
   markActionComplete: (step: number) => void;
   isActionComplete: (step: number) => boolean;
 }
@@ -26,6 +27,7 @@ const DemoModeContext = createContext<DemoModeContextValue>({
   advanceTour: () => {},
   completeTour: () => {},
   skipTour: () => {},
+  restartTour: () => {},
   markActionComplete: () => {},
   isActionComplete: () => false,
 });
@@ -93,6 +95,16 @@ export function DemoModeProvider({
     );
   }, []);
 
+  const restartTour = useCallback(async () => {
+    tourDoneRef.current = false;
+    completedActions.current.clear();
+    tourStepRef.current = 0;
+    setTourStep(0);
+    await patchTourStep(0).catch((err) =>
+      console.warn("[DemoModeProvider] Failed to restart tour", err)
+    );
+  }, []);
+
   const markActionComplete = useCallback((step: number) => {
     completedActions.current.add(step);
   }, []);
@@ -108,10 +120,11 @@ export function DemoModeProvider({
       advanceTour,
       completeTour,
       skipTour,
+      restartTour,
       markActionComplete,
       isActionComplete,
     }),
-    [isDemoMode, tourStep, advanceTour, completeTour, skipTour, markActionComplete, isActionComplete]
+    [isDemoMode, tourStep, advanceTour, completeTour, skipTour, restartTour, markActionComplete, isActionComplete]
   );
 
   return (

@@ -117,7 +117,7 @@ export function NetworkPageClient({
   const connectionsT = _t.connections as Record<string, Record<string, string>>;
 
   return (
-    <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4" data-tour="network-feed">
       <TabsList className="grid w-full max-w-2xl grid-cols-6">
         <TabsTrigger value="agents" className="gap-1.5">
           <Users className="h-4 w-4 shrink-0" aria-hidden />

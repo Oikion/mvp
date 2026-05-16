@@ -291,3 +291,22 @@ export type {
   DocTemplateCategory,
   UseDocumentTemplatesOptions,
 } from "./useDocumentTemplates";
+
+// ============================================================
+// Legacy Client (deprecated — migrating to Contacts)
+// ============================================================
+
+export {
+  useClientLinked,
+  getClientLinkedKey,
+  useLinkMandatesToClient,
+  useUnlinkMandateFromClient,
+} from "./useClientLinked";
+
+export {
+  useClientComments,
+  useAddClientComment,
+  useDeleteClientComment,
+  getClientCommentsKey,
+} from "./useClientComments";
+export type { ClientComment } from "./useClientComments";

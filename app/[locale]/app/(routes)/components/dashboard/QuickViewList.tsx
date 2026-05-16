@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -86,23 +86,6 @@ const getClientStatusLabel = (status: string, t: (key: string) => string): strin
   return translated !== statusKey ? translated : status;
 };
 
-// Property type labels mapping
-const propertyTypeLabels: Record<string, string> = {
-  RESIDENTIAL: "Residential",
-  COMMERCIAL: "Commercial",
-  LAND: "Land",
-  RENTAL: "Rental",
-  VACATION: "Vacation",
-  APARTMENT: "Apartment",
-  HOUSE: "House",
-  MAISONETTE: "Maisonette",
-  WAREHOUSE: "Warehouse",
-  PARKING: "Parking",
-  PLOT: "Plot",
-  FARM: "Farm",
-  INDUSTRIAL: "Industrial",
-  OTHER: "Other",
-};
 
 const formatPrice = (price: number | null | undefined): string => {
   if (!price) return "";
@@ -119,6 +102,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
 }) => {
   const tCommon = useTranslations("common");
   const tDashboard = useTranslations("dashboard");
+  const tMls = useTranslations("mls");
   const locale = useLocale();
   const isProperties = viewAllHref.includes("mls");
   const router = useRouter();
@@ -185,10 +169,10 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 flex-shrink-0">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 shrink-0">
         <div className="flex items-center gap-2">
           {icon}
-          <CardTitle className="text-lg">{title}</CardTitle>
+          <h2 className="text-lg font-semibold leading-none tracking-tight">{title}</h2>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href={viewAllHref} className="flex items-center gap-1">
@@ -217,7 +201,9 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
               // Property-specific display
               if (isProperties) {
                 const hasDetails = item.bedrooms || item.bathrooms || item.square_feet;
-                const propertyTypeLabel = item.property_type ? propertyTypeLabels[item.property_type] || item.property_type : null;
+                const propertyTypeLabel = item.property_type
+                  ? tMls(`PropertyForm.propertyType.${item.property_type}` as Parameters<typeof tMls>[0]) || item.property_type
+                  : null;
                 
                 return (
                   <Link
@@ -227,7 +213,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                   >
                     <div className="flex gap-3 p-3">
                       {/* Property thumbnail */}
-                      <div className="relative h-20 w-20 flex-shrink-0 rounded-md bg-muted overflow-hidden">
+                      <div className="relative h-20 w-20 shrink-0 rounded-md bg-muted overflow-hidden">
                         {item.image_url ? (
                           <Image
                             src={item.image_url}
@@ -250,7 +236,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                             <p className="font-semibold text-sm truncate">{displayName}</p>
                             {item.address_city && (
                               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                                <MapPin className="h-3 w-3 flex-shrink-0" />
+                                <MapPin className="h-3 w-3 shrink-0" />
                                 <span className="truncate">{item.address_city}</span>
                               </p>
                             )}
@@ -350,7 +336,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                 >
                   <div className="flex gap-3 p-3">
                     {/* Client avatar */}
-                    <div className="relative h-20 w-20 flex-shrink-0 rounded-md bg-muted overflow-hidden">
+                    <div className="relative h-20 w-20 shrink-0 rounded-md bg-muted overflow-hidden">
                       <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                         <UserCircle className="h-8 w-8" />
                       </div>
@@ -363,7 +349,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                           <p className="font-semibold text-sm truncate">{displayName}</p>
                           {displayEmail && (
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              <Mail className="h-3 w-3 shrink-0" />
                               <span className="truncate">{displayEmail}</span>
                             </p>
                           )}

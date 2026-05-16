@@ -28,11 +28,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userName }) =>
   const displayName = userName?.split(" ")[0] || t("defaultUser");
 
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+    <div>
+      <h1 className="text-h4 tracking-tight">
         {getGreeting()}, {displayName}
       </h1>
-      <p className="text-muted-foreground mt-1">{formatDate()}</p>
+      <p className="text-caption text-muted-foreground mt-1">{formatDate()}</p>
     </div>
   );
 };

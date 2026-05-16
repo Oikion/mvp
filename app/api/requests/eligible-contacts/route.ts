@@ -28,7 +28,7 @@ export async function GET() {
         deletedAt: null,
         linkedProperties: {
           some: {
-            property: { organizationId },
+            property: { organizationId, archivedAt: null },
           },
         },
       },

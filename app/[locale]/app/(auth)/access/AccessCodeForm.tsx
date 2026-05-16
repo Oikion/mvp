@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, type KeyboardEvent, type ClipboardEvent, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "motion/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ interface Props {
 
 export function AccessCodeForm({ locale, redirectTo }: Props) {
   const router = useRouter();
+  const t = useTranslations("auth");
+  const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "Oikion";
   const [digits, setDigits] = useState<string[]>(Array(DIGITS).fill(""));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,14 +112,14 @@ export function AccessCodeForm({ locale, redirectTo }: Props) {
       }
 
       const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Invalid code. Please try again.");
+      setError(data.error ?? t("accessCode.errorInvalid"));
       setShake(true);
       setTimeout(() => setShake(false), 600);
       // Clear the digits on failure
       setDigits(Array(DIGITS).fill(""));
       setTimeout(() => focusInput(0), 50);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("accessCode.errorGeneric"));
     } finally {
       setIsSubmitting(false);
     }
@@ -141,48 +144,52 @@ export function AccessCodeForm({ locale, redirectTo }: Props) {
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
             <ShieldCheck className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Access Code</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t("accessCode.title")}</CardTitle>
           <CardDescription>
-            Enter the 6-digit code to access{" "}
-            {process.env.NEXT_PUBLIC_APP_NAME ?? "the app"}
+            {t("accessCode.description", { appName })}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Digit inputs */}
-            <motion.div
-              animate={shake ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}}
-              transition={{ duration: 0.5 }}
-              className="flex justify-center gap-3"
-            >
-              {digits.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { inputRefs.current[i] = el; }}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={2}
-                  value={digit}
-                  onChange={(e) => handleChange(i, e)}
-                  onKeyDown={(e) => handleKeyDown(i, e)}
-                  onPaste={handlePaste}
-                  onFocus={(e) => e.target.select()}
-                  disabled={isSubmitting}
-                  className={cn(
-                    "w-11 h-14 text-center text-xl font-bold rounded-lg border-2 bg-background",
-                    "transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                    digit
-                      ? "border-primary text-foreground"
-                      : "border-input text-muted-foreground",
-                    error && "border-destructive focus:ring-destructive",
-                    isSubmitting && "opacity-50 cursor-not-allowed"
-                  )}
-                  autoFocus={i === 0}
-                  autoComplete="one-time-code"
-                />
-              ))}
-            </motion.div>
+            <fieldset aria-describedby={error ? "access-code-error" : undefined}>
+              <legend className="sr-only">{t("accessCode.legend")}</legend>
+              <motion.div
+                animate={shake ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}}
+                transition={{ duration: 0.5 }}
+                className="flex justify-center gap-3"
+              >
+                {digits.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => { inputRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={2}
+                    value={digit}
+                    onChange={(e) => handleChange(i, e)}
+                    onKeyDown={(e) => handleKeyDown(i, e)}
+                    onPaste={handlePaste}
+                    onFocus={(e) => e.target.select()}
+                    disabled={isSubmitting}
+                    aria-label={t("accessCode.digitLabel", { n: i + 1, total: DIGITS })}
+                    aria-invalid={!!error}
+                    className={cn(
+                      "w-11 h-14 text-center text-xl font-bold rounded-lg border-2 bg-background",
+                      "transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                      digit
+                        ? "border-primary text-foreground"
+                        : "border-input text-muted-foreground",
+                      error && "border-destructive focus:ring-destructive",
+                      isSubmitting && "opacity-50 cursor-not-allowed"
+                    )}
+                    autoFocus={i === 0}
+                    autoComplete={i === 0 ? "one-time-code" : "off"}
+                  />
+                ))}
+              </motion.div>
+            </fieldset>
 
             {/* Error */}
             <AnimatePresence>
@@ -191,6 +198,7 @@ export function AccessCodeForm({ locale, redirectTo }: Props) {
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
+                  id="access-code-error"
                   className="text-sm text-destructive text-center"
                 >
                   {error}
@@ -207,10 +215,10 @@ export function AccessCodeForm({ locale, redirectTo }: Props) {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying…
+                  {t("accessCode.verifying")}
                 </>
               ) : (
-                "Continue"
+                t("accessCode.continue")
               )}
             </Button>
           </form>

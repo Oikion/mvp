@@ -21,6 +21,7 @@ import { useOrgUsers } from "@/hooks/swr";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { SharedActionModals } from "@/components/entity";
+import { bulkArchiveEntities } from "@/actions/archive/bulk-archive-entities";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar } from "@/components/ui/grid-toolbar";
 import { ExportButton } from "@/components/export";
@@ -157,6 +158,11 @@ export default function PropertiesPageView({
     router.refresh();
   }, [router]);
 
+  const handleBulkDeleteProperties = useCallback(async (ids: string[]) => {
+    await bulkArchiveEntities("property", ids);
+    router.refresh();
+  }, [router]);
+
   const handleReset = useCallback(() => {
     setSearchQuery("");
     setSelectedFilters({});
@@ -232,7 +238,7 @@ export default function PropertiesPageView({
             <Building2 className="h-4 w-4 shrink-0" />
             {t("Tabs.agencyProperties")}
             {totalProperties > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs font-medium">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-xs font-medium">
                 {totalProperties}
               </span>
             )}
@@ -310,7 +316,7 @@ export default function PropertiesPageView({
             <CardContent className="pt-6">
               {!agencyProperties || agencyProperties.length === 0 ? (
                 <div className="text-center text-muted-foreground py-12">
-                  <Home className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <Home className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" aria-hidden="true" />
                   <p className="font-medium">{t("EmptyState.noAgencyProperties")}</p>
                   <p className="text-sm mt-1">{t("EmptyState.createFirstProperty")}</p>
                 </div>
@@ -321,6 +327,7 @@ export default function PropertiesPageView({
                   getRowHref={(row: any) => `/app/mls/properties/${row.friendlyId}`}
                   toolbarRight={<ViewToggle view={view} setView={setView} />}
                   onRefresh={handleRefresh}
+                  onBulkDelete={handleBulkDeleteProperties}
                 />
               ) : (
                 <div className="space-y-4">
@@ -377,7 +384,7 @@ export default function PropertiesPageView({
             <CardContent className="pt-6">
               {sharedProperties.length === 0 ? (
                 <div className="text-center text-muted-foreground py-12">
-                  <Share2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <Share2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" aria-hidden="true" />
                   <p className="font-medium">{t("EmptyState.noSharedProperties")}</p>
                   <p className="text-sm mt-1">{t("EmptyState.connectToReceive")}</p>
                 </div>

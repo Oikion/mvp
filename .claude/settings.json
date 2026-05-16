@@ -3,6 +3,19 @@
     "MAX_THINKING_TOKENS": "10000"
   },
   "permissions": {
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f *)",
+      "Bash(git push -f)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(chmod 777 *)",
+      "Bash(sudo rm*)",
+      "Bash(git push origin main --force*)",
+      "Bash(ssh*)",
+      "Bash(* > /dev/*)"
+    ],
     "allow": [
       "Bash(pnpm vitest run tests/e2ee/)",
       "Bash(pnpm vitest run tests/e2ee/megolm.test.ts)",
@@ -34,5 +47,33 @@
       "Bash(pnpm vitest run *)"
     ]
   },
-  "model": "sonnet"
+  "model": "sonnet",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); CMD=$(echo \"$INPUT\" | jq -r '.tool_input.command // empty' 2>/dev/null); [ -z \"$CMD\" ] && exit 0; DANGEROUS=''; if echo \"$CMD\" | grep -qE 'rm -rf +(/|~|\\.)'; then DANGEROUS='rm -rf on root/home/project path'; elif echo \"$CMD\" | grep -qE 'git push.*(--force|-f)'; then DANGEROUS='git push --force overwrites remote history'; elif echo \"$CMD\" | grep -qE 'git reset --hard'; then DANGEROUS='git reset --hard discards all uncommitted changes'; elif echo \"$CMD\" | grep -qE 'git (checkout|restore) \\.'; then DANGEROUS='git checkout/restore . discards all working tree changes'; elif echo \"$CMD\" | grep -qiE 'DROP (TABLE|DATABASE)'; then DANGEROUS='SQL DROP TABLE or DROP DATABASE'; elif echo \"$CMD\" | grep -qE 'docker system prune'; then DANGEROUS='docker system prune removes all unused container data'; elif echo \"$CMD\" | grep -qE 'chmod 777'; then DANGEROUS='chmod 777 sets world-writable permissions'; elif echo \"$CMD\" | grep -qE 'sudo rm'; then DANGEROUS='sudo rm is a privileged file deletion'; elif echo \"$CMD\" | grep -qE '(^|[[:space:]])npm publish'; then DANGEROUS='npm publish could release a package publicly'; elif echo \"$CMD\" | grep -q -- '--no-verify'; then DANGEROUS='--no-verify bypasses git safety hooks'; fi; [ -z \"$DANGEROUS\" ] && exit 0; mkdir -p ~/.claude && echo \"$(date -u +%Y-%m-%dT%H:%M:%SZ) BLOCKED: $DANGEROUS\" >> ~/.claude/safety-guard.log 2>/dev/null; jq -n --arg r \"[Safety Guard - Careful Mode] $DANGEROUS. Confirm this is intentional before proceeding.\" '{\"decision\":\"block\",\"reason\":$r}'",
+            "timeout": 10,
+            "statusMessage": "Safety Guard checking command..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -z \"$FILE\" ] && exit 0; echo \"$FILE\" | grep -qE '\\.(ts|tsx)$' || exit 0; pnpm exec eslint \"$FILE\" --max-warnings 0 2>&1 | head -30",
+            "timeout": 30,
+            "statusMessage": "ESLint checking edited file..."
+          }
+        ]
+      }
+    ]
+  }
 }

@@ -65,26 +65,39 @@ export default function ArchiveActions({
   return (
     <div className="flex items-center gap-2">
       {canRestore && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRestore}
-          disabled={isPending}
-        >
-          {t("actions.restore")}
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="sm" disabled={isPending}>
+              {isPending ? "…" : t("actions.restore")}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("actions.restore")}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("actions.restoreConfirm")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("actions.cancelButton")}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRestore}>
+                {t("actions.restore")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
 
       {canPurge && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm" disabled={isPending}>
-              {t("actions.purgeButton")}
+              {isPending ? "…" : t("actions.purgeButton")}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("actions.purgeConfirm")}</AlertDialogTitle>
+              <AlertDialogTitle>{t("actions.purge")}</AlertDialogTitle>
               <AlertDialogDescription>
                 {t("actions.purgeConfirm")}
               </AlertDialogDescription>

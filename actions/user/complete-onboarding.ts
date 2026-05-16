@@ -250,24 +250,33 @@ export async function completeOnboarding(
       }
     }
 
-    // Create demo org and record tourStep in Clerk metadata
-    try {
-      if (!user.clerkUserId) throw new Error("clerkUserId is null — cannot create demo org");
-      const demoLocale = params.language === "el" ? "el" : "en";
-      const { demoOrgId } = await createDemoOrgForUser(user.clerkUserId, demoLocale);
-      const clerk = await clerkClient();
-      const clerkUser = await clerk.users.getUser(user.clerkUserId);
-      const existingMeta = (clerkUser.publicMetadata ?? {}) as Record<string, unknown>;
-      await clerk.users.updateUser(user.clerkUserId, {
-        publicMetadata: {
-          ...existingMeta,
-          demoOrgId,
-          tourStep: 0,
-        },
-      });
-    } catch (demoError) {
-      // Demo org creation is non-blocking — log but don't fail onboarding
-      console.error("[COMPLETE_ONBOARDING_DEMO]", demoError);
+    // Set tourStep: 0 for all users and attempt demo org creation.
+    // tourStep is always written — demo org failure is non-blocking.
+    if (user.clerkUserId) {
+      try {
+        const clerk = await clerkClient();
+        const clerkUser = await clerk.users.getUser(user.clerkUserId);
+        const existingMeta = (clerkUser.publicMetadata ?? {}) as Record<string, unknown>;
+
+        let demoOrgId: string | undefined;
+        try {
+          const demoLocale = params.language === "el" ? "el" : "en";
+          const result = await createDemoOrgForUser(user.clerkUserId, demoLocale);
+          demoOrgId = result.demoOrgId;
+        } catch (demoError) {
+          console.error("[COMPLETE_ONBOARDING_DEMO]", demoError);
+        }
+
+        await clerk.users.updateUser(user.clerkUserId, {
+          publicMetadata: {
+            ...existingMeta,
+            tourStep: 0,
+            ...(demoOrgId ? { demoOrgId } : {}),
+          },
+        });
+      } catch (metaError) {
+        console.error("[COMPLETE_ONBOARDING_TOUR_STEP]", metaError);
+      }
     }
 
     // Revalidate paths

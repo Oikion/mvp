@@ -111,7 +111,7 @@ export async function POST(
     // Verify contact belongs to org
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true, displayName: true, assignedAgentId: true },
+      select: { id: true, displayName: true, assignedAgentId: true, createdBy: true },
     });
 
     if (!contact) {
@@ -221,7 +221,7 @@ export async function POST(
       },
     });
 
-    // Notify assignee — fire-and-forget
+    // Notify assignee and owner — fire-and-forget
     void notifyCommentAdded({
       entityType: "CONTACT",
       entityId: contactId,
@@ -231,6 +231,7 @@ export async function POST(
       actorId: user.id,
       actorName: user.name ?? user.email ?? "Someone",
       assigneeId: contact.assignedAgentId ?? null,
+      entityOwnerId: contact.createdBy ?? null,
     }).catch((err) => console.error("[CONTACT_COMMENT_NOTIFY]", err));
 
     // For Standard orgs, decrypt before returning to client

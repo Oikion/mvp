@@ -1,7 +1,13 @@
 {
   "title": "Upcoming",
   "description": "Your upcoming events, tasks, and reminders",
+  "loading": "Loading your schedule...",
   "overdue": "Overdue",
+  "priority": {
+    "HIGH": "High",
+    "MEDIUM": "Medium",
+    "LOW": "Low"
+  },
   "stats": {
     "overdue": "Overdue",
     "today": "Today",
@@ -23,7 +29,8 @@
   "empty": {
     "title": "All caught up!",
     "description": "You have no upcoming events, tasks, or reminders. Enjoy your free time!",
-    "viewCalendar": "View Calendar"
+    "viewCalendar": "View Calendar",
+    "createTask": "Create Task"
   },
   "quickActions": {
     "description": "Need to schedule something?",

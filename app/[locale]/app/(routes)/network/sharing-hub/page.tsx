@@ -69,7 +69,7 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
             <Share2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline ml-2">{t.topTabs.sharedWithMe}</span>
             {allShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-xs">
                 {allShared.length}
               </span>
             )}
@@ -88,7 +88,7 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
                 <Share2 className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline ml-1">{t.tabs.all}</span>
                 {allShared.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
+                  <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-xs">
                     {allShared.length}
                   </span>
                 )}

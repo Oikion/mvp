@@ -172,7 +172,7 @@ export function EntityPageView<TAgency, TShared>({
             <Building2 className="h-4 w-4 shrink-0" />
             {translations.agencyTabLabel}
             {totalAgencyItems > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs font-medium">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-xs font-medium">
                 {totalAgencyItems}
               </span>
             )}

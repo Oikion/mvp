@@ -47,7 +47,7 @@ export function TaskEventCard({ task }: TaskEventCardProps) {
   };
 
   return (
-    <Card className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <CardTitle className="text-base font-semibold flex items-center gap-2">

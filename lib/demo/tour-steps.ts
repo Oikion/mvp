@@ -16,6 +16,13 @@ export interface TourStep {
  */
 export const ACTION_REQUIRED_STEPS = [4, 5, 8] as const;
 
+/**
+ * Real-user tour steps that require a nav click before Next is enabled.
+ * Steps 2, 4, 6 are the import-nav, network-nav, and matchmaking-nav steps.
+ * Clicking the nav link auto-advances the tour (no separate Next click needed).
+ */
+export const REAL_USER_ACTION_REQUIRED_STEPS = [2, 4, 6] as const;
+
 const stepsEl: TourStep[] = [
   // Chapter 1 — Orientation (steps 0–2, observational)
   {
@@ -230,4 +237,149 @@ const stepsEn: TourStep[] = [
 
 export function getTourSteps(locale: "el" | "en"): TourStep[] {
   return locale === "el" ? stepsEl : stepsEn;
+}
+
+// ─── Real-user onboarding tour (non-demo orgs) ───────────────────────────────
+// Covers: Navigation, Import, Network, Matchmaking (8 steps, no action gates)
+
+const realUserStepsEl: TourStep[] = [
+  // Chapter 1 — Navigation
+  {
+    element: "[data-tour='sidebar-nav']",
+    popover: {
+      title: "Η πλοήγησή σου",
+      description: "Από εδώ έχεις πρόσβαση σε όλα: ακίνητα, επαφές, αιτήματα, συμφωνίες και δίκτυο — ένα μέρος για τα πάντα.",
+      side: "right",
+    },
+  },
+  {
+    // No element — shows centered; describes CMD+K search
+    popover: {
+      title: "Γρήγορη αναζήτηση — ⌘K",
+      description: "Πάτησε ⌘K (ή Ctrl+K) από οποιαδήποτε σελίδα για να αναζητήσεις ακίνητα, επαφές, έγγραφα και να πλοηγηθείς άμεσα.",
+    },
+  },
+  // Chapter 2 — Import
+  {
+    element: "[data-tour='import-nav']",
+    popover: {
+      title: "Εισαγωγή δεδομένων",
+      description: "Εισήγαγε επαφές ή ακίνητα από CSV με ένα βήμα — το σύστημα αντιστοιχεί τα πεδία αυτόματα. Κάνε κλικ για να συνεχίσεις.",
+      side: "right",
+    },
+  },
+  {
+    element: "[data-tour='import-upload-zone']",
+    popover: {
+      title: "Ανέβασε το αρχείο σου",
+      description: "Σύρε ένα CSV ή κάνε κλικ για να επιλέξεις αρχείο. Το σύστημα θα αντιστοιχίσει αυτόματα τις στήλες στα πεδία της πλατφόρμας.",
+      side: "top",
+    },
+  },
+  // Chapter 3 — Network
+  {
+    element: "[data-tour='network-nav']",
+    popover: {
+      title: "Επαγγελματικό δίκτυο",
+      description: "Σύνδεσε με άλλους μεσίτες, μοιράσου ακίνητα και λάβε αιτήματα συνεργασίας. Κάνε κλικ για να εξερευνήσεις.",
+      side: "right",
+    },
+  },
+  {
+    element: "[data-tour='network-feed']",
+    popover: {
+      title: "Ροή δικτύου",
+      description: "Δες τι κάνουν οι συνεργάτες σου — δημοσιεύσεις ακινήτων, ανακοινώσεις και ενημερώσεις σε πραγματικό χρόνο.",
+      side: "top",
+    },
+  },
+  // Chapter 4 — Matchmaking
+  {
+    element: "[data-tour='matchmaking-nav']",
+    popover: {
+      title: "Αντιστοίχιση ακινήτων",
+      description: "Η πλατφόρμα αντιστοιχεί αυτόματα τα ακίνητά σου με τα αιτήματα πελατών. Κάνε κλικ για να δεις τις προτάσεις.",
+      side: "right",
+    },
+  },
+  {
+    // No element — full-screen completion
+    popover: {
+      title: "Έτοιμος να ξεκινήσεις!",
+      description: "Έχεις εξερευνήσει τα βασικά της πλατφόρμας. Μπορείς να επιστρέψεις σε αυτόν τον οδηγό οποιαδήποτε στιγμή από την πλευρική μπάρα.",
+    },
+  },
+];
+
+const realUserStepsEn: TourStep[] = [
+  // Chapter 1 — Navigation
+  {
+    element: "[data-tour='sidebar-nav']",
+    popover: {
+      title: "Your navigation hub",
+      description: "Access everything from here: properties, contacts, requests, deals, and your network — all in one place.",
+      side: "right",
+    },
+  },
+  {
+    // No element — shows centered; describes CMD+K search
+    popover: {
+      title: "Quick search — ⌘K",
+      description: "Press ⌘K (or Ctrl+K) from anywhere to search properties, contacts, documents, and navigate instantly.",
+    },
+  },
+  // Chapter 2 — Import
+  {
+    element: "[data-tour='import-nav']",
+    popover: {
+      title: "Import your data",
+      description: "Bring in contacts or properties from a CSV in one step — fields are mapped automatically. Click to continue.",
+      side: "right",
+    },
+  },
+  {
+    element: "[data-tour='import-upload-zone']",
+    popover: {
+      title: "Upload your file",
+      description: "Drag a CSV or click to choose a file. The system will auto-map columns to the platform's fields.",
+      side: "top",
+    },
+  },
+  // Chapter 3 — Network
+  {
+    element: "[data-tour='network-nav']",
+    popover: {
+      title: "Your professional network",
+      description: "Connect with other agents, share listings, and receive collaboration requests. Click to explore.",
+      side: "right",
+    },
+  },
+  {
+    element: "[data-tour='network-feed']",
+    popover: {
+      title: "Network feed",
+      description: "See what your partners are doing — property posts, announcements, and updates in real time.",
+      side: "top",
+    },
+  },
+  // Chapter 4 — Matchmaking
+  {
+    element: "[data-tour='matchmaking-nav']",
+    popover: {
+      title: "Smart matchmaking",
+      description: "The platform automatically matches your listings against client requests. Click to see the suggestions.",
+      side: "right",
+    },
+  },
+  {
+    // No element — full-screen completion
+    popover: {
+      title: "You're all set!",
+      description: "You've explored the platform basics. You can revisit this tour at any time from the sidebar.",
+    },
+  },
+];
+
+export function getRealUserTourSteps(locale: "el" | "en"): TourStep[] {
+  return locale === "el" ? realUserStepsEl : realUserStepsEn;
 }

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -104,13 +105,6 @@ interface ClientViewProps {
 // Status badge styles
 // ---------------------------------------------------------------------------
 
-const statusColors: Record<string, string> = {
-  LEAD: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  ACTIVE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  INACTIVE: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  CONVERTED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  LOST: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-};
 
 // ---------------------------------------------------------------------------
 // Component
@@ -263,12 +257,11 @@ export default function ClientView({
                 {data.client_name}
               </h1>
               {data.client_status && (
-                <Badge
-                  className={statusColors[data.client_status] ?? statusColors.LEAD}
-                  variant="secondary"
-                >
-                  {displayEnum(data.client_status)}
-                </Badge>
+                <StatusBadge
+                  entityType="client"
+                  status={data.client_status}
+                  label={displayEnum(data.client_status) ?? undefined}
+                />
               )}
               {data.client_type && (
                 <Badge variant="outline">
@@ -448,12 +441,11 @@ export default function ClientView({
                 label={t("ClientView.status")}
                 value={
                   data.client_status ? (
-                    <Badge
-                      className={statusColors[data.client_status] ?? statusColors.LEAD}
-                      variant="secondary"
-                    >
-                      {displayEnum(data.client_status)}
-                    </Badge>
+                    <StatusBadge
+                      entityType="client"
+                      status={data.client_status}
+                      label={displayEnum(data.client_status) ?? undefined}
+                    />
                   ) : null
                 }
               />

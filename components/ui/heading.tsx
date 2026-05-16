@@ -69,15 +69,15 @@ const Heading = ({
   const Tag = level;
 
   return (
-    <div className={cn("mb-4", className)}>
+    <div className={cn("mb-3", className)}>
       <Tag className={cn("flex items-center gap-2", headingStyles[level])}>
         {title}
         {visibility === "private" && (
-          <Lock className="h-5 w-5 text-muted-foreground" aria-label="Private" />
+          <Lock className="h-4 w-4 text-muted-foreground" aria-label="Private" />
         )}
       </Tag>
       {description && (
-        <p className="text-caption text-muted-foreground mt-2">{description}</p>
+        <p className="text-caption text-muted-foreground mt-1">{description}</p>
       )}
     </div>
   );

@@ -1,14 +1,27 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
-import Link from "next/link";
+import { getOrgMembersFromDb } from "@/lib/org-members";
+import { Link } from "@/navigation";
 import { redirect } from "next/navigation";
 import TryAgain from "./components/TryAgain";
 import { Users } from "@prisma/client";
+import { getTranslations } from "next-intl/server";
 
-const PendingPage = async () => {
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+const PendingPage = async ({ params }: Props) => {
+  await params;
+  const t = await getTranslations("auth");
+  const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "Oikion";
+
+  const { clerkUserIds } = await getOrgMembersFromDb();
   const adminUsers: Users[] = await prismadb.users.findMany({
     where: {
+      clerkUserId: { in: clerkUserIds },
       is_admin: true,
       userStatus: "ACTIVE",
     },
@@ -21,47 +34,47 @@ const PendingPage = async () => {
   }
 
   return (
-    <div className="flex flex-col space-y-5 justify-center items-center max-w-3xl border rounded-md p-10 shadow-md">
-      {/*       <pre>
-        <code>{JSON.stringify(user, null, 2)}</code>
-      </pre> */}
-      <div className="flex flex-col">
-        <h1 className="text-3xl">
-          {process.env.NEXT_PUBLIC_APP_NAME} - your account must be allowed by
-          Admin
-        </h1>
-        <p>
-          Hi, welcome to {process.env.NEXT_PUBLIC_APP_NAME}. Ask someone in your
-          organization to approve your account. If you are fist user call to
-          tech support to enable account.
-        </p>
-      </div>
-      <div className="flex flex-col justify-center ">
-        <h2 className="flex justify-center text-xl">Admin List</h2>
-        {adminUsers &&
-          adminUsers?.map((user: Users) => (
-            <div
-              key={user.id}
-              className="flex flex-col p-5 m-2 gap-3 border rounded-md"
-            >
-              <div>
-                <p className="font-bold">{user.name}</p>
-                <p>{user.id}</p>
-                <p>
-                  <Link href={`mailto:  ${user.email}`}>{user.email}</Link>
-                </p>
-              </div>
-            </div>
-          ))}
-      </div>
-      <div className="flex flex-col md:flex-row space-x-2 justify-center items-center">
-        <Button asChild>
-          <Link href="/app/sign-in">Log-in with another account</Link>
-        </Button>
-        <p>or</p>
-        <TryAgain />
-      </div>
-    </div>
+    <Card className="w-full max-w-2xl">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl font-bold">{t("pending.title")}</CardTitle>
+        <CardDescription>
+          {t("pending.description", { appName })}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {adminUsers.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              {t("pending.adminsHeading")}
+            </h2>
+            <ul className="space-y-2">
+              {adminUsers.map((admin: Users) => (
+                <li
+                  key={admin.id}
+                  className="flex flex-col gap-0.5 rounded-md border p-4"
+                >
+                  <span className="font-medium text-foreground">{admin.name}</span>
+                  <Link
+                    href={`mailto:${admin.email}`}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {admin.email}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <Button asChild variant="outline">
+            <Link href="/app/sign-in">{t("pending.signInOther")}</Link>
+          </Button>
+          <span className="text-sm text-muted-foreground">{t("pending.or")}</span>
+          <TryAgain />
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -27,6 +27,7 @@ import {
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Input } from "@/components/ui/input";
 import { Icons } from "@/components/ui/icons";
+import { useDemoMode } from "@/components/demo/DemoModeProvider";
 
 const FormSchema = z.object({
   email: z.string().email(),
@@ -39,6 +40,7 @@ export function OrganizationInviteForm() {
   const router = useRouter();
   const { toast } = useAppToast();
   const { organization } = useOrganization();
+  const { isDemoMode } = useDemoMode();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -82,6 +84,16 @@ export function OrganizationInviteForm() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (isDemoMode) {
+    return (
+      <div className="flex w-full items-center gap-3 px-5 py-4 rounded-lg border border-dashed text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">{t("inviteDisabledDemo")}</span>
+        <span className="hidden sm:inline">—</span>
+        <span className="hidden sm:inline">{t("inviteDisabledDemoDescription")}</span>
+      </div>
+    );
   }
 
   return (

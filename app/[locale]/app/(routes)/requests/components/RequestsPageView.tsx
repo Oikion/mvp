@@ -4,14 +4,15 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { RequestDataTable } from "../table-components/data-table";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar, type GridFilter } from "@/components/ui/grid-toolbar";
 import { ExportButton } from "@/components/export";
 import { SharedActionModals } from "@/components/entity";
+import { bulkArchiveEntities } from "@/actions/archive/bulk-archive-entities";
 import { QuickAddRequest } from "./QuickAddRequest";
 import { NewRequestWizard } from "./NewRequestWizard";
 import { useRequestColumns } from "../table-components/columns";
@@ -30,28 +31,6 @@ import { AutoGenerateRequestsDialog } from "./AutoGenerateRequestsDialog";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/navigation";
 import { Link } from "@/navigation";
-import { cn } from "@/lib/utils";
-
-// ── Status badge colors ──
-const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  MATCHED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  UNDER_OFFER: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  CLOSED: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  PAUSED: "bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400",
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  BUY: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  RENT: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
-};
-
-const URGENCY_COLORS: Record<string, string> = {
-  LOW: "bg-gray-100 text-gray-600",
-  MEDIUM: "bg-yellow-100 text-yellow-700",
-  HIGH: "bg-orange-100 text-orange-700",
-  CRITICAL: "bg-red-100 text-red-700",
-};
 
 interface RequestsPageViewProps {
   requests: any[];
@@ -156,6 +135,11 @@ export default function RequestsPageView({
   }, []);
 
   const handleRefresh = useCallback(() => router.refresh(), [router]);
+
+  const handleBulkDeleteRequests = useCallback(async (ids: string[]) => {
+    await bulkArchiveEntities("request", ids);
+    router.refresh();
+  }, [router]);
   const handleReset = useCallback(() => {
     setSearchQuery("");
     setSelectedFilters({});
@@ -170,20 +154,20 @@ export default function RequestsPageView({
             {/* Header: type + status */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <Badge
-                  className={cn("shrink-0 text-[10px] font-semibold", TYPE_COLORS[request.requestType] || TYPE_COLORS.BUY)}
-                  variant="secondary"
-                >
-                  {t(`requestType.${request.requestType}` as Parameters<typeof t>[0])}
-                </Badge>
+                <StatusBadge
+                  entityType="request_type"
+                  status={request.requestType}
+                  label={t(`requestType.${request.requestType}` as Parameters<typeof t>[0])}
+                  className="shrink-0"
+                />
                 <span className="text-xs text-muted-foreground truncate">{request.friendlyId}</span>
               </div>
-              <Badge
-                className={cn("shrink-0 text-[10px] font-medium", STATUS_COLORS[request.status] || STATUS_COLORS.ACTIVE)}
-                variant="secondary"
-              >
-                {t(`status.${request.status}` as Parameters<typeof t>[0])}
-              </Badge>
+              <StatusBadge
+                entityType="request"
+                status={request.status}
+                label={t(`status.${request.status}` as Parameters<typeof t>[0])}
+                className="shrink-0"
+              />
             </div>
 
             {/* Linked contacts */}
@@ -219,12 +203,11 @@ export default function RequestsPageView({
             {/* Urgency badge */}
             {request.urgency && request.urgency !== "MEDIUM" && (
               <div className="pt-1">
-                <Badge
-                  variant="outline"
-                  className={cn("text-[10px] px-1.5 py-0", URGENCY_COLORS[request.urgency])}
-                >
-                  {t(`urgency.${request.urgency}` as Parameters<typeof t>[0])}
-                </Badge>
+                <StatusBadge
+                  entityType="priority"
+                  status={request.urgency}
+                  label={t(`urgency.${request.urgency}` as Parameters<typeof t>[0])}
+                />
               </div>
             )}
           </CardContent>
@@ -294,6 +277,7 @@ export default function RequestsPageView({
               getRowHref={(row: any) => `/app/requests/${row.friendlyId ?? row.id}`}
               toolbarRight={<ViewToggle view={view} setView={setView} />}
               onRefresh={handleRefresh}
+              onBulkDelete={handleBulkDeleteRequests}
             />
           ) : (
             <div className="space-y-4">

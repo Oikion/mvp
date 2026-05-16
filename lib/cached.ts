@@ -94,24 +94,43 @@ export const getCachedModules = cache(async () => {
 });
 
 // ============================================
+// CLERK USER - Fresh user data from Clerk API (not JWT cache)
+// ============================================
+
+/**
+ * Get the current Clerk user object with request-level caching.
+ * Unlike sessionClaims.publicMetadata (JWT, ~60s stale), this reads
+ * directly from the Clerk API and is always fresh. Used when we need
+ * up-to-date publicMetadata (e.g., tourStep set during onboarding).
+ */
+export const getCachedClerkUser = cache(async () => {
+  const { userId } = await getAuth();
+  if (!userId) return null;
+  try {
+    const clerk = await clerkClient();
+    return await clerk.users.getUser(userId);
+  } catch (error) {
+    console.error("[CACHED_CLERK_USER]", error);
+    return null;
+  }
+});
+
+// ============================================
 // PLATFORM ADMIN - Cached admin status check
 // ============================================
 
 /**
- * Check if current user is a platform admin with request-level caching
- * This is an expensive operation (Clerk API call) so caching is important
+ * Check if current user is a platform admin with request-level caching.
+ * Reuses getCachedClerkUser so only one Clerk API call is made per request.
  */
 export const getCachedIsPlatformAdmin = cache(async (): Promise<boolean> => {
   try {
-    const { userId } = await getAuth();
+    const user = await getCachedClerkUser();
 
-    if (!userId) {
+    if (!user) {
       return false;
     }
 
-    // Check env-based admin emails
-    const clerk = await clerkClient();
-    const user = await clerk.users.getUser(userId);
     const userEmail = user.emailAddresses?.[0]?.emailAddress?.toLowerCase().trim();
 
     if (userEmail) {

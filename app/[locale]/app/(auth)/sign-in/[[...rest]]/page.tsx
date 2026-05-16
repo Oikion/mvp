@@ -24,7 +24,8 @@ export default async function SignInPage({ params }: SignInPageProps) {
   return (
     <div className="flex justify-center items-center min-h-screen px-4">
       <SignIn
-        routing="virtual"
+        routing="path"
+        path={`/${locale}/app/sign-in`}
         fallbackRedirectUrl={`/${locale}/app`}
         signUpUrl={`/${locale}/app/register`}
       />

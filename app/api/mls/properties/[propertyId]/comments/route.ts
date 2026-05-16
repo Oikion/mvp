@@ -146,13 +146,14 @@ export async function POST(
         id: propertyId,
         organizationId,
       },
-      select: { id: true, organizationId: true, property_name: true, assigned_to: true },
+      select: { id: true, organizationId: true, property_name: true, assigned_to: true, createdBy: true },
     });
 
     let canComment = !!property; // Org members can always comment
     let propertyName = property?.property_name;
     let propertyOrgId = property?.organizationId ?? organizationId;
     let propertyAssignedTo = property?.assigned_to ?? null;
+    let propertyCreatedBy = property?.createdBy ?? null;
 
     if (!canComment) {
       // Check if shared with VIEW_COMMENT permission
@@ -168,15 +169,16 @@ export async function POST(
 
       if (share) {
         canComment = true;
-        // Fetch property name, assignee, and owning org for notification and DEK selection
+        // Fetch property name, assignee, owner, and owning org for notification and DEK selection
         const sharedProperty = await prismadb.properties.findUnique({
           where: { id: propertyId },
-          select: { property_name: true, organizationId: true, assigned_to: true },
+          select: { property_name: true, organizationId: true, assigned_to: true, createdBy: true },
         });
         propertyName = sharedProperty?.property_name;
         if (sharedProperty) {
           propertyOrgId = sharedProperty.organizationId;
           propertyAssignedTo = sharedProperty.assigned_to ?? null;
+          propertyCreatedBy = sharedProperty.createdBy ?? null;
         }
       }
     }
@@ -293,7 +295,7 @@ export async function POST(
       },
     });
 
-    // Notify assignee — fire-and-forget
+    // Notify assignee and owner — fire-and-forget
     void notifyCommentAdded({
       entityType: "PROPERTY",
       entityId: propertyId,
@@ -303,6 +305,7 @@ export async function POST(
       actorId: user.id,
       actorName: user.name ?? user.email ?? "Someone",
       assigneeId: propertyAssignedTo,
+      entityOwnerId: propertyCreatedBy,
     }).catch((err) => console.error("[PROPERTY_COMMENT_NOTIFY]", err));
 
     const responseComment = isE2EE
@@ -328,6 +331,7 @@ export async function DELETE(
 ) {
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const { propertyId } = await params;
     const { searchParams } = new URL(req.url);
     const commentId = searchParams.get("commentId");
@@ -339,12 +343,13 @@ export async function DELETE(
       );
     }
 
-    // Verify comment exists and belongs to user
+    // Verify comment belongs to user AND property belongs to caller's org (IDOR guard)
     const comment = await prismadb.propertyComment.findFirst({
       where: {
         id: commentId,
         propertyId,
-        userId: user.id, // Only author can delete
+        userId: user.id,
+        Properties: { organizationId },
       },
     });
 

@@ -18,6 +18,14 @@ import {
   Clock,
   ArrowRight,
   ScrollText,
+  Handshake,
+  Network,
+  MessageCircle,
+  Share2,
+  Rss,
+  Target,
+  Upload,
+  UserRound,
 } from "lucide-react";
 import {
   CommandDialog,
@@ -65,19 +73,34 @@ const FILTER_TABS: { value: FilterType; label: string; icon: React.ComponentType
 ];
 
 const QUICK_ACTIONS = [
-  { id: "new-property", label: "New Property", icon: Building2, path: "/app/mls/new", shortcut: "P" },
-  { id: "new-client", label: "New Client", icon: User, path: "/app/crm/new", shortcut: "C" },
-  { id: "new-request", label: "New Request", icon: ScrollText, path: "/app/requests/new", shortcut: "M" },
-  { id: "new-event", label: "New Event", icon: Calendar, path: "/app/calendar/new", shortcut: "E" },
-  { id: "new-document", label: "Upload Document", icon: FileText, path: "/app/documents/upload", shortcut: "D" },
+  { id: "new-property", label: "New Property", icon: Building2, path: "/mls/properties", shortcut: "P" },
+  { id: "new-contact", label: "New Contact", icon: User, path: "/crm/contacts", shortcut: "C" },
+  { id: "new-request", label: "New Request", icon: ScrollText, path: "/requests", shortcut: "M" },
+  { id: "new-deal", label: "New Deal", icon: Handshake, path: "/deals", shortcut: "L" },
+  { id: "new-event", label: "New Event", icon: Calendar, path: "/calendar", shortcut: "E" },
+  { id: "import", label: "Import Data", icon: Upload, path: "/import/add", shortcut: "I" },
 ];
 
 const NAVIGATION_ITEMS = [
-  { id: "go-properties", label: "Properties", icon: Building2, path: "/app/mls/properties", shortcut: "G P" },
-  { id: "go-requests", label: "Requests", icon: ScrollText, path: "/app/requests", shortcut: "G M" },
-  { id: "go-contacts", label: "Contacts", icon: Users, path: "/app/crm/contacts", shortcut: "G C" },
-  { id: "go-documents", label: "Documents", icon: FileText, path: "/app/documents", shortcut: "G D" },
-  { id: "go-calendar", label: "Calendar", icon: Calendar, path: "/app/calendar", shortcut: "G E" },
+  { id: "go-properties", label: "Properties", icon: Building2, path: "/mls/properties", shortcut: "G P" },
+  { id: "go-requests", label: "Requests", icon: ScrollText, path: "/requests", shortcut: "G M" },
+  { id: "go-contacts", label: "Contacts", icon: Users, path: "/crm/contacts", shortcut: "G C" },
+  { id: "go-deals", label: "Deals", icon: Handshake, path: "/deals", shortcut: "G L" },
+  { id: "go-documents", label: "Documents", icon: FileText, path: "/documents", shortcut: "G D" },
+  { id: "go-calendar", label: "Calendar", icon: Calendar, path: "/calendar", shortcut: "G E" },
+  { id: "go-matchmaking", label: "Matchmaking", icon: Target, path: "/matchmaking", shortcut: "G X" },
+];
+
+const NETWORK_ITEMS = [
+  { id: "go-feed", label: "Network Feed", icon: Rss, path: "/network/feed", shortcut: "N F" },
+  { id: "go-messages", label: "Messages", icon: MessageCircle, path: "/network/messages", shortcut: "N M" },
+  { id: "go-sharing-hub", label: "Sharing Hub", icon: Share2, path: "/network/sharing-hub", shortcut: "N S" },
+  { id: "go-connections", label: "Agents & Connections", icon: Network, path: "/network", shortcut: "N A" },
+  { id: "go-my-profile", label: "My Network Profile", icon: UserRound, path: "/network/profile", shortcut: "N P" },
+];
+
+const ACTIVITY_ITEMS = [
+  { id: "go-upcoming", label: "Upcoming & Activity", icon: Rss, path: "/upcoming", shortcut: "U" },
 ];
 
 const RECENT_SEARCHES_KEY = "oikion-recent-searches";
@@ -420,6 +443,54 @@ export function GlobalSearch() {
                 );
               })}
             </CommandGroup>
+          )}
+
+          {/* Network (when no query) */}
+          {showQuickActions && (
+            <>
+              <CommandSeparator />
+              <CommandGroup heading="Network">
+                {NETWORK_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <CommandItem
+                      key={item.id}
+                      value={item.id}
+                      onSelect={() => handleQuickAction(item.path)}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                      <span>{item.label}</span>
+                      <CommandShortcut>{item.shortcut}</CommandShortcut>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </>
+          )}
+
+          {/* Activity (when no query) */}
+          {showQuickActions && (
+            <>
+              <CommandSeparator />
+              <CommandGroup heading="Activity">
+                {ACTIVITY_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <CommandItem
+                      key={item.id}
+                      value={item.id}
+                      onSelect={() => handleQuickAction(item.path)}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                      <span>{item.label}</span>
+                      <CommandShortcut>{item.shortcut}</CommandShortcut>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </>
           )}
 
           {/* Quick Actions (when no query) */}

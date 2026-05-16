@@ -1,5 +1,4 @@
 // @ts-nocheck
-// TODO: Fix type errors
 /**
  * Notification Helpers
  * Convenience functions for common notification scenarios
@@ -10,6 +9,7 @@ import { createNotification, createBulkNotifications, notifyOrganization } from 
 import { sendNotificationEmail, sendNotificationEmailToUsers } from "./email-service";
 import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 import { prismadb } from "@/lib/prisma";
+import { NotificationCategory, NotificationEntityType } from "@prisma/client";
 import {
   SocialNotificationPayload,
   SharingNotificationPayload,
@@ -164,7 +164,7 @@ export async function notifyEntityAccessRequested(payload: EntityAccessRequestPa
     type: "ENTITY_ACCESS_REQUESTED",
     title: `${payload.requesterName} requested access to your ${entityTypeLabel}`,
     message: `"${payload.entityName}" — access request from ${payload.requesterName}`,
-    entityType: payload.entityType as any,
+    entityType: payload.entityType as NotificationEntityType,
     entityId: payload.entityId,
     actorId: payload.requesterId,
     actorName: payload.requesterName,
@@ -827,9 +827,9 @@ export async function notifyRequestCreated(payload: {
     }
   ).catch((err) => console.error("[REQUEST_CREATED_NOTIFY]", err));
 
-  // Notify the assignee separately if they're different from actor
+  // Notify the assignee separately if they're different from actor — fire-and-forget
   if (payload.assignedAgentId && payload.assignedAgentId !== payload.actorId) {
-    await createNotification({
+    void createNotification({
       userId: payload.assignedAgentId,
       organizationId: payload.organizationId,
       type: "REQUEST_ASSIGNED",
@@ -840,6 +840,71 @@ export async function notifyRequestCreated(payload: {
       actorId: payload.actorId,
       actorName: payload.actorName,
       metadata: { requestFriendlyId: payload.requestFriendlyId },
+    }).catch((err) => console.error("[REQUEST_CREATED_ASSIGNEE_NOTIFY]", err));
+  }
+}
+
+/**
+ * Notify new (and previous) assignee when a request is reassigned
+ */
+export async function notifyRequestAssigned(payload: {
+  requestId: string;
+  requestFriendlyId: string;
+  organizationId: string;
+  actorId: string;
+  actorName: string;
+  newAssigneeId: string;
+  previousAssigneeId?: string | null;
+}): Promise<void> {
+  const { requestId, requestFriendlyId, organizationId, actorId, actorName, newAssigneeId, previousAssigneeId } = payload;
+
+  const recipientIds: string[] = [];
+
+  // Notify new assignee (if not the actor)
+  if (newAssigneeId !== actorId) {
+    recipientIds.push(newAssigneeId);
+  }
+
+  // Notify previous assignee on reassignment (if not the actor, not the new assignee)
+  if (previousAssigneeId && previousAssigneeId !== actorId && previousAssigneeId !== newAssigneeId) {
+    recipientIds.push(previousAssigneeId);
+  }
+
+  if (recipientIds.length === 0) return;
+
+  const uniqueRecipients = Array.from(new Set(recipientIds));
+
+  // New assignee gets REQUEST_ASSIGNED; previous assignee gets REQUEST_STATUS_CHANGED
+  const newAssigneeRecipients = uniqueRecipients.filter((id) => id === newAssigneeId);
+  const prevAssigneeRecipients = uniqueRecipients.filter((id) => id !== newAssigneeId);
+
+  if (newAssigneeRecipients.length > 0) {
+    await createBulkNotifications({
+      userIds: newAssigneeRecipients,
+      organizationId,
+      type: "REQUEST_ASSIGNED",
+      title: "Request assigned to you",
+      message: `${actorName} assigned a request to you`,
+      entityType: "REQUEST",
+      entityId: requestId,
+      actorId,
+      actorName,
+      metadata: { requestFriendlyId },
+    });
+  }
+
+  if (prevAssigneeRecipients.length > 0) {
+    await createBulkNotifications({
+      userIds: prevAssigneeRecipients,
+      organizationId,
+      type: "REQUEST_STATUS_CHANGED",
+      title: "Request reassigned",
+      message: `${actorName} reassigned a request you were assigned to`,
+      entityType: "REQUEST",
+      entityId: requestId,
+      actorId,
+      actorName,
+      metadata: { requestFriendlyId },
     });
   }
 }
@@ -886,7 +951,7 @@ export async function notifyRequestStatusChanged(payload: {
 // ============================================
 
 /**
- * Notify entity assignee when a comment is added
+ * Notify entity assignee, owner, and watchers when a comment is added
  */
 export async function notifyCommentAdded(payload: {
   entityType: "PROPERTY" | "CONTACT" | "REQUEST" | "DEAL";
@@ -897,32 +962,54 @@ export async function notifyCommentAdded(payload: {
   actorId: string;
   actorName: string;
   assigneeId?: string | null;
+  entityOwnerId?: string | null;
+  watcherIds?: string[];
 }): Promise<void> {
-  if (payload.assigneeId === payload.actorId || !payload.assigneeId) return;
+  const { entityType, entityId, entityName, commentPreview, organizationId, actorId, actorName, assigneeId, entityOwnerId, watcherIds } = payload;
 
-  const categoryMap: Record<string, string> = {
+  type CommentEntityKey = "PROPERTY" | "CONTACT" | "REQUEST" | "DEAL";
+  const categoryMap: Record<CommentEntityKey, NotificationCategory> = {
     PROPERTY: "COMMENT_ADDED_PROPERTY",
     CONTACT: "COMMENT_ADDED_CONTACT",
     REQUEST: "COMMENT_ADDED_REQUEST",
     DEAL: "COMMENT_ADDED_DEAL",
   };
 
-  const notifType = categoryMap[payload.entityType] as any;
+  const notifType = categoryMap[entityType as CommentEntityKey];
   if (!notifType) return;
 
-  await createNotification({
-    userId: payload.assigneeId,
-    organizationId: payload.organizationId,
+  const recipientIds: string[] = [];
+
+  if (assigneeId && assigneeId !== actorId) {
+    recipientIds.push(assigneeId);
+  }
+
+  if (entityOwnerId && entityOwnerId !== actorId) {
+    recipientIds.push(entityOwnerId);
+  }
+
+  if (watcherIds) {
+    for (const wid of watcherIds) {
+      if (wid !== actorId) recipientIds.push(wid);
+    }
+  }
+
+  const uniqueRecipients = Array.from(new Set(recipientIds));
+  if (uniqueRecipients.length === 0) return;
+
+  await createBulkNotifications({
+    userIds: uniqueRecipients,
+    organizationId,
     type: notifType,
-    title: `New comment on ${payload.entityType.toLowerCase()}`,
-    message: `${payload.actorName} commented on "${payload.entityName}": ${payload.commentPreview}`,
-    entityType: payload.entityType as any,
-    entityId: payload.entityId,
-    actorId: payload.actorId,
-    actorName: payload.actorName,
+    title: `New comment on ${entityType.toLowerCase()}`,
+    message: `${actorName} commented on "${entityName}": ${commentPreview}`,
+    entityType: entityType as NotificationEntityType,
+    entityId,
+    actorId,
+    actorName,
     metadata: {
-      entityName: payload.entityName,
-      commentPreview: payload.commentPreview,
+      entityName,
+      commentPreview,
     },
   });
 }

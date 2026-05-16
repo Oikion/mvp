@@ -69,24 +69,22 @@ function GlobalShortcutsHandler() {
   const handleSequenceNavigation = useCallback(
     (sequence: string) => {
       switch (sequence) {
-        case "g d":
-          router.push(`/${locale}/app`);
-          break;
-        case "g c":
-          router.push(`/${locale}/app/crm`);
-          break;
-        case "g p":
-          router.push(`/${locale}/app/mls`);
-          break;
-        case "g e":
-          router.push(`/${locale}/app/calendar`);
-          break;
-        case "g o":
-          router.push(`/${locale}/app/documents`);
-          break;
-        case "g s":
-          router.push(`/${locale}/app/admin/settings`);
-          break;
+        // G+ navigation
+        case "g d": router.push(`/${locale}/app`); break;
+        case "g c": router.push(`/${locale}/app/crm/contacts`); break;
+        case "g p": router.push(`/${locale}/app/mls/properties`); break;
+        case "g m": router.push(`/${locale}/app/requests`); break;
+        case "g l": router.push(`/${locale}/app/deals`); break;
+        case "g e": router.push(`/${locale}/app/calendar`); break;
+        case "g o": router.push(`/${locale}/app/documents`); break;
+        case "g x": router.push(`/${locale}/app/matchmaking`); break;
+        case "g s": router.push(`/${locale}/app/admin`); break;
+        // N+ network navigation
+        case "n f": router.push(`/${locale}/app/network/feed`); break;
+        case "n m": router.push(`/${locale}/app/network/messages`); break;
+        case "n s": router.push(`/${locale}/app/network/sharing-hub`); break;
+        case "n a": router.push(`/${locale}/app/network`); break;
+        case "n p": router.push(`/${locale}/app/network/profile`); break;
       }
       clearSequence();
     },
@@ -136,16 +134,35 @@ function GlobalShortcutsHandler() {
     }
   );
 
-  // G key - Start navigation sequence
+  // G key - Start G+ navigation sequence
   useHotkeys(
     "g",
+    () => { addSequenceKey("g"); },
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
+  );
+
+  // N key - Start N+ network sequence (or standalone upcoming if no prefix)
+  useHotkeys(
+    "n",
     () => {
-      addSequenceKey("g");
+      const sequence = getSequence();
+      if (sequence === "") {
+        addSequenceKey("n");
+      }
     },
-    {
-      enabled: enabled && activeScope === "global",
-      enableOnFormTags: false,
-    }
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
+  );
+
+  // U key - Upcoming (standalone)
+  useHotkeys(
+    "u",
+    () => {
+      const sequence = getSequence();
+      if (sequence === "") {
+        router.push(`/${locale}/app/upcoming`);
+      }
+    },
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
   );
 
   // D key - Dashboard (after G)
@@ -153,59 +170,61 @@ function GlobalShortcutsHandler() {
     "d",
     () => {
       const sequence = getSequence();
-      if (sequence === "g") {
-        handleSequenceNavigation("g d");
-      }
+      if (sequence === "g") handleSequenceNavigation("g d");
     },
-    {
-      enabled: enabled && activeScope === "global",
-      enableOnFormTags: false,
-    }
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
   );
 
-  // C key - CRM (after G)
+  // C key - Contacts (after G)
   useHotkeys(
     "c",
     () => {
       const sequence = getSequence();
-      if (sequence === "g") {
-        handleSequenceNavigation("g c");
-      }
+      if (sequence === "g") handleSequenceNavigation("g c");
     },
-    {
-      enabled: enabled && activeScope === "global",
-      enableOnFormTags: false,
-    }
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
   );
 
-  // P key - Properties (after G)
+  // P key - Properties (after G)  /  Network Profile (after N)
   useHotkeys(
     "p",
     () => {
       const sequence = getSequence();
-      if (sequence === "g") {
-        handleSequenceNavigation("g p");
-      }
+      if (sequence === "g") handleSequenceNavigation("g p");
+      else if (sequence === "n") handleSequenceNavigation("n p");
     },
-    {
-      enabled: enabled && activeScope === "global",
-      enableOnFormTags: false,
-    }
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
   );
 
-  // E key - Events/Calendar (after G)
+  // M key - Requests (after G)  /  Messages (after N)
+  useHotkeys(
+    "m",
+    () => {
+      const sequence = getSequence();
+      if (sequence === "g") handleSequenceNavigation("g m");
+      else if (sequence === "n") handleSequenceNavigation("n m");
+    },
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
+  );
+
+  // L key - Deals (after G)
+  useHotkeys(
+    "l",
+    () => {
+      const sequence = getSequence();
+      if (sequence === "g") handleSequenceNavigation("g l");
+    },
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
+  );
+
+  // E key - Calendar (after G)
   useHotkeys(
     "e",
     () => {
       const sequence = getSequence();
-      if (sequence === "g") {
-        handleSequenceNavigation("g e");
-      }
+      if (sequence === "g") handleSequenceNavigation("g e");
     },
-    {
-      enabled: enabled && activeScope === "global",
-      enableOnFormTags: false,
-    }
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
   );
 
   // O key - Documents (after G)
@@ -213,29 +232,50 @@ function GlobalShortcutsHandler() {
     "o",
     () => {
       const sequence = getSequence();
-      if (sequence === "g") {
-        handleSequenceNavigation("g o");
-      }
+      if (sequence === "g") handleSequenceNavigation("g o");
     },
-    {
-      enabled: enabled && activeScope === "global",
-      enableOnFormTags: false,
-    }
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
   );
 
-  // S key - Settings (after G)
+  // X key - Matchmaking (after G)
+  useHotkeys(
+    "x",
+    () => {
+      const sequence = getSequence();
+      if (sequence === "g") handleSequenceNavigation("g x");
+    },
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
+  );
+
+  // S key - Admin/Settings (after G)  /  Sharing Hub (after N)
   useHotkeys(
     "s",
     () => {
       const sequence = getSequence();
-      if (sequence === "g") {
-        handleSequenceNavigation("g s");
-      }
+      if (sequence === "g") handleSequenceNavigation("g s");
+      else if (sequence === "n") handleSequenceNavigation("n s");
     },
-    {
-      enabled: enabled && activeScope === "global",
-      enableOnFormTags: false,
-    }
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
+  );
+
+  // F key - Network Feed (after N)
+  useHotkeys(
+    "f",
+    () => {
+      const sequence = getSequence();
+      if (sequence === "n") handleSequenceNavigation("n f");
+    },
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
+  );
+
+  // A key - Agents & Connections (after N)
+  useHotkeys(
+    "a",
+    () => {
+      const sequence = getSequence();
+      if (sequence === "n") handleSequenceNavigation("n a");
+    },
+    { enabled: enabled && activeScope === "global", enableOnFormTags: false }
   );
 
   // Clear sequence on escape or after timeout

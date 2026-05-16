@@ -124,3 +124,20 @@ export function useClientLinked(
 export function getClientLinkedKey(clientId: string): string {
   return `/api/crm/contacts/${clientId}/linked`;
 }
+
+// Legacy stubs — mandate linking is not available on the clients (legacy) API.
+// These prevent build failures while the ClientView component awaits migration to contacts.
+
+export function useLinkMandatesToClient(_clientId: string) {
+  return {
+    linkMandates: async (_mandateIds: string[]) => {},
+    isLinking: false,
+  };
+}
+
+export function useUnlinkMandateFromClient(_clientId: string) {
+  return {
+    unlinkMandate: async (_mandateId: string) => {},
+    isUnlinking: false,
+  };
+}

@@ -5,6 +5,7 @@
  * Handles sending email notifications based on user preferences
  */
 
+import { randomBytes } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import resendHelper from "@/lib/resend";
 import { NotificationCategory } from "@prisma/client";
@@ -28,6 +29,15 @@ import ClientCreatedEmail from "@/emails/notifications/ClientCreated";
 import PropertyCreatedEmail from "@/emails/notifications/PropertyCreated";
 import AccountUpdatedEmail from "@/emails/notifications/AccountUpdated";
 import PropertyUpdatedEmail from "@/emails/notifications/PropertyUpdated";
+
+// Phase 6 email templates
+import RequestCreatedEmail from "@/emails/notifications/RequestCreated";
+import RequestAssignedEmail from "@/emails/notifications/RequestAssigned";
+import RequestStatusChangedEmail from "@/emails/notifications/RequestStatusChanged";
+import ShowingScheduledEmail from "@/emails/notifications/ShowingScheduled";
+import ShowingStatusChangedEmail from "@/emails/notifications/ShowingStatusChanged";
+import CommentAddedEmail from "@/emails/notifications/CommentAdded";
+import DealStageChangedEmail from "@/emails/notifications/DealStageChanged";
 
 // Existing email templates
 import NewTaskFromCRMEmail from "@/emails/NewTaskFromCRM";
@@ -109,30 +119,68 @@ const categoryToPreference: Record<NotificationCategory, PreferenceCategory> = {
   ACCOUNT_UNSUSPENSION: "system",
   ACCOUNT_DELETION_NOTICE: "system",
   FEEDBACK_RESPONSE: "system",
+
+  // Organization
+  CONTACT_FORM_SUBMISSION: "crm",
+  ORGANIZATION_INVITE: "system",
+
+  // Requests (Phase 1)
+  REQUEST_CREATED: "crm",
+  REQUEST_ASSIGNED: "crm",
+  REQUEST_STATUS_CHANGED: "crm",
+
+  // Showings (Phase 1)
+  SHOWING_SCHEDULED: "calendar",
+  SHOWING_CONFIRMED: "calendar",
+  SHOWING_CANCELLED: "calendar",
+  SHOWING_COMPLETED: "calendar",
+  SHOWING_NO_SHOW: "calendar",
+
+  // Deal stage (Phase 1)
+  DEAL_STAGE_CHANGED: "deals",
+
+  // Comments (Phase 1)
+  COMMENT_ADDED_PROPERTY: "crm",
+  COMMENT_ADDED_CONTACT: "crm",
+  COMMENT_ADDED_REQUEST: "crm",
+  COMMENT_ADDED_DEAL: "deals",
+
+  // Bulk operations (Phase 1)
+  BULK_ARCHIVE_COMPLETED: "crm",
+
+  // Entity access
+  ENTITY_ACCESS_REQUESTED: "crm",
 };
 
 /**
- * Get user's notification settings
+ * Get or create user's notification settings, ensuring an unsubscribe token exists.
  */
 async function getUserNotificationSettings(userId: string) {
-  const settings = await prismadb.userNotificationSettings.findUnique({
+  const existing = await prismadb.userNotificationSettings.findUnique({
     where: { userId },
   });
 
-  // Return defaults if no settings exist
-  if (!settings) {
-    return {
-      socialEmailEnabled: true,
-      crmEmailEnabled: true,
-      calendarEmailEnabled: true,
-      tasksEmailEnabled: true,
-      dealsEmailEnabled: true,
-      documentsEmailEnabled: true,
-      systemEmailEnabled: true,
-    };
+  if (!existing) {
+    // No settings row yet — create one so the user gets an unsubscribe token
+    // on their first email. All preference toggles use schema defaults (true).
+    const token = randomBytes(32).toString("hex");
+    return await prismadb.userNotificationSettings.upsert({
+      where: { userId },
+      update: {},
+      create: { userId, unsubscribeToken: token },
+    });
   }
 
-  return settings;
+  // Backfill unsubscribe token for rows that don't have one yet
+  if (!existing.unsubscribeToken) {
+    const token = randomBytes(32).toString("hex");
+    return await prismadb.userNotificationSettings.update({
+      where: { id: existing.id },
+      data: { unsubscribeToken: token },
+    });
+  }
+
+  return existing;
 }
 
 /**
@@ -173,7 +221,7 @@ async function getUserForEmail(userId: string) {
  * Email data interface for notification emails
  */
 export interface NotificationEmailData {
-  recipientName: string;
+  recipientName?: string; // looked up from userId internally when not provided by caller
   actorName?: string;
   actorId?: string;
   entityId?: string;
@@ -392,6 +440,91 @@ function getSubjectLine(
       el: "Απάντηση στα σχόλιά σας",
       cz: "Odpověď na vaši zpětnou vazbu",
     },
+
+    // Requests (Phase 6)
+    REQUEST_CREATED: {
+      en: "New request created",
+      el: "Νέο αίτημα δημιουργήθηκε",
+      cz: "Nový požadavek vytvořen",
+    },
+    REQUEST_ASSIGNED: {
+      en: "Request assigned to you",
+      el: "Ανατέθηκε αίτημα σε εσάς",
+      cz: "Požadavek vám byl přiřazen",
+    },
+    REQUEST_STATUS_CHANGED: {
+      en: "Request status changed",
+      el: "Αλλαγή κατάστασης αιτήματος",
+      cz: "Stav požadavku změněn",
+    },
+
+    // Showings (Phase 6)
+    SHOWING_SCHEDULED: {
+      en: "New showing scheduled",
+      el: "Νέα επίσκεψη προγραμματίστηκε",
+      cz: "Nová prohlídka naplánována",
+    },
+    SHOWING_CONFIRMED: {
+      en: "Showing confirmed",
+      el: "Επίσκεψη επιβεβαιώθηκε",
+      cz: "Prohlídka potvrzena",
+    },
+    SHOWING_CANCELLED: {
+      en: "Showing cancelled",
+      el: "Επίσκεψη ακυρώθηκε",
+      cz: "Prohlídka zrušena",
+    },
+    SHOWING_COMPLETED: {
+      en: "Showing completed",
+      el: "Επίσκεψη ολοκληρώθηκε",
+      cz: "Prohlídka dokončena",
+    },
+    SHOWING_NO_SHOW: {
+      en: "Showing no-show recorded",
+      el: "Απουσία από επίσκεψη",
+      cz: "Zaznamenána nepřítomnost na prohlídce",
+    },
+
+    // Deal stage (Phase 6)
+    DEAL_STAGE_CHANGED: {
+      en: "Deal stage updated",
+      el: "Ενημέρωση σταδίου συναλλαγής",
+      cz: "Fáze obchodu aktualizována",
+    },
+
+    // Comments (Phase 6)
+    COMMENT_ADDED_PROPERTY: {
+      en: "New comment on property",
+      el: "Νέο σχόλιο σε ακίνητο",
+      cz: "Nový komentář k nemovitosti",
+    },
+    COMMENT_ADDED_CONTACT: {
+      en: "New comment on contact",
+      el: "Νέο σχόλιο σε επαφή",
+      cz: "Nový komentář ke kontaktu",
+    },
+    COMMENT_ADDED_REQUEST: {
+      en: "New comment on request",
+      el: "Νέο σχόλιο σε αίτημα",
+      cz: "Nový komentář k požadavku",
+    },
+    COMMENT_ADDED_DEAL: {
+      en: "New comment on deal",
+      el: "Νέο σχόλιο σε συναλλαγή",
+      cz: "Nový komentář k obchodu",
+    },
+
+    // Bulk operations (Phase 6)
+    BULK_ARCHIVE_COMPLETED: {
+      en: "Bulk archive completed",
+      el: "Μαζική αρχειοθέτηση ολοκληρώθηκε",
+      cz: "Hromadný archiv dokončen",
+    },
+    ENTITY_ACCESS_REQUESTED: {
+      en: "Access request for a shared item",
+      el: "Αίτηση πρόσβασης σε κοινόχρηστο στοιχείο",
+      cz: "Žádost o přístup ke sdílené položce",
+    },
   };
 
   const langSubjects = subjects[category];
@@ -408,12 +541,19 @@ function getSubjectLine(
 export async function sendNotificationEmail(
   userId: string,
   category: NotificationCategory,
-  data: NotificationEmailData
+  data: NotificationEmailData,
+  notificationId?: string | null
 ): Promise<boolean> {
   try {
+    // Fetch settings once (includes unsubscribeToken)
+    const settings = await getUserNotificationSettings(userId);
+
     // Check if email is enabled for this category
-    const isEnabled = await isEmailEnabledForCategory(userId, category);
-    if (!isEnabled) {
+    const preferenceCategory = categoryToPreference[category];
+    const emailField = preferenceCategory
+      ? (`${preferenceCategory}EmailEnabled` as keyof typeof settings)
+      : null;
+    if (emailField && settings[emailField] === false) {
       return false;
     }
 
@@ -424,9 +564,27 @@ export async function sendNotificationEmail(
       return false;
     }
 
+    const userEmail = user.email;
     const language = user.userLanguage || "en";
-    const recipientName = user.name || user.email.split("@")[0];
+    const recipientName = user.name || userEmail.split("@")[0];
     const userTheme = user.userTheme || "estate";
+
+    // Deduplication check: skip if already sent for the same notification
+    // within the last 5 minutes
+    if (notificationId) {
+      const recentSend = await prismadb.notificationDeliveryLog.findFirst({
+        where: {
+          notificationId,
+          channel: "EMAIL",
+          recipient: userEmail,
+          status: "SENT",
+          createdAt: { gte: new Date(Date.now() - 5 * 60 * 1000) },
+        },
+      });
+      if (recentSend) {
+        return true; // Already sent — skip duplicate
+      }
+    }
 
     // Get Resend instance
     const resend = await resendHelper();
@@ -434,12 +592,19 @@ export async function sendNotificationEmail(
     // Generate subject line
     const subject = getSubjectLine(category, language, data);
 
+    // Build unsubscribe URL
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.oikion.gr";
+    const unsubscribeUrl = settings?.unsubscribeToken
+      ? `${appUrl}/api/notifications/unsubscribe?token=${settings.unsubscribeToken}&category=${preferenceCategory ?? "system"}`
+      : null;
+
     // Get the appropriate email template
     const emailComponent = getEmailComponent(category, {
       ...data,
       recipientName,
       userLanguage: language,
       userTheme,
+      unsubscribeUrl: unsubscribeUrl ?? undefined,
     });
 
     if (!emailComponent) {
@@ -447,13 +612,58 @@ export async function sendNotificationEmail(
       return false;
     }
 
-    // Send email
-    await resend.emails.send({
-      from: EMAIL_CONFIG.FROM,
-      to: user.email,
-      subject,
-      react: emailComponent,
-    });
+    // Create PENDING delivery log entry — best-effort, never blocks the send
+    let deliveryLog: { id: string } | null = null;
+    try {
+      deliveryLog = await prismadb.notificationDeliveryLog.create({
+        data: {
+          notificationId: notificationId ?? null,
+          channel: "EMAIL",
+          recipient: userEmail,
+          status: "PENDING",
+          attempts: 1,
+          lastAttemptAt: new Date(),
+        },
+      });
+    } catch (logErr) {
+      console.warn("[EMAIL_SERVICE] Delivery log create failed, proceeding with send:", logErr);
+    }
+
+    // Send email and update log
+    try {
+      const sendPayload: Parameters<typeof resend.emails.send>[0] = {
+        from: EMAIL_CONFIG.FROM,
+        to: userEmail,
+        subject,
+        react: emailComponent,
+      };
+
+      // Attach List-Unsubscribe headers when we have a token
+      if (unsubscribeUrl) {
+        sendPayload.headers = {
+          "List-Unsubscribe": `<${unsubscribeUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        };
+      }
+
+      const result = await resend.emails.send(sendPayload);
+
+      if (deliveryLog) {
+        await prismadb.notificationDeliveryLog.update({
+          where: { id: deliveryLog.id },
+          data: { status: "SENT", externalId: result.data?.id ?? null },
+        });
+      }
+    } catch (emailErr) {
+      if (deliveryLog) {
+        await prismadb.notificationDeliveryLog.update({
+          where: { id: deliveryLog.id },
+          data: { status: "FAILED", error: String(emailErr) },
+        });
+      }
+      console.error("[EMAIL_SERVICE_SEND]", emailErr);
+      return false;
+    }
 
     return true;
   } catch (error) {
@@ -467,7 +677,7 @@ export async function sendNotificationEmail(
  */
 function getEmailComponent(
   category: NotificationCategory,
-  props: NotificationEmailData & { recipientName: string; userLanguage: string; userTheme?: string }
+  props: NotificationEmailData & { recipientName: string; userLanguage: string; userTheme?: string; unsubscribeUrl?: string }
 ): React.ReactElement | null {
   const { recipientName, userLanguage, userTheme, actorName, entityId, entityName, metadata } = props;
 
@@ -741,6 +951,178 @@ function getEmailComponent(
         userTheme,
       });
 
+    // Requests (Phase 6)
+    case "REQUEST_CREATED":
+      return RequestCreatedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "REQUEST_ASSIGNED":
+      return RequestAssignedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "REQUEST_STATUS_CHANGED":
+      return RequestStatusChangedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    // Showings (Phase 6)
+    case "SHOWING_SCHEDULED":
+      return ShowingScheduledEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "SHOWING_CONFIRMED":
+      return ShowingStatusChangedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        status: "CONFIRMED",
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "SHOWING_CANCELLED":
+      return ShowingStatusChangedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        status: "CANCELLED",
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "SHOWING_COMPLETED":
+      return ShowingStatusChangedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        status: "COMPLETED",
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "SHOWING_NO_SHOW":
+      return ShowingStatusChangedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        status: "NO_SHOW",
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    // Deal stage (Phase 6)
+    case "DEAL_STAGE_CHANGED":
+      return DealStageChangedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    // Comments (Phase 6)
+    case "COMMENT_ADDED_PROPERTY":
+      return CommentAddedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        entityType: "PROPERTY",
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "COMMENT_ADDED_CONTACT":
+      return CommentAddedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        entityType: "CONTACT",
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "COMMENT_ADDED_REQUEST":
+      return CommentAddedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        entityType: "REQUEST",
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    case "COMMENT_ADDED_DEAL":
+      return CommentAddedEmail({
+        recipientName,
+        actorName: actorName || "Someone",
+        entityId: entityId || "",
+        entityName,
+        entityType: "DEAL",
+        metadata,
+        userLanguage,
+        userTheme,
+        unsubscribeUrl: props.unsubscribeUrl,
+      });
+
+    // Bulk operations (Phase 6) — no email template, fall through to default
+    case "BULK_ARCHIVE_COMPLETED":
+      return null;
+
     // For other categories, return null (no email template available)
     default:
       return null;
@@ -753,13 +1135,14 @@ function getEmailComponent(
 export async function sendNotificationEmailToUsers(
   userIds: string[],
   category: NotificationCategory,
-  data: Omit<NotificationEmailData, "recipientName">
+  data: Omit<NotificationEmailData, "recipientName">,
+  notificationId?: string | null
 ): Promise<{ sent: number; failed: number }> {
   let sent = 0;
   let failed = 0;
 
   for (const userId of userIds) {
-    const success = await sendNotificationEmail(userId, category, data);
+    const success = await sendNotificationEmail(userId, category, data, notificationId);
     if (success) {
       sent++;
     } else {

@@ -1,5 +1,5 @@
 import { prismadb } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, NotificationCategory, NotificationEntityType } from "@prisma/client";
 import {
   encryptContactForOrg,
   encryptPropertyForOrg,
@@ -59,14 +59,15 @@ const CONTACT_POOL_EN = [
 
 // ─────────────────────────────────────────────
 // Property seed data
+// Prices tuned for matchmaking: R001 seeks €150k–280k apt, R002 seeks €400k–700k house
 // ─────────────────────────────────────────────
 
 const PROPERTY_SEED = [
-  { neighbourhood: "Κολωνάκι", city: "Αθήνα", type: "APARTMENT" as const, price: 320000, sqm: 85, bedrooms: 2 },
+  { neighbourhood: "Κολωνάκι", city: "Αθήνα", type: "APARTMENT" as const, price: 265000, sqm: 85, bedrooms: 2 },
   { neighbourhood: "Παγκράτι", city: "Αθήνα", type: "APARTMENT" as const, price: 195000, sqm: 68, bedrooms: 2 },
   { neighbourhood: "Γλυφάδα", city: "Γλυφάδα", type: "HOUSE" as const, price: 580000, sqm: 180, bedrooms: 4 },
-  { neighbourhood: "Πασαλιμάνι", city: "Πειραιάς", type: "APARTMENT" as const, price: 145000, sqm: 55, bedrooms: 1 },
-  { neighbourhood: "Κηφισιά", city: "Κηφισιά", type: "HOUSE" as const, price: 750000, sqm: 220, bedrooms: 5 },
+  { neighbourhood: "Πασαλιμάνι", city: "Πειραιάς", type: "APARTMENT" as const, price: 165000, sqm: 55, bedrooms: 1 },
+  { neighbourhood: "Κηφισιά", city: "Κηφισιά", type: "HOUSE" as const, price: 620000, sqm: 220, bedrooms: 5 },
   { neighbourhood: "Μαρούσι", city: "Μαρούσι", type: "APARTMENT" as const, price: 230000, sqm: 90, bedrooms: 3 },
   { neighbourhood: "Κέντρο", city: "Θεσσαλονίκη", type: "APARTMENT" as const, price: 180000, sqm: 75, bedrooms: 2 },
 ];
@@ -170,6 +171,238 @@ const CONTACT_COMMENT_EN = [
 ];
 
 // ─────────────────────────────────────────────
+// Deal seed data — 3 deals at different pipeline stages
+// ─────────────────────────────────────────────
+
+interface DealSeed {
+  stage: "INTEREST" | "NEGOTIATION" | "SIGNING";
+  dealType: "SALE" | "RENT";
+  agentRole: "DUAL_AGENCY" | "LISTING_SIDE" | "BUYER_SIDE";
+  propIndex: number;
+  reqIndex: number | null;
+  title_el: string;
+  title_en: string;
+  agreedPrice?: number;
+  commissionRate?: number;
+}
+
+const DEAL_SEED: DealSeed[] = [
+  {
+    stage: "NEGOTIATION",
+    dealType: "SALE",
+    agentRole: "DUAL_AGENCY",
+    propIndex: 0,
+    reqIndex: 0,
+    title_el: "Πώληση Κολωνάκι",
+    title_en: "Kolonaki Sale",
+    agreedPrice: 260000,
+    commissionRate: 2,
+  },
+  {
+    stage: "SIGNING",
+    dealType: "SALE",
+    agentRole: "DUAL_AGENCY",
+    propIndex: 2,
+    reqIndex: 1,
+    title_el: "Πώληση Γλυφάδα",
+    title_en: "Glyfada House Sale",
+    agreedPrice: 565000,
+    commissionRate: 2,
+  },
+  {
+    stage: "INTEREST",
+    dealType: "SALE",
+    agentRole: "LISTING_SIDE",
+    propIndex: 1,
+    reqIndex: null,
+    title_el: "Ενδιαφέρον Παγκράτι",
+    title_en: "Pagkrati Interest",
+  },
+];
+
+// ─────────────────────────────────────────────
+// Notification seed data
+// ─────────────────────────────────────────────
+
+interface NotificationSeed {
+  type: NotificationCategory;
+  title_el: string;
+  title_en: string;
+  message_el: string;
+  message_en: string;
+  entityType: NotificationEntityType;
+  entityIndex: number | null;
+  read: boolean;
+  offsetHours: number;
+}
+
+const NOTIFICATION_SEED: NotificationSeed[] = [
+  {
+    type: "PROPERTY_CREATED",
+    title_el: "Νέο ακίνητο προστέθηκε",
+    title_en: "New property added",
+    message_el: "Το ακίνητο DEMO-P001 (Κολωνάκι) προστέθηκε στο σύστημα.",
+    message_en: "Property DEMO-P001 (Kolonaki) was added to the system.",
+    entityType: "PROPERTY",
+    entityIndex: 0,
+    read: true,
+    offsetHours: 48,
+  },
+  {
+    type: "CONTACT_CREATED",
+    title_el: "Νέα επαφή δημιουργήθηκε",
+    title_en: "New contact created",
+    message_el: "Νέα επαφή προστέθηκε από τη φόρμα επικοινωνίας.",
+    message_en: "New contact added via the contact form.",
+    entityType: "CONTACT",
+    entityIndex: 0,
+    read: true,
+    offsetHours: 36,
+  },
+  {
+    type: "DEAL_STAGE_CHANGED",
+    title_el: "Ενημέρωση συμφωνίας",
+    title_en: "Deal stage updated",
+    message_el: "Η συμφωνία DEMO-D-002 προχώρησε στο στάδιο Υπογραφής.",
+    message_en: "Deal DEMO-D-002 advanced to the Signing stage.",
+    entityType: "DEAL",
+    entityIndex: 1,
+    read: true,
+    offsetHours: 24,
+  },
+  {
+    type: "REQUEST_ASSIGNED",
+    title_el: "Αίτημα αγοράς ανατέθηκε",
+    title_en: "Purchase request assigned",
+    message_el: "Νέο αίτημα αγοράς (DEMO-R001) σας ανατέθηκε.",
+    message_en: "New purchase request (DEMO-R001) has been assigned to you.",
+    entityType: "REQUEST",
+    entityIndex: 0,
+    read: true,
+    offsetHours: 20,
+  },
+  {
+    type: "COMMENT_ADDED_PROPERTY",
+    title_el: "Νέο σχόλιο σε ακίνητο",
+    title_en: "New comment on property",
+    message_el: "Νέο σχόλιο προστέθηκε στο ακίνητο DEMO-P003.",
+    message_en: "A new comment was added to property DEMO-P003.",
+    entityType: "PROPERTY",
+    entityIndex: 2,
+    read: true,
+    offsetHours: 10,
+  },
+  {
+    type: "SHOWING_SCHEDULED",
+    title_el: "Νέο ραντεβού επίσκεψης",
+    title_en: "Viewing appointment scheduled",
+    message_el: "Επίσκεψη στο DEMO-P001 (Κολωνάκι) προγραμματίστηκε για αύριο στις 11:00.",
+    message_en: "Viewing at DEMO-P001 (Kolonaki) scheduled for tomorrow at 11:00.",
+    entityType: "PROPERTY",
+    entityIndex: 0,
+    read: false,
+    offsetHours: 2,
+  },
+];
+
+// ─────────────────────────────────────────────
+// Calendar event seed data
+// ─────────────────────────────────────────────
+
+interface CalendarEventSeed {
+  title_el: string;
+  title_en: string;
+  description_el: string;
+  description_en: string;
+  startOffsetDays: number;
+  startHour: number;
+  durationHours: number;
+  location?: string;
+  eventType: "PROPERTY_VIEWING" | "CLIENT_CONSULTATION" | "MEETING";
+  propIndex?: number;
+  contactIndex?: number;
+}
+
+const CALENDAR_EVENT_SEED: CalendarEventSeed[] = [
+  {
+    title_el: "Επίσκεψη Κολωνάκι — Παπαδόπουλος",
+    title_en: "Kolonaki Viewing — Papadopoulos",
+    description_el: "Επίσκεψη στο ακίνητο DEMO-P001 με τον πελάτη Παπαδόπουλο.",
+    description_en: "Property viewing at DEMO-P001 with client Papadopoulos.",
+    startOffsetDays: 1,
+    startHour: 11,
+    durationHours: 1,
+    location: "Κολωνάκι, Αθήνα",
+    eventType: "PROPERTY_VIEWING",
+    propIndex: 0,
+    contactIndex: 0,
+  },
+  {
+    title_el: "Συνάντηση πελάτη — Δημητρίου",
+    title_en: "Client meeting — Dimitriou",
+    description_el: "Συνάντηση με νέο πελάτη για παρουσίαση αιτήματος αγοράς.",
+    description_en: "Meeting with new client to present purchase request options.",
+    startOffsetDays: 3,
+    startHour: 10,
+    durationHours: 1,
+    eventType: "CLIENT_CONSULTATION",
+    contactIndex: 3,
+  },
+  {
+    title_el: "Αποτίμηση ακινήτου Μαρούσι",
+    title_en: "Property appraisal Maroussi",
+    description_el: "Αυτοψία και εκτίμηση αξίας ακινήτου DEMO-P006.",
+    description_en: "On-site inspection and valuation of property DEMO-P006.",
+    startOffsetDays: 5,
+    startHour: 14,
+    durationHours: 2,
+    location: "Μαρούσι, Αττική",
+    eventType: "PROPERTY_VIEWING",
+    propIndex: 5,
+  },
+];
+
+// ─────────────────────────────────────────────
+// Task seed data
+// ─────────────────────────────────────────────
+
+interface TaskSeed {
+  title_el: string;
+  title_en: string;
+  content_el: string;
+  content_en: string;
+  priority: string;
+  dueDays: number;
+}
+
+const TASK_SEED: TaskSeed[] = [
+  {
+    title_el: "Αποστολή πιστοποιητικού ενέργειας",
+    title_en: "Send energy certificate",
+    content_el: "Αποστολή ενεργειακού πιστοποιητικού (Β+) στον αγοραστή για το DEMO-P001.",
+    content_en: "Send the B+ energy certificate to the buyer for DEMO-P001.",
+    priority: "HIGH",
+    dueDays: 2,
+  },
+  {
+    title_el: "Επικοινωνία με συμβολαιογράφο",
+    title_en: "Contact the notary",
+    content_el: "Επικοινωνία με συμβολαιογράφο για τον προγραμματισμό υπογραφής DEMO-D-002.",
+    content_en: "Contact the notary to schedule signing for DEMO-D-002.",
+    priority: "MEDIUM",
+    dueDays: 5,
+  },
+  {
+    title_el: "Ανανέωση φωτογραφιών DEMO-P003",
+    title_en: "Update photos for DEMO-P003",
+    content_el: "Οργάνωση νέας φωτογράφησης για το ακίνητο στη Γλυφάδα.",
+    content_en: "Arrange a new photo shoot for the Glyfada property.",
+    priority: "LOW",
+    dueDays: 10,
+  },
+];
+
+// ─────────────────────────────────────────────
 // Utility: shuffle and pick n from array
 // ─────────────────────────────────────────────
 
@@ -180,6 +413,211 @@ function pickN<T>(arr: T[], n: number): T[] {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy.slice(0, n);
+}
+
+/**
+ * Generate a deterministic negative integer for demo CalendarEvent.calendarEventId.
+ * Cal.com IDs are positive integers, so negatives are safe and won't conflict.
+ * Uses the full 30-bit hash value: -(hash * 3 + index + 1). This spreads
+ * orgs across the full negative Int32 range, minimising collision probability.
+ */
+function demoCalendarEventId(orgId: string, index: number): number {
+  let hash = 0;
+  for (let i = 0; i < orgId.length; i++) {
+    hash = (hash * 31 + orgId.charCodeAt(i)) & 0x3fff_ffff; // 30-bit to keep room for * 3
+  }
+  return -(hash * 3 + index + 1);
+}
+
+// ─────────────────────────────────────────────
+// seedDemoOrgExtras — adds deals, notifications, events, tasks
+// Safe to call on both new and existing demo orgs (idempotent via skipDuplicates).
+// ─────────────────────────────────────────────
+
+export async function seedDemoOrgExtras(
+  orgId: string,
+  userId: string,
+  locale: "el" | "en"
+): Promise<void> {
+  const isEl = locale === "el";
+  const now = new Date();
+
+  // ── Deals ────────────────────────────────────────────────────────────────────
+  await prismadb.deal.createMany({
+    data: DEAL_SEED.map((d, i) => ({
+      id: `demo_deal_${orgId}_${i}`,
+      friendlyId: `DEMO-D-${String(i + 1).padStart(3, "0")}`,
+      organizationId: orgId,
+      propertyId: `demo_prop_${orgId}_${d.propIndex}`,
+      requestId: d.reqIndex !== null ? `demo_req_${orgId}_${d.reqIndex}` : null,
+      stage: d.stage,
+      dealType: d.dealType,
+      agentRole: d.agentRole,
+      status: "PROPOSED",
+      title: isEl ? d.title_el : d.title_en,
+      agreedPrice: d.agreedPrice ?? null,
+      commissionRate: d.commissionRate ?? null,
+      listingAgentId: userId,
+      buyerAgentId: userId,
+      proposedById: userId,
+      createdAt: new Date(now.getTime() - (DEAL_SEED.length - i) * 86_400_000),
+    })),
+    skipDuplicates: true,
+  });
+
+  // ── DealParty — link contacts to deals ──────────────────────────────────────
+  await prismadb.dealParty.createMany({
+    data: [
+      // Deal 0 (Negotiation): buyer + seller
+      {
+        id: `demo_dpty_${orgId}_0`,
+        organizationId: orgId,
+        dealId: `demo_deal_${orgId}_0`,
+        contactId: `demo_contact_${orgId}_0`,
+        role: "BUYER",
+      },
+      {
+        id: `demo_dpty_${orgId}_1`,
+        organizationId: orgId,
+        dealId: `demo_deal_${orgId}_0`,
+        contactId: `demo_contact_${orgId}_1`,
+        role: "SELLER",
+      },
+      // Deal 1 (Signing): buyer
+      {
+        id: `demo_dpty_${orgId}_2`,
+        organizationId: orgId,
+        dealId: `demo_deal_${orgId}_1`,
+        contactId: `demo_contact_${orgId}_2`,
+        role: "BUYER",
+      },
+      // Deal 2 (Interest): buyer
+      {
+        id: `demo_dpty_${orgId}_3`,
+        organizationId: orgId,
+        dealId: `demo_deal_${orgId}_2`,
+        contactId: `demo_contact_${orgId}_3`,
+        role: "BUYER",
+      },
+    ],
+    skipDuplicates: true,
+  });
+
+  // ── Notifications ─────────────────────────────────────────────────────────────
+  await prismadb.notification.createMany({
+    data: NOTIFICATION_SEED.map((n, i) => {
+      const entityId =
+        n.entityType === "PROPERTY" && n.entityIndex !== null
+          ? `demo_prop_${orgId}_${n.entityIndex}`
+          : n.entityType === "CONTACT" && n.entityIndex !== null
+          ? `demo_contact_${orgId}_${n.entityIndex}`
+          : n.entityType === "DEAL" && n.entityIndex !== null
+          ? `demo_deal_${orgId}_${n.entityIndex}`
+          : n.entityType === "REQUEST" && n.entityIndex !== null
+          ? `demo_req_${orgId}_${n.entityIndex}`
+          : null;
+
+      const createdAt = new Date(now.getTime() - n.offsetHours * 3_600_000);
+      return {
+        id: `demo_notif_${orgId}_${i}`,
+        userId,
+        organizationId: orgId,
+        type: n.type,
+        title: isEl ? n.title_el : n.title_en,
+        message: isEl ? n.message_el : n.message_en,
+        entityType: n.entityType,
+        entityId,
+        read: n.read,
+        readAt: n.read ? createdAt : null,
+        actorId: userId,
+        actorName: null,
+        metadata: {},
+        createdAt,
+        updatedAt: createdAt,
+      };
+    }),
+    skipDuplicates: true,
+  });
+
+  // ── Calendar events ──────────────────────────────────────────────────────────
+  const calEventIds: string[] = [];
+  for (let i = 0; i < CALENDAR_EVENT_SEED.length; i++) {
+    const ev = CALENDAR_EVENT_SEED[i];
+    const calEventId = `demo_calevent_${orgId}_${i}`;
+    calEventIds.push(calEventId);
+
+    const startTime = new Date(now);
+    startTime.setDate(startTime.getDate() + ev.startOffsetDays);
+    startTime.setHours(ev.startHour, 0, 0, 0);
+    const endTime = new Date(startTime.getTime() + ev.durationHours * 3_600_000);
+
+    // Use upsert to be idempotent — calendarEventId must be globally unique
+    await prismadb.calendarEvent.upsert({
+      where: { id: calEventId },
+      create: {
+        id: calEventId,
+        friendlyId: `DEMO-E${String(i + 1).padStart(3, "0")}`,
+        organizationId: orgId,
+        calendarEventId: demoCalendarEventId(orgId, i),
+        calendarUserId: 0,
+        title: isEl ? ev.title_el : ev.title_en,
+        description: isEl ? ev.description_el : ev.description_en,
+        startTime,
+        endTime,
+        location: ev.location ?? null,
+        eventType: ev.eventType,
+        assignedUserId: userId,
+        status: "confirmed",
+        documentIds: [],
+        reminderMinutes: [60],
+        updatedAt: now,
+      },
+      // Refresh times so events are always in the near future after a reseed.
+      update: { startTime, endTime, updatedAt: now },
+    });
+
+    // Link to property if specified
+    if (ev.propIndex !== undefined) {
+      await prismadb.calendarEvent.update({
+        where: { id: calEventId },
+        data: {
+          Properties: {
+            connect: { id: `demo_prop_${orgId}_${ev.propIndex}` },
+          },
+        },
+      });
+    }
+
+    // Link to contact if specified
+    if (ev.contactIndex !== undefined) {
+      await prismadb.calendarEvent.update({
+        where: { id: calEventId },
+        data: {
+          Contacts: {
+            connect: { id: `demo_contact_${orgId}_${ev.contactIndex}` },
+          },
+        },
+      });
+    }
+  }
+
+  // ── Tasks ────────────────────────────────────────────────────────────────────
+  await prismadb.crm_Accounts_Tasks.createMany({
+    data: TASK_SEED.map((t, i) => ({
+      id: `demo_task_${orgId}_${i}`,
+      friendlyId: `DEMO-T${String(i + 1).padStart(3, "0")}`,
+      organizationId: orgId,
+      title: isEl ? t.title_el : t.title_en,
+      content: isEl ? t.content_el : t.content_en,
+      priority: t.priority,
+      dueDateAt: new Date(now.getTime() + t.dueDays * 86_400_000),
+      user: userId,
+      createdBy: userId,
+      createdAt: new Date(now.getTime() - 86_400_000),
+      updatedAt: now,
+    })),
+    skipDuplicates: true,
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -230,23 +668,21 @@ export async function seedDemoOrg(
 
   // ── Encrypt all properties BEFORE transaction ─────────────────────────────
   const propertiesRaw = PROPERTY_SEED.map((p, i) => {
-    const title =
+    const property_name =
       isEl
         ? `${p.type === "APARTMENT" ? "Διαμέρισμα" : "Μονοκατοικία"} ${p.neighbourhood}`
         : `${p.type === "APARTMENT" ? "Apartment" : "House"} ${p.neighbourhood}`;
     return {
       id: `demo_prop_${orgId}_${i}`,
       organizationId: orgId,
-      title,
+      property_name,
       price: p.price,
       size_net_sqm: p.sqm,
       bedrooms: p.bedrooms,
       property_type: p.type,
-      status: "ACTIVE" as const,
-      purpose: "RESIDENTIAL" as const,
+      property_status: "ACTIVE" as const,
       address_city: p.city,
-      address_area: p.neighbourhood,
-      address_country: "Greece",
+      area: p.neighbourhood,
       createdBy: userId,
       friendlyId: `DEMO-P${String(i + 1).padStart(3, "0")}`,
     };
@@ -417,4 +853,7 @@ export async function seedDemoOrg(
       })),
     });
   });
+
+  // ── Extras (outside transaction — some use upsert which is incompatible) ────
+  await seedDemoOrgExtras(orgId, userId, locale);
 }

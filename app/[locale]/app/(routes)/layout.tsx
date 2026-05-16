@@ -29,6 +29,7 @@ import {
   getCachedModules,
   getCachedDictionary,
   getCachedIsPlatformAdmin,
+  getCachedClerkUser,
 } from "@/lib/cached"
 import { getUserPermissionContext } from "@/lib/permissions/service"
 import { getAccessibleActionsForUser } from "@/lib/permissions/action-service"
@@ -44,8 +45,12 @@ export default async function AppLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { userId, orgId, sessionClaims } = await getAuth();
-  const clerkMeta = sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+  const { userId, orgId } = await getAuth();
+  // Read tourStep from the Clerk API (not JWT sessionClaims) so it's always fresh.
+  // sessionClaims.publicMetadata is cached in the JWT for ~60s — stale right after
+  // completeOnboarding() sets tourStep:0 and redirects the user.
+  const clerkUser = await getCachedClerkUser();
+  const clerkMeta = clerkUser?.publicMetadata as Record<string, unknown> | undefined;
   const tourStep = typeof clerkMeta?.tourStep === "number" ? clerkMeta.tourStep : -1;
   const { locale } = await params;
 
@@ -209,23 +214,25 @@ export default async function AppLayout({
           />
           <SidebarInset className="flex flex-col h-screen overflow-hidden bg-surface-2">
             <TourController />
-            <header className="flex h-16 shrink-0 items-center gap-2 justify-between">
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+            <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
+              <div className="flex items-center gap-3">
+                <SidebarTrigger className="-ml-1" data-tour="sidebar-toggle" />
+                <Separator orientation="vertical" className="h-4" />
                 <DynamicBreadcrumb />
               </div>
-              <div className="flex items-center gap-2 px-4">
+              <div className="flex items-center gap-1.5">
                 <E2EESessionButton />
                 <LayoutToggle />
-                <NotificationBell />
+                <span data-tour="notifications">
+                  <NotificationBell />
+                </span>
               </div>
             </header>
             <DemoBanner />
             <main
               id="main-content"
               tabIndex={-1}
-              className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-y-auto min-h-0 outline-none"
+              className="flex flex-1 flex-col gap-4 p-4 pt-4 overflow-y-auto min-h-0 outline-none"
             >
               {needsOwnershipSelection && (
                 <DataOwnershipBanner

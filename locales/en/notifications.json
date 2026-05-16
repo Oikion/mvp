@@ -7,7 +7,23 @@
   "unread": "unread",
   "allRead": "All caught up",
   "all": "All",
-  "new": "New"
+  "new": "New",
+  "types": {
+    "REQUEST_CREATED": "New request created",
+    "REQUEST_ASSIGNED": "Request assigned to you",
+    "REQUEST_STATUS_CHANGED": "Request status changed",
+    "SHOWING_SCHEDULED": "New showing scheduled",
+    "SHOWING_CONFIRMED": "Showing confirmed",
+    "SHOWING_CANCELLED": "Showing cancelled",
+    "SHOWING_COMPLETED": "Showing completed",
+    "SHOWING_NO_SHOW": "Showing no-show recorded",
+    "DEAL_STAGE_CHANGED": "Deal stage updated",
+    "COMMENT_ADDED_PROPERTY": "New comment on property",
+    "COMMENT_ADDED_CONTACT": "New comment on contact",
+    "COMMENT_ADDED_REQUEST": "New comment on request",
+    "COMMENT_ADDED_DEAL": "New comment on deal",
+    "BULK_ARCHIVE_COMPLETED": "Bulk archive completed"
+  }
 }
 
 

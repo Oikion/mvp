@@ -29,6 +29,8 @@ export interface BaseLayoutProps {
   footerNote?: string;
   /** App theme string (e.g. "estate", "estate-dark", "dark"). Defaults to "estate". */
   emailTheme?: string | null;
+  /** Optional unsubscribe URL rendered as a link in the footer. */
+  unsubscribeUrl?: string;
 }
 
 export interface BadgeProps {
@@ -65,6 +67,7 @@ export function BaseLayout({
   footerText,
   footerNote,
   emailTheme,
+  unsubscribeUrl,
 }: BaseLayoutProps) {
   const colors = resolveColors(emailTheme);
   const isDark = getEmailTheme(emailTheme) === "estate-dark";
@@ -137,6 +140,13 @@ export function BaseLayout({
               >
                 © {new Date().getFullYear()} Oikion. All rights reserved.
               </Text>
+              {unsubscribeUrl && (
+                <Text style={{ fontSize: '11px', color: '#888888', textAlign: 'center', marginTop: '8px' }}>
+                  <Link href={unsubscribeUrl} style={{ color: '#888888' }}>
+                    Unsubscribe / Κατάργηση εγγραφής
+                  </Link>
+                </Text>
+              )}
             </Section>
           </Container>
         </Body>

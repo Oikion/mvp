@@ -44,6 +44,8 @@ import {
   Receipt,
   MapPin,
   CalendarCheck,
+  Home,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -453,6 +455,22 @@ export const REQUEST_STATUS: Record<string, StatusConfig> = {
 };
 
 /**
+ * Request Type Configuration (BUY / RENT)
+ */
+export const REQUEST_TYPE: Record<string, StatusConfig> = {
+  BUY: {
+    variant: "info",
+    icon: Home,
+    label: "Buy",
+  },
+  RENT: {
+    variant: "teal",
+    icon: Building2,
+    label: "Rent",
+  },
+};
+
+/**
  * Contact Category Configuration (role/classifier badges)
  */
 export const CONTACT_CATEGORY: Record<string, StatusConfig> = {
@@ -548,6 +566,7 @@ export const STATUS_CONFIGS = {
   contact: CONTACT_STATUS,
   contact_category: CONTACT_CATEGORY,
   request: REQUEST_STATUS,
+  request_type: REQUEST_TYPE,
   deal: DEAL_STATUS,
   showing: SHOWING_STATUS,
   job: JOB_STATUS,

@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "./table-data/schema";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { EmployeeRowActions } from "./EmployeeRowActions";
+import { RoleCell } from "./RoleCell";
 
 const statuses = [
   {
@@ -73,18 +74,18 @@ export const columns: ColumnDef<User>[] = [
     enableHiding: true,
   },
   {
-    accessorKey: "is_admin",
+    accessorKey: "orgRole",
     header: ({ column }) => {
-      const t = useTranslations("common");
-      return <DataTableColumnHeader column={column} title={t("tableColumns.admin")} />;
+      const t = useTranslations("admin");
+      return <DataTableColumnHeader column={column} title={t("role")} />;
     },
     cell: ({ row }) => {
-      const isAdmin = row.getValue("is_admin") as boolean;
-      const t = useTranslations("common");
+      const user = row.original;
       return (
-        <Badge variant={isAdmin ? "default" : "secondary"}>
-          {isAdmin ? t("detailLabels.yes") : t("detailLabels.no")}
-        </Badge>
+        <RoleCell
+          clerkUserId={user.clerkUserId}
+          orgRole={user.orgRole ?? "org:member"}
+        />
       );
     },
     enableSorting: true,

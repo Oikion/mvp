@@ -29,8 +29,8 @@ ALTER TABLE "UserNotificationSettings" ADD COLUMN IF NOT EXISTS "quietHoursStart
 ALTER TABLE "UserNotificationSettings" ADD COLUMN IF NOT EXISTS "quietHoursEnd" INTEGER;
 ALTER TABLE "UserNotificationSettings" ADD COLUMN IF NOT EXISTS "notificationDigest" "DigestFrequency" NOT NULL DEFAULT 'INSTANT';
 
--- Create NotificationDeliveryLog table
-CREATE TABLE IF NOT EXISTS "NotificationDeliveryLog" (
+-- Create notification_delivery_logs table (@@map name from Prisma schema)
+CREATE TABLE IF NOT EXISTS "notification_delivery_logs" (
     "id"             TEXT NOT NULL,
     "notificationId" TEXT,
     "channel"        "DeliveryChannel" NOT NULL,
@@ -47,12 +47,12 @@ CREATE TABLE IF NOT EXISTS "NotificationDeliveryLog" (
     CONSTRAINT "NotificationDeliveryLog_pkey" PRIMARY KEY ("id")
 );
 
--- Add foreign key constraint for NotificationDeliveryLog -> Notification
-ALTER TABLE "NotificationDeliveryLog"
+-- Add foreign key constraint
+ALTER TABLE "notification_delivery_logs"
     ADD CONSTRAINT "NotificationDeliveryLog_notificationId_fkey"
     FOREIGN KEY ("notificationId") REFERENCES "Notification"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- Create indexes for NotificationDeliveryLog
-CREATE INDEX IF NOT EXISTS "NotificationDeliveryLog_notificationId_idx" ON "NotificationDeliveryLog"("notificationId");
-CREATE INDEX IF NOT EXISTS "NotificationDeliveryLog_channel_status_idx" ON "NotificationDeliveryLog"("channel", "status");
-CREATE INDEX IF NOT EXISTS "NotificationDeliveryLog_recipient_channel_createdAt_idx" ON "NotificationDeliveryLog"("recipient", "channel", "createdAt");
+-- Create indexes
+CREATE INDEX IF NOT EXISTS "NotificationDeliveryLog_notificationId_idx" ON "notification_delivery_logs"("notificationId");
+CREATE INDEX IF NOT EXISTS "NotificationDeliveryLog_channel_status_idx" ON "notification_delivery_logs"("channel", "status");
+CREATE INDEX IF NOT EXISTS "NotificationDeliveryLog_recipient_channel_createdAt_idx" ON "notification_delivery_logs"("recipient", "channel", "createdAt");

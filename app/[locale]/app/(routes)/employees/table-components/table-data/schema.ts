@@ -11,6 +11,8 @@ export const userSchema = z.object({
   avatar: z.string().nullable().optional(),
   userStatus: z.string(),
   userLanguage: z.string(),
+  clerkUserId: z.string().nullable().optional(),
+  orgRole: z.string().optional(),
   v: z.number().optional(),
 });
 

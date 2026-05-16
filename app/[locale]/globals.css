@@ -1,6 +1,7 @@
 @import "react-grid-layout/css/styles.css";
 @import "react-resizable/css/styles.css";
 @import "fumadocs-ui/style.css";
+@import "driver.js/dist/driver.css";
 
 @tailwind base;
 @tailwind components;
@@ -17,24 +18,26 @@
 
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    
+
     --primary: 240 5.9% 10%;
     --primary-foreground: 0 0% 98%;
-    
+
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
 
     --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    /* Darkened from 46.1% → 38% for WCAG AA on muted backgrounds (~4.75:1) */
+    --muted-foreground: 240 3.8% 38%;
 
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
+
+    /* Slightly darker border for better visual separation */
+    --border: 240 5.9% 87%;
+    --input: 240 5.9% 87%;
     --ring: 240 10% 3.9%;
 
     --radius: 0.5rem;
@@ -115,8 +118,8 @@
     --badge-fuchsia-fg: oklch(36% 0.16 320);
 
     --text-primary: 240 10% 3.9%;
-    --text-secondary: 240 3.8% 46.1%;
-    
+    --text-secondary: 240 3.8% 38%;
+
     /* Animation Tokens - Durations */
     --duration-instant: 0ms;
     --duration-fast: 150ms;
@@ -132,6 +135,7 @@
     --easing-out: cubic-bezier(0, 0, 0.2, 1);
     --easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --easing-linear: cubic-bezier(0, 0, 1, 1);
+    /* --easing-bounce is deprecated — elastic easing feels dated. Use --easing-out instead. */
     --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     
     /* Animation Tokens - Distances */
@@ -140,6 +144,29 @@
     --distance-md: 10px;
     --distance-lg: 20px;
     --distance-xl: 40px;
+
+    /* ============================================
+       SPACING SCALE — 4pt base
+       Named semantic tokens for consistent layout.
+       Use these instead of ad-hoc Tailwind spacing.
+       ============================================ */
+    --space-1:  4px;
+    --space-2:  8px;
+    --space-3:  12px;
+    --space-4:  16px;
+    --space-6:  24px;
+    --space-8:  32px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-24: 96px;
+
+    /* Semantic aliases */
+    --space-xs:  var(--space-1);   /*  4px — icon gaps, badge padding */
+    --space-sm:  var(--space-2);   /*  8px — inline element gaps */
+    --space-md:  var(--space-4);   /* 16px — section padding, card gaps */
+    --space-lg:  var(--space-6);   /* 24px — between card groups */
+    --space-xl:  var(--space-8);   /* 32px — section separators */
+    --space-2xl: var(--space-12);  /* 48px — page section gaps */
 
     /* ============================================
        PALETTE COLORS - Unified Color System
@@ -269,30 +296,32 @@
 
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-    
-    --card: 240 6% 10%;
+
+    /* Card sits 6% lightness above 3.9% background for a clear elevation layer */
+    --card: 240 6% 11%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 6% 10%;
+    --popover: 240 6% 11%;
     --popover-foreground: 0 0% 98%;
-    
+
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
 
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 240 3.7% 17%;
     --secondary-foreground: 0 0% 98%;
-    
-    --muted: 240 3.7% 15.9%;
+
+    --muted: 240 3.7% 17%;
     --muted-foreground: 240 5% 64.9%;
 
-    --accent: 240 3.7% 15.9%;
+    --accent: 240 3.7% 17%;
     --accent-foreground: 0 0% 98%;
-    
+
     --destructive: 0 72% 65%;
     --destructive-foreground: 0 0% 10%;
-    
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+
+    /* Visible border: slightly lighter than card to define surface edges */
+    --border: 240 3.7% 20%;
+    --input: 240 3.7% 20%;
     --ring: 240 4.9% 83.9%;
 
     /* Legacy Surface Support */
@@ -310,12 +339,12 @@
     /* Sidebar */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
+    --sidebar-accent: 240 3.7% 17%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 240 3.7% 18%;
+    --sidebar-ring: 240 4.9% 83.9%;
     
      /* Button Specifics (Dark) */
     --button-primary: 0 0% 98%;
@@ -1124,7 +1153,7 @@
 
   /* Smooth scale on hover */
   .hover-scale {
-    transition: transform var(--duration-normal) var(--easing-bounce);
+    transition: transform var(--duration-normal) cubic-bezier(0, 0, 0.2, 1);
   }
   .hover-scale:hover {
     transform: scale(1.02);
@@ -1138,7 +1167,7 @@
     transition: box-shadow var(--duration-slow) var(--easing-default);
   }
   .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(var(--primary), 0.15), 0 0 40px rgba(var(--primary), 0.1);
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.12), 0 0 40px hsl(var(--primary) / 0.06);
   }
 
   /* Button press effect */
@@ -1187,21 +1216,6 @@
   .focus-ring-animated:focus-visible {
     outline: none;
     animation: focus-ring-pulse var(--duration-slow) var(--easing-default);
-  }
-
-  /* Text gradient animation */
-  .text-gradient-animated {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--primary)),
-      hsl(var(--primary) / 0.7),
-      hsl(var(--primary))
-    );
-    background-size: 200% auto;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradient-shift 3s var(--easing-linear) infinite;
   }
 
   /* Stagger children animation helper - using token-based delays */
@@ -1270,11 +1284,6 @@
   100% {
     box-shadow: 0 0 0 3px hsl(var(--ring) / 0.3);
   }
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
 }
 
 @keyframes badge-pulse {

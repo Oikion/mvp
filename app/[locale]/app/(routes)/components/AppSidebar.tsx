@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import Image from "next/image"
-import Link from "next/link"
+import { Link } from "@/navigation"
 import { usePathname } from "next/navigation"
 import { useLocale } from "next-intl"
 import { useTheme } from "next-themes"
@@ -13,6 +13,7 @@ import { updatePinnedNavUrls } from "@/actions/user/pin-nav"
 import { NavUser } from "@/components/nav-user"
 import { NavSecondary } from "@/components/nav-secondary"
 import { ReferralPromoBox } from "@/components/referral/ReferralPromoBox"
+import { TourTriggerButton } from "@/components/tour/DashboardTour"
 import FeedbackSheet from "./FeedbackSheet"
 import { WorkspaceToggle } from "@/components/workspace/WorkspaceToggle"
 import { AgencyOrganizationSwitcher } from "@/components/workspace/AgencyOrganizationSwitcher"
@@ -124,7 +125,7 @@ export function AppSidebar({
     <Sidebar variant="inset">
       <SidebarHeader>
         <div className="px-2 py-3">
-          <Link href={`/${locale}`} className="inline-block">
+          <Link href="/" className="inline-block">
             <Image
               src={
                 isDarkSidebar
@@ -166,6 +167,7 @@ export function AppSidebar({
           hasReferralCode={hasReferralCode}
           applicationStatus={referralApplicationStatus}
         />
+        <TourTriggerButton />
         <NavUser user={user} />
       </SidebarFooter>
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />

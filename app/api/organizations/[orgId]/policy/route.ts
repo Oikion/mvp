@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 
 export async function GET(
@@ -16,6 +16,27 @@ export async function GET(
     }
 
     const { orgId } = await params;
+
+    // Verify the requesting user is a member of the target org.
+    // Without this check any authenticated user can read any org's policy.
+    try {
+      const clerk = await clerkClient();
+      const memberships = await clerk.organizations.getOrganizationMembershipList({
+        organizationId: orgId,
+        limit: 500,
+      });
+      const isMember = memberships.data.some(
+        (m) => m.publicUserData?.userId === userId
+      );
+      if (!isMember) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
 
     const settings = await prismadb.organizationSettings.findUnique({
       where: { organizationId: orgId },

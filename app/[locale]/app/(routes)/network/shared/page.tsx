@@ -34,7 +34,7 @@ export default async function SharedWithMePage({ params }: SharedWithMePageProps
             <Share2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.all}</span>
             {allShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-xs">
                 {allShared.length}
               </span>
             )}
@@ -43,7 +43,7 @@ export default async function SharedWithMePage({ params }: SharedWithMePageProps
             <Building2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.properties}</span>
             {propertiesShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-xs">
                 {propertiesShared.length}
               </span>
             )}
@@ -52,7 +52,7 @@ export default async function SharedWithMePage({ params }: SharedWithMePageProps
             <Users className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.clients}</span>
             {clientsShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-xs">
                 {clientsShared.length}
               </span>
             )}
@@ -61,7 +61,7 @@ export default async function SharedWithMePage({ params }: SharedWithMePageProps
             <FileText className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.documents}</span>
             {documentsShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-xs">
                 {documentsShared.length}
               </span>
             )}

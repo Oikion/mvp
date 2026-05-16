@@ -7,7 +7,23 @@
   "unread": "μη αναγνωσμένες",
   "allRead": "Όλα είναι ενημερωμένα",
   "all": "Όλα",
-  "new": "Νέα"
+  "new": "Νέα",
+  "types": {
+    "REQUEST_CREATED": "Νέο αίτημα δημιουργήθηκε",
+    "REQUEST_ASSIGNED": "Ανατέθηκε αίτημα σε εσάς",
+    "REQUEST_STATUS_CHANGED": "Αλλαγή κατάστασης αιτήματος",
+    "SHOWING_SCHEDULED": "Νέα επίσκεψη προγραμματίστηκε",
+    "SHOWING_CONFIRMED": "Επίσκεψη επιβεβαιώθηκε",
+    "SHOWING_CANCELLED": "Επίσκεψη ακυρώθηκε",
+    "SHOWING_COMPLETED": "Επίσκεψη ολοκληρώθηκε",
+    "SHOWING_NO_SHOW": "Απουσία από επίσκεψη",
+    "DEAL_STAGE_CHANGED": "Ενημέρωση σταδίου συναλλαγής",
+    "COMMENT_ADDED_PROPERTY": "Νέο σχόλιο σε ακίνητο",
+    "COMMENT_ADDED_CONTACT": "Νέο σχόλιο σε επαφή",
+    "COMMENT_ADDED_REQUEST": "Νέο σχόλιο σε αίτημα",
+    "COMMENT_ADDED_DEAL": "Νέο σχόλιο σε συναλλαγή",
+    "BULK_ARCHIVE_COMPLETED": "Μαζική αρχειοθέτηση ολοκληρώθηκε"
+  }
 }
 
 

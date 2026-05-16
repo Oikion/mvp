@@ -13,6 +13,7 @@ import {
   deleteWebhookEndpoint,
   getWebhookDeliveries,
   regenerateWebhookSecret,
+  validateWebhookUrl,
   ALL_WEBHOOK_EVENTS,
   WebhookEvent,
 } from "@/lib/webhooks";
@@ -129,6 +130,13 @@ export const PUT = withExternalApi(
       if (process.env.NODE_ENV === "production" && !webhookUrl.startsWith("https://")) {
         return createApiErrorResponse("Webhook URL must use HTTPS in production", 400);
       }
+
+      // Block private/internal destinations (SSRF mitigation)
+      const ssrfError = validateWebhookUrl(webhookUrl);
+      if (ssrfError) {
+        return createApiErrorResponse(`Invalid webhook URL: ${ssrfError}`, 400);
+      }
+
       updates.url = webhookUrl;
     }
 

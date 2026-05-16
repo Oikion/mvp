@@ -1,20 +1,27 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
-import Link from "next/link";
+import { getOrgMembersFromDb } from "@/lib/org-members";
+import { Link } from "@/navigation";
 import { redirect } from "next/navigation";
 import TryAgain from "./components/TryAgain";
 import { Users } from "@prisma/client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@/components/ui/card";
+import { getTranslations } from "next-intl/server";
 
-const InactivePage = async () => {
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+const InactivePage = async ({ params }: Props) => {
+  await params;
+  const t = await getTranslations("auth");
+  const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "Oikion";
+
+  const { clerkUserIds } = await getOrgMembersFromDb();
   const adminUsers: Users[] = await prismadb.users.findMany({
     where: {
+      clerkUserId: { in: clerkUserIds },
       is_admin: true,
       userStatus: "ACTIVE",
     },
@@ -27,38 +34,43 @@ const InactivePage = async () => {
   }
 
   return (
-    <Card className="p-10 space-y- m-10">
-      <CardTitle className="flex justify-center py-10">
-        Your account has been deactivated by Admin
-      </CardTitle>
-      <CardDescription className="py-3">
-        Hi, your {process.env.NEXT_PUBLIC_APP_NAME} account has been disabled.
-        Ask someone in your organization to activate your account again.
-      </CardDescription>
-      <CardContent>
-        <h2 className="flex justify-center text-xl">Admin List</h2>
-        <div className="flex flex-wrap justify-center">
-          {adminUsers &&
-            adminUsers?.map((user: Users) => (
-              <div
-                key={user.id}
-                className="flex flex-col p-5 m-2 gap-3 border rounded-md"
-              >
-                <div>
-                  <p className="font-bold">{user.name}</p>
-                  <p>
-                    <Link href={`mailto:  ${user.email}`}>{user.email}</Link>
-                  </p>
-                </div>
-              </div>
-            ))}
-        </div>
+    <Card className="w-full max-w-2xl">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl font-bold">{t("inactive.title")}</CardTitle>
+        <CardDescription>
+          {t("inactive.description", { appName })}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {adminUsers.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              {t("inactive.adminsHeading")}
+            </h2>
+            <ul className="space-y-2">
+              {adminUsers.map((admin: Users) => (
+                <li
+                  key={admin.id}
+                  className="flex flex-col gap-0.5 rounded-md border p-4"
+                >
+                  <span className="font-medium text-foreground">{admin.name}</span>
+                  <Link
+                    href={`mailto:${admin.email}`}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {admin.email}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-        <div className="flex flex-col md:flex-row space-x-2 justify-center items-center pt-5">
-          <Button asChild>
-            <Link href="/app/sign-in">Log-in with another account</Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <Button asChild variant="outline">
+            <Link href="/app/sign-in">{t("inactive.signInOther")}</Link>
           </Button>
-          <p>or</p>
+          <span className="text-sm text-muted-foreground">{t("inactive.or")}</span>
           <TryAgain />
         </div>
       </CardContent>

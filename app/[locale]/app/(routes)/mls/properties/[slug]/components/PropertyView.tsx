@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -112,15 +113,6 @@ interface PropertyViewProps {
 // Status badge styles
 // ---------------------------------------------------------------------------
 
-const statusColors: Record<string, string> = {
-  AVAILABLE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  DRAFT: "bg-muted text-muted-foreground",
-  SOLD: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  RENTED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  RESERVED: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  WITHDRAWN: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  INACTIVE: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -305,12 +297,11 @@ export default function PropertyView({
                 {data.property_name}
               </h1>
               {data.property_status && (
-                <Badge
-                  className={statusColors[data.property_status] ?? statusColors.DRAFT}
-                  variant="secondary"
-                >
-                  {displayEnum(data.property_status)}
-                </Badge>
+                <StatusBadge
+                  entityType="property"
+                  status={data.property_status}
+                  label={displayEnum(data.property_status) ?? undefined}
+                />
               )}
               {data.property_type && (
                 <Badge variant="outline">
@@ -516,12 +507,11 @@ export default function PropertyView({
                 label={t("PropertyView.status")}
                 value={
                   data.property_status ? (
-                    <Badge
-                      className={statusColors[data.property_status] ?? statusColors.DRAFT}
-                      variant="secondary"
-                    >
-                      {displayEnum(data.property_status)}
-                    </Badge>
+                    <StatusBadge
+                      entityType="property"
+                      status={data.property_status}
+                      label={displayEnum(data.property_status) ?? undefined}
+                    />
                   ) : null
                 }
               />

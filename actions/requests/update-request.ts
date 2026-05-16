@@ -9,8 +9,7 @@ import { actionSuccess, actionError, actionValidationError, type ActionResponse 
 import { revalidatePath } from "next/cache";
 import { createSystemActivity } from "@/actions/activities";
 import { logEntityCreated, logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
-import { notifyRequestStatusChanged } from "@/lib/notifications/helpers";
-import { createNotification } from "@/lib/notifications/notification-service";
+import { notifyRequestStatusChanged, notifyRequestAssigned } from "@/lib/notifications/helpers";
 
 // Safelist of non-encrypted Request fields tracked by the activity log.
 const REQUEST_TRACKED_TO_COLUMN: Record<string, string> = {
@@ -135,25 +134,21 @@ export async function updateRequest(
       }).catch((err) => console.error("[REQUEST_STATUS_NOTIFY]", err));
     }
 
-    // Notify new assignee if assignedAgentId changed
+    // Notify new (and previous) assignee if assignedAgentId changed
     if (
       "assignedAgentId" in data &&
       data.assignedAgentId &&
-      data.assignedAgentId !== existing?.assignedAgentId &&
-      data.assignedAgentId !== user.id
+      data.assignedAgentId !== existing?.assignedAgentId
     ) {
-      void createNotification({
-        userId: data.assignedAgentId,
+      void notifyRequestAssigned({
+        requestId,
+        requestFriendlyId: updated.friendlyId ?? existing?.friendlyId ?? requestId,
         organizationId,
-        type: "REQUEST_ASSIGNED",
-        title: "Request assigned to you",
-        message: `${user.name ?? user.email ?? "Someone"} assigned a request to you`,
-        entityType: "REQUEST",
-        entityId: requestId,
         actorId: user.id,
         actorName: user.name ?? user.email ?? "Someone",
-        metadata: { requestId },
-      }).catch((err) => console.error("[REQUEST_ASSIGN_NOTIFY]", err));
+        newAssigneeId: data.assignedAgentId,
+        previousAssigneeId: existing?.assignedAgentId,
+      }).catch((err) => console.error("[REQUEST_ASSIGNED_NOTIFY]", err));
     }
 
     // Activity log — fire-and-forget. Suppressed for drafts. Promotion from

@@ -25,6 +25,7 @@ const Container = ({
             title={title}
             description={description}
             visibility={visibility}
+            level="h4"
           />
           {headerExtra && (
             <div className="shrink-0 pt-1">
@@ -32,9 +33,9 @@ const Container = ({
             </div>
           )}
         </div>
-        <Separator className="mt-4" />
+        <Separator className="mt-3" />
       </div>
-      <div className="pb-8 pt-6 space-y-5 text-sm">
+      <div className="pb-6 pt-5 space-y-5 text-sm">
         {children}
       </div>
     </div>

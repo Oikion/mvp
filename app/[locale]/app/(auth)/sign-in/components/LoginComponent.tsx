@@ -15,7 +15,6 @@ export function LoginComponent() {
         routing="path"
         path={`/${locale}/sign-in`}
         signUpUrl={`/${locale}/register`}
-        afterSignInUrl={`/${locale}`}
         forceRedirectUrl={`/${locale}`}
         appearance={{
           ...appearance,

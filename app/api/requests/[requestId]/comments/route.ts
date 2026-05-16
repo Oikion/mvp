@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { canPerformAction } from "@/lib/permissions";
 import { encryptRequestCommentForOrg, decryptRequestCommentForOrg } from "@/lib/model-encryption";
 import { notifyCommentAdded } from "@/lib/notifications/helpers";
@@ -61,8 +61,8 @@ export async function POST(
   { params }: { params: Promise<{ requestId: string }> }
 ) {
   try {
-    const { userId, orgId: organizationId } = await auth();
-    if (!userId || !organizationId) {
+    const [user, organizationId] = await Promise.all([getCurrentUser(), getCurrentOrgId()]);
+    if (!user || !organizationId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { requestId } = await params;
@@ -72,15 +72,10 @@ export async function POST(
       return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }
 
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 401 });
-    }
-
     // Resolve friendlyId → id
     const request = await prismadb.request.findFirst({
       where: { friendlyId: requestId, organizationId },
-      select: { id: true, assignedAgentId: true, friendlyId: true },
+      select: { id: true, assignedAgentId: true, friendlyId: true, createdBy: true },
     });
     if (!request) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -89,6 +84,9 @@ export async function POST(
     const body = await req.json();
     if (!body.content || typeof body.content !== "string" || body.content.trim().length === 0) {
       return NextResponse.json({ error: "Content is required" }, { status: 400 });
+    }
+    if (body.content.length > 5000) {
+      return NextResponse.json({ error: "Comment is too long (max 5000 characters)" }, { status: 400 });
     }
 
     // Encrypt comment content
@@ -102,15 +100,17 @@ export async function POST(
         requestId: request.id,
         userId: user.id,
         content: encrypted.content!,
-        entitySessionId: body.entitySessionId ?? null,
-        messageIndex: body.messageIndex ?? null,
+        // E2EE for requests is not yet implemented — never accept session fields from
+        // client input to prevent session ownership bypass across orgs.
+        entitySessionId: null,
+        messageIndex: null,
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
       },
     });
 
-    // Notify assignee — fire-and-forget
+    // Notify assignee and owner — fire-and-forget
     void notifyCommentAdded({
       entityType: "REQUEST",
       entityId: request.id,
@@ -120,6 +120,7 @@ export async function POST(
       actorId: user.id,
       actorName: user.name ?? user.email ?? "Someone",
       assigneeId: request.assignedAgentId ?? null,
+      entityOwnerId: request.createdBy ?? null,
     }).catch((err) => console.error("[REQUEST_COMMENT_NOTIFY]", err));
 
     // Return decrypted content, not ciphertext

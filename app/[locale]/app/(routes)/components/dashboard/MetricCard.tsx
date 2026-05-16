@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { TrendingUp, TrendingDown } from "lucide-react"
 
@@ -29,19 +29,19 @@ export function MetricCard({
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <p className="text-sm font-medium text-muted-foreground">
           {title}
-        </CardTitle>
+        </p>
         {icon}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
         {(trend || description) && (
-          <div className="mt-4 flex flex-col gap-1">
+          <div className="mt-2 flex flex-col gap-1">
              {trend && (
                 <div className={cn("flex items-center text-sm", 
-                    trend.direction === "up" && "text-green-500",
-                    trend.direction === "down" && "text-red-500",
+                    trend.direction === "up" && "text-success",
+                    trend.direction === "down" && "text-destructive",
                     trend.direction === "neutral" && "text-muted-foreground"
                 )}>
                     {trend.direction === "up" && <TrendingUp className="mr-1 h-4 w-4" />}

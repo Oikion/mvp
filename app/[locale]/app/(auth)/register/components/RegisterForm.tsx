@@ -224,7 +224,7 @@ export function RegisterForm({ dict }: RegisterFormProps) {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
+                  {dict.submitting}
                 </>
               ) : (
                 dict.verifyButton
@@ -287,11 +287,14 @@ export function RegisterForm({ dict }: RegisterFormProps) {
             <div className="space-y-2">
               <Label htmlFor="email">{dict.emailLabel}</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
+                <Mail aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
                 <Input
                   id="email"
                   type="email"
                   placeholder={dict.emailPlaceholder}
+                  aria-required="true"
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? "reg-email-error" : undefined}
                   className={cn(
                     "pl-10",
                     errors.email && "border-destructive focus-visible:ring-destructive"
@@ -300,7 +303,7 @@ export function RegisterForm({ dict }: RegisterFormProps) {
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p id="reg-email-error" role="alert" className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
 
@@ -308,11 +311,14 @@ export function RegisterForm({ dict }: RegisterFormProps) {
             <div className="space-y-2">
               <Label htmlFor="password">{dict.passwordLabel}</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
+                <Lock aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder={dict.passwordPlaceholder}
+                  aria-required="true"
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? "reg-password-error" : undefined}
                   className={cn(
                     "pl-10 pr-10",
                     errors.password && "border-destructive focus-visible:ring-destructive"
@@ -322,17 +328,19 @@ export function RegisterForm({ dict }: RegisterFormProps) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff aria-hidden="true" className="h-4 w-4" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye aria-hidden="true" className="h-4 w-4" />
                   )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p id="reg-password-error" role="alert" className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
 
@@ -340,11 +348,14 @@ export function RegisterForm({ dict }: RegisterFormProps) {
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">{dict.confirmPasswordLabel}</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
+                <Lock aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder={dict.confirmPasswordPlaceholder}
+                  aria-required="true"
+                  aria-invalid={!!errors.confirmPassword}
+                  aria-describedby={errors.confirmPassword ? "reg-confirm-password-error" : undefined}
                   className={cn(
                     "pl-10 pr-10",
                     errors.confirmPassword && "border-destructive focus-visible:ring-destructive"
@@ -354,17 +365,19 @@ export function RegisterForm({ dict }: RegisterFormProps) {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                  aria-pressed={showConfirmPassword}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff aria-hidden="true" className="h-4 w-4" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye aria-hidden="true" className="h-4 w-4" />
                   )}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+                <p id="reg-confirm-password-error" role="alert" className="text-sm text-destructive">{errors.confirmPassword.message}</p>
               )}
             </div>
 

@@ -39,6 +39,9 @@ import { useRouter } from "@/navigation";
 import { Link } from "@/navigation";
 import { cn } from "@/lib/utils";
 import { SharedActionModals } from "@/components/entity";
+import { bulkArchiveEntities } from "@/actions/archive/bulk-archive-entities";
+import { Archive } from "lucide-react";
+import type { BulkAction } from "@/components/ui/data-table/data-table-bulk-actions";
 
 
 interface ContactsPageViewProps {
@@ -68,6 +71,19 @@ export default function ContactsPageView({
 
   const { users } = crmData;
   const columns = useContactColumns(users);
+
+  const handleBulkDelete = useCallback(async (ids: string[]) => {
+    await bulkArchiveEntities("contact", ids);
+    router.refresh();
+  }, [router]);
+
+  const contactBulkActions: BulkAction<ContactRow>[] = useMemo(() => [{
+    id: "bulk-archive",
+    label: "Archive",
+    icon: <Archive className="h-4 w-4" />,
+    variant: "destructive" as const,
+    onClick: async (rows) => handleBulkDelete(rows.map((r) => r.id)),
+  }], [handleBulkDelete]);
 
   // ── Filter logic ──
   const filteredContacts = useMemo(() => {
@@ -258,7 +274,7 @@ export default function ContactsPageView({
             {contacts.length === 0 ? (
               /* ── Empty state ── */
               <div className="text-center text-muted-foreground py-12">
-                <UserRoundSearch className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <UserRoundSearch className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" aria-hidden="true" />
                 <p className="font-medium">
                   {t("contacts.emptyState.noContacts")}
                 </p>
@@ -274,6 +290,8 @@ export default function ContactsPageView({
                 searchKey="displayName"
                 searchPlaceholder={t("contacts.searchPlaceholder")}
                 onRowOpen={(row) => { if (row.original.friendlyId) router.push(`/app/crm/contacts/${row.original.friendlyId}`); }}
+                onRowDelete={(rows) => handleBulkDelete(rows.map((r) => r.original.id))}
+                bulkActions={contactBulkActions}
                 toolbarRight={<ViewToggle view={view} setView={setView} />}
               />
             ) : (
@@ -325,7 +343,7 @@ export default function ContactsPageView({
 
                 {filteredContacts.length === 0 ? (
                   <div className="text-center text-muted-foreground py-12">
-                    <UserRoundSearch className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                    <UserRoundSearch className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" aria-hidden="true" />
                     <p className="font-medium">
                       {t("contacts.emptyState.noResults")}
                     </p>
@@ -362,7 +380,7 @@ export default function ContactsPageView({
           <Separator />
           <CardContent className="pt-6">
             <div className="text-center text-muted-foreground py-12">
-              <Share2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <Share2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" aria-hidden="true" />
               <p className="font-medium">
                 {t("contacts.emptyState.noShared")}
               </p>

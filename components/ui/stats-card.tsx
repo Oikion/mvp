@@ -117,7 +117,7 @@ export function StatsCard({
               {value}
             </span>
             {isZeroState && hasAction && (
-              <Sparkles className="h-4 w-4 text-warning/70 animate-pulse" />
+              <Sparkles className="h-4 w-4 text-warning/70 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
             )}
           </div>
           

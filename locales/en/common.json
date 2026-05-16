@@ -213,7 +213,8 @@
     "updateContact": "Update Contact",
     "skip": "Skip",
     "finish": "Got it!",
-    "startTour": "Take a tour"
+    "startTour": "Take a tour",
+    "replayTour": "Replay tour"
   },
   "buttonStates": {
     "creating": "Creating...",
@@ -844,6 +845,16 @@
       "saveError": "Failed to save settings",
       "saveSettings": "Save Settings"
     }
+  },
+  "tour": {
+    "sidebarTitle": "Toggle sidebar",
+    "sidebarContent": "Show or hide the navigation sidebar. Use ⌘B (or Ctrl+B on Windows) as a quick shortcut.",
+    "navTitle": "Navigation sections",
+    "navContent": "Access properties, contacts, requests, deals, documents, and your network from here.",
+    "notificationsTitle": "Notifications",
+    "notificationsContent": "Stay on top of messages, appointments, and activity updates from your team.",
+    "crmTitle": "Your contact database",
+    "crmContent": "All contacts, clients, and partners — organised, searchable, and encrypted at rest."
   },
   "errorPage": {
     "title": "Something went wrong",

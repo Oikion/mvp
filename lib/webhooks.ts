@@ -1,6 +1,70 @@
 import { createHmac, randomBytes } from "crypto";
 import { prismadb } from "@/lib/prisma";
 
+/**
+ * Block private/internal destinations to prevent SSRF via webhook delivery.
+ * Returns a reason string if the URL is blocked, null if it is safe.
+ *
+ * This covers the obvious cases (RFC 1918, loopback, link-local, internal TLDs).
+ * DNS rebinding is a separate, deeper mitigation not addressed here.
+ */
+export function validateWebhookUrl(urlString: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(urlString);
+  } catch {
+    return "Invalid URL format";
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  // Loopback / all-interfaces
+  if (hostname === "localhost" || hostname === "0.0.0.0") {
+    return "Loopback and wildcard addresses are not allowed";
+  }
+
+  // IPv4 loopback (127.0.0.0/8)
+  if (/^127\./.test(hostname)) {
+    return "Loopback addresses are not allowed";
+  }
+
+  // Link-local including AWS/GCP metadata (169.254.0.0/16)
+  if (/^169\.254\./.test(hostname)) {
+    return "Link-local addresses are not allowed";
+  }
+
+  // RFC 1918 private ranges
+  if (/^10\./.test(hostname)) return "Private IP ranges are not allowed";
+  if (/^192\.168\./.test(hostname)) return "Private IP ranges are not allowed";
+  const parts = hostname.split(".");
+  if (parts.length === 4 && parts[0] === "172") {
+    const second = parseInt(parts[1], 10);
+    if (second >= 16 && second <= 31) return "Private IP ranges are not allowed";
+  }
+
+  // IPv6 loopback, ULA, link-local
+  if (hostname === "::1") return "Loopback addresses are not allowed";
+  if (/^fe80/i.test(hostname)) return "Link-local IPv6 addresses are not allowed";
+  if (/^f[cd]/i.test(hostname)) return "Private IPv6 ranges are not allowed";
+
+  // IPv4-mapped IPv6 (::ffff:x.x.x.x) — maps any IPv4 address including private ranges
+  // into IPv6 space. The OS routes these to their IPv4 equivalents, bypassing IPv4 checks.
+  if (/^::ffff:/i.test(hostname)) return "IPv4-mapped IPv6 addresses are not allowed";
+
+  // Internal TLDs
+  if (
+    hostname.endsWith(".local") ||
+    hostname.endsWith(".internal") ||
+    hostname.endsWith(".localhost") ||
+    hostname.endsWith(".cluster.local") ||
+    hostname.endsWith(".corp")
+  ) {
+    return "Internal hostnames are not allowed";
+  }
+
+  return null;
+}
+
 // Webhook event types
 export const WEBHOOK_EVENTS = {
   // Client events
