@@ -112,7 +112,7 @@ export async function createReservedName(
   const validation = reservedNameSchema.safeParse(data);
 
   if (!validation.success) {
-    return { success: false, error: validation.error.errors[0]?.message };
+    return { success: false, error: validation.error.issues[0]?.message };
   }
 
   const { type, value, status, notes } = validation.data;
@@ -156,7 +156,7 @@ export async function updateReservedName(
   const validation = updateReservedNameSchema.safeParse(data);
 
   if (!validation.success) {
-    return { success: false, error: validation.error.errors[0]?.message };
+    return { success: false, error: validation.error.issues[0]?.message };
   }
 
   const { id, type, value, status, notes } = validation.data;
@@ -198,7 +198,7 @@ export async function deleteReservedName(
 ): Promise<{ success: boolean; error?: string }> {
   const admin = await requirePlatformAdmin();
 
-  if (!id) {
+  if (!id || typeof id !== "string" || id.trim().length === 0) {
     return { success: false, error: "Reserved name ID is required" };
   }
 

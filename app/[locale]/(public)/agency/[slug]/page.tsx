@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import Script from "next/script";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -19,7 +18,7 @@ export async function generateMetadata({
   params,
 }: AgencyPageProps): Promise<Metadata> {
   const { slug, locale } = await params;
-  const profile = await getPublicAgencyProfile(slug, false);
+  const profile = await getPublicAgencyProfile(slug);
 
   if (!profile) {
     return {
@@ -99,10 +98,8 @@ function buildBreadcrumbJsonLd(
 
 export default async function AgencyPage({ params }: AgencyPageProps) {
   const { slug, locale } = await params;
-  const { userId } = await auth();
-  const isAuthenticated = !!userId;
 
-  const profile = await getPublicAgencyProfile(slug, isAuthenticated);
+  const profile = await getPublicAgencyProfile(slug);
 
   if (!profile) {
     notFound();

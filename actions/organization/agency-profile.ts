@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { auth } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/backend";
 
 import {
@@ -29,7 +30,7 @@ const upsertAgencyProfileSchema = z.object({
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   socialLinks: z
-    .record(z.string().url().or(z.literal("")))
+    .record(z.string(), z.string().url().or(z.literal("")))
     .optional()
     .nullable(),
   visibility: z.enum(["PRIVATE", "SECURE", "PUBLIC"]).optional(),
@@ -77,7 +78,7 @@ export async function upsertAgencyProfile(
   const parsed = upsertAgencyProfileSchema.safeParse(data);
   if (!parsed.success) {
     return actionError(
-      parsed.error.errors.map((e) => e.message).join("; "),
+      parsed.error.issues.map((e) => e.message).join("; "),
       "VALIDATION_ERROR"
     );
   }
@@ -175,10 +176,10 @@ export async function upsertAgencyProfile(
  * Get a public agency profile by slug with showcase properties.
  * Respects visibility: PUBLIC always; SECURE only when authenticated.
  */
-export async function getPublicAgencyProfile(
-  slug: string,
-  isAuthenticated: boolean = false
-) {
+export async function getPublicAgencyProfile(slug: string) {
+  const { userId } = await auth();
+  const isAuthenticated = !!userId;
+
   const profile = await prismadb.agencyProfile.findFirst({
     where: {
       slug: slug.toLowerCase(),

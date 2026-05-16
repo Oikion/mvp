@@ -203,8 +203,6 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
             requestContact: result.linkCounts.requestContact,
             requestProperty: result.linkCounts.requestProperty,
           },
-          // Attach the raw batch result for the new CompleteStep
-          _batchResult: result,
         };
       } catch (error) {
         // Clear the in-progress marker on error too

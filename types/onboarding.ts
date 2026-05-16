@@ -114,6 +114,7 @@ export interface UsernameAvailabilityResult {
 export interface OnboardingCompletionResult {
   success: boolean;
   error?: string;
+  demoOrgId?: string;
 }
 
 /**

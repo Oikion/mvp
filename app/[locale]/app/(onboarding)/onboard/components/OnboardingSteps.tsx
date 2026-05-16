@@ -479,7 +479,18 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         return;
       }
 
-      // 6. Redirect to dashboard (personal workspace)
+      // 6. Switch active org to demo so DemoModeProvider sees isDemo:true on first load.
+      // If demo creation failed (result.demoOrgId is undefined), fall back to personal workspace.
+      const targetOrgId = result.demoOrgId ?? personalOrgId;
+      if (targetOrgId && setActive) {
+        try {
+          await setActive({ organization: targetOrgId });
+        } catch {
+          // Non-blocking — user can switch org manually
+        }
+      }
+
+      // 7. Redirect to dashboard (demo org active)
       toast.success(dict.steps.complete.title, { description: dict.steps.complete.redirecting, isTranslationKey: false });
 
       setTimeout(() => {

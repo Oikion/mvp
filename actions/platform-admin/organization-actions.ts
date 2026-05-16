@@ -40,7 +40,7 @@ export async function warnOrganizationMembers(
     const validation = orgActionSchema.safeParse(data);
     
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
 
     const { organizationId, reason } = validation.data;
@@ -149,7 +149,7 @@ export async function suspendOrganization(
     const validation = orgActionSchema.safeParse(data);
     
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
 
     const { organizationId, reason } = validation.data;
@@ -272,7 +272,7 @@ export async function deleteOrganization(
     const validation = orgActionSchema.safeParse(data);
     
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
 
     const { organizationId, reason } = validation.data;

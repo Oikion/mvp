@@ -11,9 +11,9 @@ const MAX_ROWS = 5000;
 
 const validatedRowSchema = z.object({
   rowIndex: z.number().int().min(0),
-  contactRow: z.record(z.unknown()).nullable(),
-  propertyRow: z.record(z.unknown()).nullable(),
-  requestRow: z.record(z.unknown()).nullable(),
+  contactRow: z.record(z.string(), z.unknown()).nullable(),
+  propertyRow: z.record(z.string(), z.unknown()).nullable(),
+  requestRow: z.record(z.string(), z.unknown()).nullable(),
   hasContact: z.boolean(),
   hasProperty: z.boolean(),
   hasRequest: z.boolean(),

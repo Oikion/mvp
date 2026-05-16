@@ -58,23 +58,6 @@ export function SolutionSection() {
         }
       )
 
-      // Stylized product mockup
-      gsap.fromTo(
-        '.solution-mockup',
-        { y: 60, opacity: 0, scale: 0.95 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.8,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: '.solution-mockup',
-            start: 'top 85%',
-            once: true,
-          },
-        }
-      )
     }, sectionRef)
 
     return () => ctx.revert()
@@ -96,7 +79,7 @@ export function SolutionSection() {
           </p>
           <h2
             id="solution-title"
-            className="text-[clamp(28px,3vw,44px)] font-light leading-[1.15] text-white tracking-[-0.01em] mb-5 max-w-[600px] mx-auto"
+            className="text-[clamp(28px,3vw,44px)] font-light leading-[1.15] text-white tracking-[-0.01em] mb-5 max-w-[600px] mx-auto" /* fluid type: website-only, not product UI — CLAUDE.md exception */
           >
             {t('solution.title')}
           </h2>

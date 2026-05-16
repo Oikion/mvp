@@ -237,11 +237,14 @@ export async function completeOnboarding(
       },
     });
 
-    // Track referral if code was provided
-    if (params.referralCode) {
+    // Track referral if code was provided and passes format validation
+    const referralCodeValid =
+      params.referralCode &&
+      /^[A-Z0-9]{4,20}$/i.test(params.referralCode);
+    if (referralCodeValid) {
       try {
         await trackReferral({
-          referralCode: params.referralCode,
+          referralCode: params.referralCode!,
           referredUserId: user.id,
         });
       } catch (referralError) {
@@ -252,13 +255,13 @@ export async function completeOnboarding(
 
     // Set tourStep: 0 for all users and attempt demo org creation.
     // tourStep is always written — demo org failure is non-blocking.
+    let demoOrgId: string | undefined;
     if (user.clerkUserId) {
       try {
         const clerk = await clerkClient();
         const clerkUser = await clerk.users.getUser(user.clerkUserId);
         const existingMeta = (clerkUser.publicMetadata ?? {}) as Record<string, unknown>;
 
-        let demoOrgId: string | undefined;
         try {
           const demoLocale = params.language === "el" ? "el" : "en";
           const result = await createDemoOrgForUser(user.clerkUserId, demoLocale);
@@ -285,13 +288,13 @@ export async function completeOnboarding(
 
     return {
       success: true,
+      demoOrgId,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to complete onboarding";
+    console.error("[COMPLETE_ONBOARDING]", error);
     return {
       success: false,
-      error: errorMessage,
+      error: "Failed to complete onboarding. Please try again.",
     };
   }
 }

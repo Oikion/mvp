@@ -26,6 +26,9 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(req: NextRequest) {
   try {
+    const guard = await requireAction("import:view_history");
+    if (guard) return handleGuardError(guard);
+
     const { userId, orgId } = await auth();
 
     if (!userId) {
@@ -46,7 +49,8 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const cursor = searchParams.get("cursor") || undefined;
     const importTypeParam = searchParams.get("importType");
-    const importType = (importTypeParam as import("@prisma/client").ImportEntityType) || undefined;
+    const importTypeParsed = z.nativeEnum(ImportEntityType).optional().safeParse(importTypeParam ?? undefined);
+    const importType = importTypeParsed.success ? importTypeParsed.data : undefined;
 
     const result = await getImportHistory(orgId, {
       limit,
@@ -81,7 +85,7 @@ const importHistoryBodySchema = z.object({
   importType: z.nativeEnum(ImportEntityType),
   sourceFilename: z.string().min(1),
   rowCount: z.number().int().min(0).optional(),
-  result: z.record(z.unknown()).optional(),
+  result: z.record(z.string(), z.unknown()).optional(),
   entityIds: z.array(z.string()).optional(),
 });
 

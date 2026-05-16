@@ -198,7 +198,7 @@ export const propertyImportSchema = z.object({
 
   // Additional
   description: z.coerce.string().optional().or(z.literal("")),
-  primary_email: z.coerce.string().email().optional().or(z.literal("")),
+  primary_email: z.string().email().optional().or(z.literal("")),
 });
 
 export type PropertyImportData = z.infer<typeof propertyImportSchema>;

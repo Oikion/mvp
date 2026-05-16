@@ -15,7 +15,7 @@ const ContactFormSchema = z.object({
   message: z.string().max(5000).optional(),
   locale: z.enum(['el', 'en']).default('el'),
   privacyConsent: z.literal(true, {
-    errorMap: () => ({ message: 'You must agree to the Privacy Policy' }),
+    error: () => ({ message: 'You must agree to the Privacy Policy' }),
   }),
 })
 
@@ -129,7 +129,7 @@ export async function submitWebsiteContactForm(
   // Validate
   const parsed = ContactFormSchema.safeParse(data)
   if (!parsed.success) {
-    return actionError(parsed.error.errors[0]?.message ?? 'Invalid form data')
+    return actionError(parsed.error.issues[0]?.message ?? 'Invalid form data')
   }
 
   const { privacyConsent: _, ...formData } = parsed.data

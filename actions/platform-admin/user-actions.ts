@@ -49,7 +49,7 @@ export async function sendUserWarning(userId: string, reason: string): Promise<A
     // Validate input
     const validation = warningSchema.safeParse({ userId, reason });
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
     
     const sanitizedReason = sanitizeAdminMessage(validation.data.reason);
@@ -119,8 +119,7 @@ export async function sendUserWarning(userId: string, reason: string): Promise<A
     return { success: true, message: "Warning sent successfully" };
   } catch (error) {
     console.error("[SEND_USER_WARNING]", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to send warning";
-    return { success: false, error: errorMessage };
+    return { success: false, error: "Failed to send warning" };
   }
 }
 
@@ -136,7 +135,7 @@ export async function suspendUser(userId: string, reason: string): Promise<Actio
     // Validate input
     const validation = suspensionSchema.safeParse({ userId, reason });
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
     
     const sanitizedReason = sanitizeAdminMessage(validation.data.reason);
@@ -226,8 +225,7 @@ export async function suspendUser(userId: string, reason: string): Promise<Actio
     return { success: true, message: "User suspended successfully" };
   } catch (error) {
     console.error("[SUSPEND_USER]", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to suspend user";
-    return { success: false, error: errorMessage };
+    return { success: false, error: "Failed to suspend user" };
   }
 }
 
@@ -239,6 +237,11 @@ export async function unsuspendUser(userId: string, note?: string): Promise<Acti
   try {
     // Verify admin access
     const admin = await requirePlatformAdmin();
+
+    // Sanitize optional note — cap length, strip control characters
+    const sanitizedNote = note
+      ? note.trim().replace(/[\x00-\x1F\x7F]/g, "").slice(0, 500)
+      : undefined;
 
     // Get user from database
     const user = await prismadb.users.findUnique({
@@ -255,7 +258,7 @@ export async function unsuspendUser(userId: string, note?: string): Promise<Acti
     }
 
     // Log the action
-    await logAdminAction(admin.clerkId, "UNSUSPEND_ACCOUNT", userId, { note });
+    await logAdminAction(admin.clerkId, "UNSUSPEND_ACCOUNT", userId, { note: sanitizedNote });
 
     // Update user status to ACTIVE
     await prismadb.users.update({
@@ -320,8 +323,7 @@ export async function unsuspendUser(userId: string, note?: string): Promise<Acti
     return { success: true, message: "User unsuspended successfully" };
   } catch (error) {
     console.error("[UNSUSPEND_USER]", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to unsuspend user";
-    return { success: false, error: errorMessage };
+    return { success: false, error: "Failed to unsuspend user" };
   }
 }
 
@@ -338,7 +340,7 @@ export async function deleteUser(userId: string, reason: string): Promise<Action
     // Validate input
     const validation = deleteSchema.safeParse({ userId, reason });
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
     
     const sanitizedReason = sanitizeAdminMessage(validation.data.reason);

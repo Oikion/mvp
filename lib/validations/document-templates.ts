@@ -42,7 +42,7 @@ export const createOrgDocumentTemplateSchema = z
     nameEl: z.string().max(255).optional(),
     nameEn: z.string().max(255).optional(),
     category: docTemplateCategorySchema.default("GENERAL"),
-    body: z.record(z.unknown()),
+    body: z.record(z.string(), z.unknown()),
     placeholders: z.array(z.unknown()).default([]),
     isPublished: z.boolean().default(false),
     version: z.coerce.number().int().min(1).default(1),
@@ -60,7 +60,7 @@ export const updateOrgDocumentTemplateSchema = z
     nameEl: z.string().max(255).optional(),
     nameEn: z.string().max(255).optional(),
     category: docTemplateCategorySchema.optional(),
-    body: z.record(z.unknown()).optional(),
+    body: z.record(z.string(), z.unknown()).optional(),
     placeholders: z.array(z.unknown()).optional(),
     isPublished: z.boolean().optional(),
   })
@@ -122,6 +122,27 @@ export const createDocumentTemplateSchema =
  */
 export const updateDocumentTemplateSchema = updateOrgDocumentTemplateSchema;
 
+/**
+ * Action-layer publish schema — organizationId injected from auth context,
+ * never accepted from the client.
+ */
+export const publishDocumentTemplateSchema =
+  publishOrgDocumentTemplateSchema.omit({ organizationId: true });
+
+/**
+ * Action-layer clone schema — organizationId injected from auth context,
+ * never accepted from the client.
+ */
+export const cloneDocumentTemplateSchema =
+  cloneOrgDocumentTemplateSchema.omit({ organizationId: true });
+
+/**
+ * Action-layer list schema — organizationId injected from auth context,
+ * never accepted from the client.
+ */
+export const listDocumentTemplatesSchema =
+  listOrgDocumentTemplatesSchema.omit({ organizationId: true });
+
 // =============================================================================
 // Type Exports
 // =============================================================================
@@ -146,6 +167,15 @@ export type CreateDocumentTemplateInput = z.infer<
 >;
 export type UpdateDocumentTemplateInput = z.infer<
   typeof updateDocumentTemplateSchema
+>;
+export type PublishDocumentTemplateInput = z.infer<
+  typeof publishDocumentTemplateSchema
+>;
+export type CloneDocumentTemplateInput = z.infer<
+  typeof cloneDocumentTemplateSchema
+>;
+export type ListDocumentTemplatesInput = z.infer<
+  typeof listDocumentTemplatesSchema
 >;
 // Note: The above types are intentionally re-derived via z.infer so that they
 // stay in sync automatically when the org-level schemas change.

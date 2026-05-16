@@ -1,5 +1,5 @@
 // source.config.ts
-import { defineDocs, defineConfig } from "fumadocs-mdx/config/zod-3";
+import { defineDocs, defineConfig } from "fumadocs-mdx/config";
 var publicDocs = defineDocs({
   dir: "content/docs/public"
 });

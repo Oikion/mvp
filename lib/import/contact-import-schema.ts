@@ -60,16 +60,14 @@ export const contactImportSchema = z.object({
   contact_name: z.coerce.string().min(1, "Contact name is required"),
 
   // Contact information - use coerce.string() to handle numeric phone values from CSV
-  primary_email: z.coerce
-    .string()
+  primary_email: z.string()
     .email("Invalid email address")
     .optional()
     .or(z.literal("")),
   office_phone: z.coerce.string().optional().or(z.literal("")),
   primary_phone: z.coerce.string().optional().or(z.literal("")),
   secondary_phone: z.coerce.string().optional().or(z.literal("")),
-  secondary_email: z.coerce
-    .string()
+  secondary_email: z.string()
     .email("Invalid email address")
     .optional()
     .or(z.literal("")),
@@ -84,7 +82,7 @@ export const contactImportSchema = z.object({
   company_name: z.coerce.string().optional().or(z.literal("")),
   vat: z.coerce.string().optional().or(z.literal("")),
   website: z
-    .union([z.coerce.string().url("Invalid URL"), z.literal(""), z.undefined()])
+    .union([z.string().url("Invalid URL"), z.literal(""), z.undefined()])
     .optional(),
   fax: z.coerce.string().optional().or(z.literal("")),
 

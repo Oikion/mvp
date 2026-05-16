@@ -85,8 +85,12 @@ const REQUEST_SEED = [
     budgetMax: 280000,
     surfaceMin: 60,
     bedroomsMin: 2,
-    title_el: "Αναζήτηση διαμερίσματος Αθήνα",
-    title_en: "Apartment search Athens",
+    name_el: "Αναζήτηση διαμερίσματος Αθήνα",
+    name_en: "Apartment search Athens",
+    notes_el: "Ενδιαφέρεται για περιοχές κέντρου — Κολωνάκι, Παγκράτι, Εξάρχεια.",
+    notes_en: "Interested in central areas — Kolonaki, Pagkrati, Exarcheia.",
+    locationDisplayName_el: "Αθήνα — κέντρο",
+    locationDisplayName_en: "Athens — city centre",
   },
   {
     requestType: "BUY" as const,
@@ -96,8 +100,12 @@ const REQUEST_SEED = [
     budgetMax: 700000,
     surfaceMin: 150,
     bedroomsMin: 3,
-    title_el: "Αναζήτηση μονοκατοικίας Βόρεια Προάστια",
-    title_en: "House search Northern Suburbs",
+    name_el: "Αναζήτηση μονοκατοικίας Βόρεια Προάστια",
+    name_en: "House search Northern Suburbs",
+    notes_el: "Προτιμά Κηφισιά, Μαρούσι, Χαλάνδρι. Απαραίτητος κήπος και χώρος στάθμευσης.",
+    notes_en: "Prefers Kifissia, Maroussi, Chalandri. Garden and parking essential.",
+    locationDisplayName_el: "Βόρεια Προάστια Αθήνας",
+    locationDisplayName_en: "Northern Athens Suburbs",
   },
   {
     requestType: "RENT" as const,
@@ -107,8 +115,12 @@ const REQUEST_SEED = [
     budgetMax: 1000,
     surfaceMin: 50,
     bedroomsMin: 1,
-    title_el: "Ενοικίαση διαμερίσματος κέντρο",
-    title_en: "Apartment rental city centre",
+    name_el: "Ενοικίαση διαμερίσματος κέντρο",
+    name_en: "Apartment rental city centre",
+    notes_el: "Χρειάζεται σύντομη εγκατάσταση — πιθανώς εντός μηνός.",
+    notes_en: "Needs to move in quickly — possibly within the month.",
+    locationDisplayName_el: "Κέντρο Αθήνας",
+    locationDisplayName_en: "Athens city centre",
   },
 ];
 
@@ -419,7 +431,9 @@ function pickN<T>(arr: T[], n: number): T[] {
  * Generate a deterministic negative integer for demo CalendarEvent.calendarEventId.
  * Cal.com IDs are positive integers, so negatives are safe and won't conflict.
  * Uses the full 30-bit hash value: -(hash * 3 + index + 1). This spreads
- * orgs across the full negative Int32 range, minimising collision probability.
+ * orgs across ~3 billion slots. Birthday-paradox collision risk becomes
+ * non-trivial only at ~60,000+ concurrent demo orgs; acceptable for current scale.
+ * If platform reaches that scale, replace with a per-org sequential counter.
  */
 function demoCalendarEventId(orgId: string, index: number): number {
   let hash = 0;
@@ -698,7 +712,9 @@ export async function seedDemoOrg(
   const requestsRaw = REQUEST_SEED.map((r, i) => ({
     id: `demo_req_${orgId}_${i}`,
     organizationId: orgId,
-    title: isEl ? r.title_el : r.title_en,
+    name: isEl ? r.name_el : r.name_en,
+    notes: isEl ? r.notes_el : r.notes_en,
+    locationDisplayName: isEl ? r.locationDisplayName_el : r.locationDisplayName_en,
     requestType: r.requestType,
     propertyCategory: r.propertyCategory,
     propertyTypes: r.propertyTypes,
@@ -711,11 +727,9 @@ export async function seedDemoOrg(
     friendlyId: `DEMO-R${String(i + 1).padStart(3, "0")}`,
   }));
 
-  // encryptRequestForOrg is a no-op here — seed data has no name/notes/locationDisplayName.
-  // The cast silences the constraint mismatch.
-  const encryptedRequests = (await Promise.all(
-    requestsRaw.map((r) => encryptRequestForOrg(r as never, orgId))
-  )) as unknown as typeof requestsRaw;
+  const encryptedRequests = await Promise.all(
+    requestsRaw.map((r) => encryptRequestForOrg(r, orgId))
+  );
 
   // ── Transaction ───────────────────────────────────────────────────────────
   await prismadb.$transaction(async (tx) => {

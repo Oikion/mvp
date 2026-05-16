@@ -144,8 +144,6 @@ export interface ImportResult {
   properties?: { created: number; failed: number };
   requests?: { created: number; failed: number };
   links?: { contactProperty: number; requestContact: number; requestProperty: number };
-  // Batch result passthrough for new CompleteStep
-  _batchResult?: unknown;
 }
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -409,14 +407,14 @@ export function ImportWizardSteps({
       if (result.success) {
         valid.push(result.data as Record<string, unknown>);
       } else {
-        result.error.errors.forEach((err) => {
+        result.error.issues.forEach((err) => {
           errors.push({
             row: rowIndex + 2,
             field: err.path.join("."),
             error: err.message,
-            value: normalizedRow[err.path[0]] === null || normalizedRow[err.path[0]] === undefined
+            value: normalizedRow[err.path[0] as string | number] === null || normalizedRow[err.path[0] as string | number] === undefined
               ? ""
-              : String(normalizedRow[err.path[0]]),
+              : String(normalizedRow[err.path[0] as string | number]),
           });
         });
       }

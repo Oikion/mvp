@@ -97,7 +97,7 @@ export async function createCustomCategory(
     const validation = createCategorySchema.safeParse(data);
 
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
 
     const { name, color, icon, sortOrder } = validation.data;
@@ -157,7 +157,7 @@ export async function updateCustomCategory(
     const validation = updateCategorySchema.safeParse(data);
 
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
 
     const { id, ...updateData } = validation.data;
@@ -311,7 +311,7 @@ export async function createChangelogEntry(
     const validation = createChangelogSchema.safeParse(data);
 
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
 
     const { version, title, description, customCategoryId, tags, status } = validation.data;
@@ -379,7 +379,7 @@ export async function updateChangelogEntry(
     const validation = updateChangelogSchema.safeParse(data);
 
     if (!validation.success) {
-      return { success: false, error: validation.error.errors[0].message };
+      return { success: false, error: validation.error.issues[0].message };
     }
 
     const { id, ...updateData } = validation.data;
@@ -804,7 +804,7 @@ export async function sendChangelogNotification(
       return { success: false, error: "Admin user not found" };
     }
 
-    const recipients = await prismadb.users.findMany({
+    const recipientsRaw = await prismadb.users.findMany({
       where: {
         OR: [
           { UserNotificationSettings: { systemEmailEnabled: true } },
@@ -813,6 +813,7 @@ export async function sendChangelogNotification(
       },
       select: { id: true, email: true, firstName: true, lastName: true },
     });
+    const recipients = recipientsRaw.filter((u): u is typeof u & { email: string } => !!u.email);
 
     if (recipients.length === 0) {
       return { success: false, error: "No opted-in recipients found" };
