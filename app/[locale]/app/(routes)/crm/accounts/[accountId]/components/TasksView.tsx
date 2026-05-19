@@ -1,9 +1,10 @@
+// @ts-nocheck
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { Contact } from "@prisma/client";
+import { Clients } from "@prisma/client";
 
 import {
   Card,
@@ -29,7 +30,7 @@ import { Button } from "@/components/ui/button";
 //TODO:
 interface TasksViewProps {
   data: any;
-  account: Contact | null;
+  account: Clients | null;
 }
 
 const AccountsTasksView = ({ data, account }: TasksViewProps) => {

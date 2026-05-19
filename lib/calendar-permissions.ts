@@ -129,10 +129,7 @@ export async function canViewTask(taskId: string): Promise<boolean> {
 
     // Agency owners can view all tasks in their organization
     if (currentUser.is_account_admin || currentUser.is_admin) {
-      if (task.organizationId) {
-        return task.organizationId === currentOrgId;
-      }
-      return true; // Allow if no org restriction
+      return task.organizationId === currentOrgId;
     }
 
     // Regular users can view tasks assigned to them
@@ -141,11 +138,7 @@ export async function canViewTask(taskId: string): Promise<boolean> {
     }
 
     // Regular users can view tasks in their organization
-    if (task.organizationId === currentOrgId) {
-      return true;
-    }
-
-    return false;
+    return task.organizationId === currentOrgId;
   } catch (error) {
     return false;
   }
@@ -171,10 +164,7 @@ export async function canEditTask(taskId: string): Promise<boolean> {
 
     // Agency owners can edit all tasks in their organization
     if (currentUser.is_account_admin || currentUser.is_admin) {
-      if (task.organizationId) {
-        return task.organizationId === currentOrgId;
-      }
-      return true;
+      return task.organizationId === currentOrgId;
     }
 
     // Regular users can edit tasks assigned to them

@@ -1,22 +1,16 @@
 import useSWR from "swr";
 
-export interface LinkedContact {
+interface LinkedClient {
   id: string;
-  friendlyId: string | null;
-  displayName: string;
-  email: string | null;
-  primaryPhone: string | null;
-  status: string | null;
-  category: string[];
-  createdAt?: string;
-  updatedAt?: string;
-  assignedAgent?: {
-    id: string;
-    firstName: string | null;
-    lastName: string | null;
-    avatar: string | null;
-  } | null;
-  /** @deprecated Legacy compat — populated from assignedAgent by the API route */
+  friendlyId: string;
+  client_name: string;
+  client_type?: string;
+  client_status?: string;
+  primary_email?: string;
+  primary_phone?: string;
+  intent?: string;
+  createdAt: string;
+  updatedAt: string;
   assigned_to_user?: {
     id: string;
     name: string | null;
@@ -70,7 +64,7 @@ interface PropertyLinkedData {
     property_name: string;
     organizationId: string;
   };
-  clients: LinkedContact[];
+  clients: LinkedClient[];
   mandates: LinkedMandate[];
   documents: LinkedDocument[];
   events: {
@@ -109,8 +103,7 @@ export function usePropertyLinked(
 
   return {
     linkedData: data ?? null,
-    /** Linked contacts — response key is "clients" for API compat */
-    clients: data?.clients ?? [] as LinkedContact[],
+    clients: data?.clients ?? [],
     mandates: data?.mandates ?? [],
     documents: data?.documents ?? [],
     events: data?.events ?? { upcoming: [], past: [], total: 0 },

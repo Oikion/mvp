@@ -5,8 +5,6 @@
  */
 
 import type { Prisma } from "@prisma/client";
-// Prisma 7: Decimal is available via the `Prisma` namespace rather than the
-// removed `@prisma/client/runtime/library` module.
 type Decimal = Prisma.Decimal;
 
 // ============================================

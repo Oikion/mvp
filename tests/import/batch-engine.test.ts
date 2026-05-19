@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * tests/import/batch-engine.test.ts
  *
@@ -7,7 +8,7 @@
  * All DB and encryption dependencies are mocked.
  */
 
-import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ValidatedRow } from "@/lib/import/validation-engine";
 
 // ---------------------------------------------------------------------------
@@ -108,10 +109,7 @@ vi.stubGlobal("crypto", {
 });
 
 // Import after mocks are established
-let executeBatchImport: typeof import("@/lib/import/unified-engine").executeBatchImport;
-beforeAll(async () => {
-  ({ executeBatchImport } = await import("@/lib/import/unified-engine"));
-});
+const { executeBatchImport } = await import("@/lib/import/unified-engine");
 
 // ---------------------------------------------------------------------------
 // Helpers

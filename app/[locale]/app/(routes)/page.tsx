@@ -80,7 +80,7 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
       "userPreferences"
     ),
     safeAwait(getActiveUsersCount(), 0, "activeUsersCount"),
-    safeAwait(getRecentClients(8).then(r => "data" in r ? r.data ?? [] : []), [], "recentClients"),
+    safeAwait(getRecentClients(8), [], "recentClients"),
     safeAwait(getRecentProperties(8), [], "recentProperties"),
     safeAwait(getClientsByStatus(), [], "clientsByStatus"),
     safeAwait(getPropertiesByStatus(), [], "propertiesByStatus"),

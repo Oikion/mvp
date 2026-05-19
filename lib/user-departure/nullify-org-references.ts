@@ -111,8 +111,6 @@ export async function nullifyOrgReferences(
       data: { sentById: null },
     }),
 
-    // (client_Contacts table removed — ContactRelationship has no assigned_to/created_by fields)
-
     // crm_Accounts_Tasks_Comments.user (has organizationId)
     prismadb.crm_Accounts_Tasks_Comments.updateMany({
       where: { organizationId: orgId, user: userId },

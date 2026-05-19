@@ -24,7 +24,7 @@ export function usePrefetch() {
    */
   const prefetchClient = useCallback(
     (clientId: string) => {
-      const key = `/api/crm/contacts/${clientId}`;
+      const key = `/api/crm/clients/${clientId}`;
       preload(key, fetcher);
     },
     []
@@ -68,7 +68,7 @@ export function usePrefetch() {
    */
   const prefetchClientLinked = useCallback(
     (clientId: string) => {
-      const key = `/api/crm/contacts/${clientId}/linked`;
+      const key = `/api/crm/clients/${clientId}/linked`;
       preload(key, fetcher);
     },
     []

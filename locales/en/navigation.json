@@ -9,7 +9,6 @@
       "archive": "Archive"
     },
     "dashboard": "Dashboard",
-    "chatGPT": "ChatGPT",
     "feed": "Upcoming",
     "crm": {
       "title": "Clients",
@@ -26,12 +25,6 @@
     },
     "mandates": {
       "title": "Mandates"
-    },
-    "requests": {
-      "title": "Requests"
-    },
-    "deals": {
-      "title": "Deals"
     },
     "social": {
       "title": "Social",

@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { Bot } from "lucide-react";
@@ -14,7 +15,7 @@ type Props = {
 const ChatGPTModuleMenu = ({ open }: Props) => {
   const pathname = usePathname();
   const isPath = pathname.includes("openAi");
-  const t = useTranslations("navigation");
+  const t = useTranslations();
 
   return (
     <Button

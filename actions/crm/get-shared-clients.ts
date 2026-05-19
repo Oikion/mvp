@@ -1,77 +1,102 @@
+// @ts-nocheck
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/get-current-user";
-import { requireAction } from "@/lib/permissions/action-guards";
-import { decryptContactForOrg } from "@/lib/model-encryption";
-import { serializePrisma } from "@/lib/prisma-serialize";
-import { actionSuccess, actionError } from "@/lib/action-response";
+import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
-export type SharedClientData = {
+export interface SharedClientData {
   id: string;
-  entityType: string;
-  entityId: string;
-  sharedById: string | null;
-  sharedWithId: string | null;
+  friendlyId: string;
+  shareId: string;
+  client_name: string;
+  primary_email: string | null;
+  primary_phone: string | null;
+  client_status: string | null;
+  createdAt: Date;
+  sharedAt: Date;
   permissions: string;
   message: string | null;
-  createdAt: Date;
-  contact: {
+  sharedBy: {
     id: string;
-    friendlyId: string | null;
-    displayName: string;
-    email: string | null;
-    primaryPhone: string | null;
-    status: string;
-    visibility: string;
-    category: string[];
-  } | null;
-};
-
-export async function getSharedContacts() {
-  const guard = await requireAction("contact:read");
-  if (guard) return guard;
-
-  const organizationId = await getCurrentOrgId();
-
-  try {
-    const sharedEntities = await prismadb.sharedEntity.findMany({
-      where: {
-        organizationId,
-        entityType: "CONTACT",
-      } as any,
-    });
-
-    // Manually join contacts since SharedEntity has no Prisma relation to Contact
-    const results = await Promise.all(
-      sharedEntities.map(async (se) => {
-        const contact = await prismadb.contact.findFirst({
-          where: { id: se.entityId, organizationId },
-          select: {
-            id: true,
-            friendlyId: true,
-            displayName: true,
-            email: true,
-            primaryPhone: true,
-            status: true,
-            visibility: true,
-            category: true,
-          },
-        });
-
-        if (!contact) return { ...se, contact: null };
-
-        const decrypted = await decryptContactForOrg(contact, organizationId);
-        return { ...se, contact: decrypted };
-      })
-    );
-
-    return actionSuccess(serializePrisma(results));
-  } catch (error) {
-    console.error("[GET_SHARED_CONTACTS]", error);
-    return actionError("Failed to fetch shared contacts", error as Error);
-  }
+    name: string | null;
+    email: string;
+    avatar: string | null;
+  };
 }
 
-// Backward-compat alias
-export const getSharedClients = getSharedContacts;
+type EnrichedShare = SharedClientData | null;
+
+export const getSharedClients = async (): Promise<SharedClientData[]> => {
+  const currentUser = await getCurrentUserSafe();
+  
+  // Return empty array if no user context (e.g., session not synced yet)
+  if (!currentUser) {
+    return [];
+  }
+
+  const shares = await prismadb.sharedEntity.findMany({
+    where: {
+      sharedWithId: currentUser.id,
+      entityType: "CLIENT",
+    },
+    include: {
+      Users_SharedEntity_sharedByIdToUsers: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Fetch the actual client entities
+  const rawShares = await Promise.all(
+    shares.map(async (share) => {
+      const client = await prismadb.clients.findUnique({
+        where: { id: share.entityId },
+        select: {
+          id: true,
+          organizationId: true,
+          client_name: true,
+          primary_email: true,
+          primary_phone: true,
+          client_status: true,
+          createdAt: true,
+        },
+      });
+
+      if (!client) return null;
+
+      return {
+        id: client.id,
+        organizationId: client.organizationId,
+        shareId: share.id,
+        client_name: client.client_name,
+        primary_email: client.primary_email,
+        primary_phone: client.primary_phone,
+        client_status: client.client_status as string | null,
+        createdAt: client.createdAt,
+        sharedAt: share.createdAt,
+        permissions: share.permissions,
+        message: share.message,
+        sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
+      } as SharedClientData & { organizationId: string };
+    })
+  );
+
+  const results: SharedClientData[] = [];
+  for (const c of rawShares) {
+    if (!c) continue;
+    try {
+      results.push(await decryptClientForOrg(c, c.organizationId));
+    } catch (err) {
+      console.error(`[GET_SHARED_CLIENTS] Failed to decrypt client ${c.id}:`, err);
+    }
+  }
+  return results;
+};
+

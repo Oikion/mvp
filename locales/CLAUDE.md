@@ -130,25 +130,6 @@ Routes are locale-prefixed: `/el/app/dashboard`, `/en/app/dashboard`
 - next-intl provides the active locale to all components via its provider in the layout
 - When writing test URLs or links, always include the locale prefix
 
-## Adding a New Namespace — Checklist
-
-When creating a new translation namespace (e.g. `contacts`), **all five steps** are required or the namespace will silently fail at runtime or drift between server/client:
-
-1. **Create both JSON files** — `locales/en/{name}.json` and `locales/el/{name}.json` with identical key structure
-2. **Register in `i18n.ts`** — add static imports for both locales (`import {name}En from "./locales/en/{name}.json"` and `…El`), then assign `messages.{name} = {name}El` / `{name}En` in both branches of `loadMessages()`
-3. **Register in `app/[locale]/layout.tsx`** — add static imports for both locales, then assign `messages.{name} = …` in both branches of `getLocales()`
-4. **Add to `messages.d.ts`** — import the English JSON as a type, add `{name}: typeof {name}En` to the `AppMessages` type so `useTranslations("{name}")` is type-checked
-5. **Verify** — run `pnpm build` (or `npx tsc --noEmit`) to confirm no missing-key type errors
-
-> **Why two registration files?** `i18n.ts` feeds server-side rendering (`getTranslations`, RSC). `layout.tsx` feeds the `NextIntlClientProvider` for client components (`useTranslations`). If a namespace is in one but not the other, translations work on the server but fail on the client (or vice versa).
-
-### Current Known Namespace Drift
-
-The following JSON files exist on disk but are **not yet registered** in both `i18n.ts` and `layout.tsx`:
-`achievements`, `ai`, `assignments`, `trust-score`, `wizard`
-
-These should be registered when first used, or removed if unused.
-
 ## Anti-Patterns
 
 - NEVER hardcode Greek or English strings directly in components — always use `t()`

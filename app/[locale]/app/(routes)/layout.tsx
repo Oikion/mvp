@@ -205,7 +205,7 @@ export default async function AppLayout({
               avatar: user.avatar as string,
             }}
             isPlatformAdmin={userIsPlatformAdmin}
-            referralBoxDismissed={user.referralBoxDismissed ?? true}
+            referralBoxDismissed={user.referralBoxDismissed ?? false}
             hasReferralCode={!!referralCode}
             referralApplicationStatus={user.referralApplicationStatus as "PENDING" | "APPROVED" | "DENIED" | null}
             accessibleModules={permissionContext?.moduleAccess}

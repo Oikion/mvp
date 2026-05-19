@@ -62,48 +62,21 @@ export function isAccessGateEnabled(): boolean {
 }
 
 // ============================================
-// STAGING PASSCODE GATE
-// Site-wide gate for staging environments. When STAGING_PASSCODE is set,
-// every page (public, app, API) requires a valid cookie before proceeding.
-// Uses the same HMAC-SHA256 signed cookie pattern as the app access gate
-// but with a separate cookie name and env vars.
-//
-// Env vars:
-//   STAGING_PASSCODE            – the 6-digit PIN
-//   STAGING_PASSCODE_SECRET     – HMAC signing secret (generate with:
-//       node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+// Staging gate aliases (v2.0 naming)
 // ============================================
-
-export const STAGING_COOKIE_NAME = "oik_staging";
-/** 30 days in seconds */
-export const STAGING_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
-
-/**
- * Returns true if the staging passcode gate is enabled (STAGING_PASSCODE is set).
- */
-export function isStagingGateEnabled(): boolean {
-  return !!process.env.STAGING_PASSCODE;
-}
-
-/**
- * Compute the expected staging cookie token.
- */
-export function computeStagingToken(code: string, secret: string): string {
-  return createHmac("sha256", secret).update(code).digest("hex");
-}
 
 /**
  * Verify whether the given cookie value is the valid staging access token.
- * Uses timing-safe comparison to prevent timing attacks.
+ * Alias for verifyAccessCookie — uses STAGING_ACCESS_CODE / STAGING_COOKIE_SECRET env vars.
  */
 export function verifyStagingCookie(cookieValue: string | undefined): boolean {
-  const code = process.env.STAGING_PASSCODE;
-  const secret = process.env.STAGING_PASSCODE_SECRET;
+  const code = process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE;
+  const secret = process.env.STAGING_COOKIE_SECRET ?? process.env.APP_ACCESS_COOKIE_SECRET;
 
   if (!code || !secret) return false;
   if (!cookieValue) return false;
 
-  const expected = computeStagingToken(code, secret);
+  const expected = computeAccessToken(code, secret);
 
   try {
     const a = Buffer.from(expected, "hex");
@@ -113,4 +86,11 @@ export function verifyStagingCookie(cookieValue: string | undefined): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Returns true if the staging access gate is enabled.
+ */
+export function isStagingGateEnabled(): boolean {
+  return !!(process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE);
 }

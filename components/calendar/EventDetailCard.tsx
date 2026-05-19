@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Edit, Trash2, User, Link as LinkIcon, ExternalLink, Loader2, Users } from "lucide-react";
+import { Clock, MapPin, Edit, Trash2, User, Link as LinkIcon, ExternalLink, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useAppToast } from "@/hooks/use-app-toast";
+import { toast } from "sonner";
 import { EventEditForm } from "./EventEditForm";
 import { useCalendarEvent, useDeleteEvent } from "@/hooks/swr";
 
@@ -20,7 +20,6 @@ interface EventDetailCardProps {
 
 export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardProps) {
   const t = useTranslations("calendar");
-  const { toast } = useAppToast();
   const router = useRouter();
   const [showEditForm, setShowEditForm] = useState(false);
 
@@ -37,12 +36,12 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
 
     try {
       await deleteEvent();
-      toast.success("eventDeleted");
+      toast.success(t("eventDetail.eventDeleted"));
       onClose?.();
       onUpdate?.();
     } catch (error) {
-      console.error("[EVENT_DELETE]", error);
-      toast.error("eventDeleteFailed");
+      console.error("Failed to delete event:", error);
+      toast.error("Failed to delete event");
     }
   };
 
@@ -173,7 +172,7 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
                   onClick={() => router.push(`/app/crm/contacts/${client.friendlyId}`)}
                 >
                   <LinkIcon className="h-3 w-3 mr-2" />
-                  {client.displayName}
+                  {client.client_name}
                   <ExternalLink className="h-3 w-3 ml-auto" />
                 </Button>
               ))}
@@ -223,74 +222,6 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
           </div>
         )}
 
-        {((event.eventContacts && event.eventContacts.length > 0) ||
-          (event.eventAgents && event.eventAgents.length > 0)) ? (
-          <div>
-            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              {t("eventDetail.attendees")}
-            </h4>
-            <div className="space-y-2">
-              {event.eventContacts?.map((attendee) => (
-                <div key={attendee.id} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <User className="h-3 w-3 text-muted-foreground" />
-                    <span>{attendee.contact?.displayName || attendee.contact?.email || attendee.contactId}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {t(`eventDetail.roles.${attendee.role}` as any)}
-                    </Badge>
-                  </div>
-                  <Badge
-                    variant={
-                      attendee.rsvpStatus === "ACCEPTED"
-                        ? "default"
-                        : attendee.rsvpStatus === "DECLINED"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                    className="text-xs"
-                  >
-                    {t(`eventDetail.rsvp.${attendee.rsvpStatus}` as any)}
-                  </Badge>
-                </div>
-              ))}
-              {event.eventAgents?.map((attendee) => (
-                <div key={attendee.id} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <User className="h-3 w-3 text-muted-foreground" />
-                    <span>{attendee.user?.name || attendee.user?.email || attendee.userId}</span>
-                    {attendee.role && (
-                      <Badge variant="outline" className="text-xs">
-                        {t(`eventDetail.roles.${attendee.role}` as any)}
-                      </Badge>
-                    )}
-                  </div>
-                  <Badge
-                    variant={
-                      attendee.rsvpStatus === "ACCEPTED"
-                        ? "default"
-                        : attendee.rsvpStatus === "DECLINED"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                    className="text-xs"
-                  >
-                    {t(`eventDetail.rsvp.${attendee.rsvpStatus}` as any)}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div>
-            <h4 className="text-sm font-semibold mb-1 flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              {t("eventDetail.attendees")}
-            </h4>
-            <p className="text-sm text-muted-foreground">{t("eventDetail.noAttendees")}</p>
-          </div>
-        )}
-
         {event.reminders && event.reminders.length > 0 && (
           <div>
             <h4 className="text-sm font-semibold mb-2">{t("eventDetail.reminders")}</h4>
@@ -298,14 +229,14 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
               {event.reminders.map((reminder) => (
                 <div key={reminder.id} className="flex items-center justify-between text-sm">
                   <span>
-                    {reminder.reminderMinutes >= 1440
-                      ? t("eventDetail.reminderDays", { count: Math.floor(reminder.reminderMinutes / 1440) })
-                      : reminder.reminderMinutes >= 60
-                      ? t("eventDetail.reminderHours", { count: Math.floor(reminder.reminderMinutes / 60) })
-                      : t("eventDetail.reminderMinutes", { count: reminder.reminderMinutes })}
+                    {parseInt(String(reminder.scheduledFor)) >= 1440
+                      ? `${Math.floor(parseInt(String(reminder.scheduledFor)) / 1440)} day(s)`
+                      : parseInt(String(reminder.scheduledFor)) >= 60
+                      ? `${Math.floor(parseInt(String(reminder.scheduledFor)) / 60)} hour(s)`
+                      : `${reminder.scheduledFor} minute(s)`} {t("eventDetail.beforeEvent")}
                   </span>
-                  <Badge variant={reminder.status === "SENT" ? "default" : reminder.status === "FAILED" ? "destructive" : "secondary"}>
-                    {t(`eventDetail.reminderStatus.${reminder.status}` as any)}
+                  <Badge variant={reminder.sent ? "default" : "secondary"}>
+                    {reminder.sent ? "SENT" : "PENDING"}
                   </Badge>
                 </div>
               ))}
