@@ -103,6 +103,7 @@ model CalendarEvent {
   reminderMinutes    Int[]
   remindersSent      Json?
   eventType          CalendarEventType?
+  googleEventId      String?              @unique
   Users              Users?               @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
   CalendarReminder   CalendarReminder[]
   EventInvitee       EventInvitee[]
@@ -922,6 +923,7 @@ model Users {
   OrgTemplatesCreated                                OrgDocumentTemplate[] @relation("OrgTemplateCreatedBy")
   CalendarEventAgents                                CalendarEventAgent[]  @relation("AgentCalendarEvents")
   EntityChangeLogs                                   EntityChangeLog[]     @relation("EntityChangeLogActor")
+  GoogleCalendarConnection                           UserGoogleCalendarConnection?
 
   @@index([clerkUserId])
   @@index([email])
@@ -2280,6 +2282,9 @@ model Channel {
 
   isE2ee Boolean @default(true)
 
+  source    ChannelSource @default(INTERNAL)
+  emailInbox EmailInboxConfig?
+
   messages      Message[]
   members       ChannelMember[]
   groupSessions GroupSession[]
@@ -2317,6 +2322,12 @@ enum ChannelType {
   ANNOUNCEMENT // Admin-only posting, everyone reads
 }
 
+enum ChannelSource {
+  INTERNAL // Native team chat (default)
+  EMAIL    // Connected IMAP/SMTP mailbox
+  VIBER    // Viber Bot channel (reserved — phase 2)
+}
+
 /// Direct message conversations (1:1 or group DMs)
 model Conversation {
   id             String            @id @default(uuid())
@@ -2328,6 +2339,12 @@ model Conversation {
   createdById    String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
+
+  // External channel fields (set when source = EMAIL or VIBER)
+  externalThreadId    String? // Top-level Message-ID — email threading anchor
+  externalSubject     String? // Original email subject
+  externalSenderEmail String? // Sender's email address
+  externalSenderName  String? // Sender's display name
 
   messages       Message[]
   participants   ConversationParticipant[]
@@ -2409,6 +2426,9 @@ model Message {
   editedAt  DateTime?
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
+
+  // External channel deduplication key (RFC 2822 Message-ID for email)
+  externalMessageId String?
 
   // Entity reference — set when the message is an entity share
   linkedEntityId         String?
@@ -2634,6 +2654,50 @@ enum PresenceStatus {
   AWAY
   BUSY
   OFFLINE
+}
+
+// ─── Email Inbox Configuration ────────────────────────────────────────────────
+
+enum SmtpSendMode {
+  RESEND_CUSTOM_DOMAIN // Agency domain verified in Resend (recommended)
+  SMTP_DIRECT          // Use stored SMTP credentials
+}
+
+/// IMAP/SMTP configuration for an email-backed channel
+model EmailInboxConfig {
+  id        String @id @default(cuid())
+  channelId String @unique
+
+  fromAddress String  // e.g. info@agencyname.gr
+  fromName    String? // Display name for outbound emails
+
+  // IMAP credentials (inbound) — encrypted at rest with org DEK
+  imapHost              String
+  imapPort              Int     @default(993)
+  imapUseTLS            Boolean @default(true)
+  imapUser              String
+  imapPasswordEncrypted String
+
+  // Outbound mode
+  smtpSendVia SmtpSendMode @default(RESEND_CUSTOM_DOMAIN)
+
+  // SMTP credentials (outbound, only when smtpSendVia = SMTP_DIRECT) — encrypted
+  smtpHost              String?
+  smtpPort              Int?
+  smtpUser              String?
+  smtpPasswordEncrypted String?
+
+  // Polling state — tracks last seen IMAP UID to avoid re-processing
+  lastUidNext  Int?
+  lastPolledAt DateTime?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@map("email_inbox_configs")
 }
 
 // ============================================
@@ -4396,4 +4460,39 @@ enum DigestFrequency {
   INSTANT
   DAILY_DIGEST
   WEEKLY_DIGEST
+}
+
+// Google Calendar two-way sync
+
+enum GoogleSyncStatus {
+  ACTIVE
+  NEEDS_REAUTH
+  PAUSED
+  DISCONNECTED
+}
+
+model UserGoogleCalendarConnection {
+  id               String          @id @default(cuid())
+  userId           String          @unique
+  organizationId   String
+  googleEmail      String
+  googleCalendarId String          @default("primary")
+  accessToken      String
+  refreshToken     String
+  tokenExpiresAt   DateTime
+  watchChannelId   String?
+  watchExpiry      DateTime?
+  watchResourceId  String?
+  syncEnabled      Boolean         @default(true)
+  status           GoogleSyncStatus @default(ACTIVE)
+  lastSyncedAt     DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([watchChannelId])
+  @@index([status])
+  @@map("user_google_calendar_connections")
 }

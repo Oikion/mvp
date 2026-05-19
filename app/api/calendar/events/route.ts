@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { generateFriendlyId } from '@/lib/friendly-id';
 import { dispatchCalendarWebhook } from '@/lib/webhooks';
 import { encryptCalendarEventForOrg, decryptCalendarEventForOrg } from '@/lib/model-encryption';
+import { pushEventToGoogle } from '@/lib/google-calendar/sync-to-google';
 
 /**
  * Create notifications for calendar event creation
@@ -478,7 +479,12 @@ export async function POST(req: Request) {
     // Dispatch webhook for external integrations
     dispatchCalendarWebhook(organizationId, 'calendar.event.created', event).catch(console.error);
 
-    return NextResponse.json({ 
+    // Fire-and-forget Google Calendar sync
+    pushEventToGoogle(event.id).catch((err) =>
+      console.error('[GOOGLE_CALENDAR_SYNC] POST sync failed', err)
+    );
+
+    return NextResponse.json({
       event,
       message: 'Event created successfully'
     }, { status: 201 });

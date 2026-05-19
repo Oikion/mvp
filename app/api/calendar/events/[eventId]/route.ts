@@ -19,6 +19,7 @@ import {
   logCalendarEventAdded,
   logCalendarEventRemoved,
 } from "@/lib/activity-logger";
+import { pushEventToGoogle, deleteEventFromGoogle } from "@/lib/google-calendar/sync-to-google";
 
 /**
  * Create notifications for calendar event update
@@ -683,6 +684,11 @@ export async function PUT(
       currentUser.name || currentUser.email
     ).catch((err) => console.error("[UPDATE_NOTIFICATIONS_ERROR]", err));
 
+    // Fire-and-forget Google Calendar sync
+    pushEventToGoogle(event.id).catch((err) =>
+      console.error('[GOOGLE_CALENDAR_SYNC] PUT sync failed', err)
+    );
+
     const decryptedEvent = await decryptCalendarEventForOrg(event, currentOrgId);
     return NextResponse.json({
       event: decryptedEvent,
@@ -770,6 +776,11 @@ export async function DELETE(
       where: { id: resolvedId },
       data: { archivedAt: new Date(), archivedBy: currentUser.id },
     });
+
+    // Fire-and-forget Google Calendar delete
+    deleteEventFromGoogle(resolvedId).catch((err) =>
+      console.error('[GOOGLE_CALENDAR_SYNC] DELETE sync failed', err)
+    );
 
     return NextResponse.json({
       message: "Event archived",
