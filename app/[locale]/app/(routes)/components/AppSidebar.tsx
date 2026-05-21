@@ -13,7 +13,7 @@ import { updatePinnedNavUrls } from "@/actions/user/pin-nav"
 import { NavUser } from "@/components/nav-user"
 import { NavSecondary } from "@/components/nav-secondary"
 import { ReferralPromoBox } from "@/components/referral/ReferralPromoBox"
-import { TourTriggerButton } from "@/components/tour/DashboardTour"
+
 import FeedbackSheet from "./FeedbackSheet"
 import { WorkspaceToggle } from "@/components/workspace/WorkspaceToggle"
 import { AgencyOrganizationSwitcher } from "@/components/workspace/AgencyOrganizationSwitcher"
@@ -54,7 +54,7 @@ export function AppSidebar({
   dict,
   user,
   isPlatformAdmin = false,
-  referralBoxDismissed = false,
+  referralBoxDismissed = true,
   hasReferralCode = false,
   referralApplicationStatus = null,
   accessibleModules,
@@ -167,7 +167,6 @@ export function AppSidebar({
           hasReferralCode={hasReferralCode}
           applicationStatus={referralApplicationStatus}
         />
-        <TourTriggerButton />
         <NavUser user={user} />
       </SidebarFooter>
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />

@@ -3,7 +3,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
-import { decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 
 /**
  * Get a client that has been shared with the current user
@@ -17,8 +17,12 @@ export async function getSharedClient(clientId: string) {
     return null;
   }
 
-  // Resolve friendlyId to UUID
-  const resolvedClient = await prismadb.clients.findFirst({
+  // Resolve friendlyId to UUID.
+  // SECURITY: We intentionally do not filter by organizationId here because
+  // shared clients are cross-org by design. The share-membership check below
+  // is the authorisation gate — a share record tying entityId to currentUser.id
+  // must exist before any client data is returned.
+  const resolvedClient = await prismadb.contact.findFirst({
     where: { friendlyId: clientId },
     select: { id: true },
   });
@@ -27,7 +31,10 @@ export async function getSharedClient(clientId: string) {
     return null;
   }
 
-  // Check if the client is shared with the current user
+  // SECURITY: Authorisation gate — verify the caller is an active sharee.
+  // The resolved UUID must match the entityId of a share granted to this user.
+  // We use the DB-resolved UUID (not the caller-supplied friendlyId) to avoid
+  // friendlyId ambiguity attacks across orgs.
   const share = await prismadb.sharedEntity.findFirst({
     where: {
       entityType: "CLIENT",
@@ -54,7 +61,7 @@ export async function getSharedClient(clientId: string) {
   }
 
   // Fetch the client (without organization restriction)
-  const client = await prismadb.clients.findUnique({
+  const client = await prismadb.contact.findUnique({
     where: { id: resolvedClient.id },
     include: {
       Users_Clients_assigned_toToUsers: {
@@ -87,7 +94,7 @@ export async function getSharedClient(clientId: string) {
   }
 
   try {
-    const decryptedClient = await decryptClientForOrg(client, client.organizationId);
+    const decryptedClient = await decryptContactForOrg(client, client.organizationId);
     return {
       ...decryptedClient,
       // Map to expected field names for backward compatibility
@@ -122,7 +129,7 @@ export async function hasClientShareAccess(clientId: string): Promise<boolean> {
   }
 
   // Resolve friendlyId to UUID
-  const resolvedClient = await prismadb.clients.findFirst({
+  const resolvedClient = await prismadb.contact.findFirst({
     where: { friendlyId: clientId },
     select: { id: true },
   });

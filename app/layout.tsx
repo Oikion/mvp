@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="el" suppressHydrationWarning>
       <body className={`${inter.variable} ${manrope.variable} font-sans min-h-screen`} suppressHydrationWarning>
         <SkipLink />
         {children}

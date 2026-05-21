@@ -1,8 +1,9 @@
 // @ts-nocheck
+"use server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
-import { decryptDocumentForOrg, decryptClientForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
+import { decryptDocumentForOrg, decryptContactForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 export interface DocumentFilters {
   clientId?: string;
@@ -88,10 +89,10 @@ export async function getDocuments(filters?: DocumentFilters) {
   const documents = await prismadb.documents.findMany({
     where,
     include: {
-      Clients: {
+      Contacts: {
         select: {
           id: true,
-          client_name: true,
+          displayName: true,
         },
       },
       Properties: {
@@ -139,7 +140,7 @@ export async function getDocuments(filters?: DocumentFilters) {
       const decrypted = await decryptDocumentForOrg(doc, organizationId);
       results.push({
         ...decrypted,
-        Clients: await Promise.all(doc.Clients.map((c) => decryptClientForOrg(c, organizationId))),
+        Contacts: await Promise.all(doc.Contacts.map((c) => decryptContactForOrg(c, organizationId))),
         CalendarEvent: await Promise.all(doc.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, organizationId))),
       });
     } catch (err) {

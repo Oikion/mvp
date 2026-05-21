@@ -330,5 +330,27 @@
   "eventList": {
     "eventsForDay": "Συμβάντα της ημέρας",
     "noEventsForDay": "Δεν υπάρχουν συμβάντα αυτή την ημέρα"
+  },
+  "googleCalendar": {
+    "connectPrompt": "Συνδεθείτε με το Google Calendar για αμφίδρομο συγχρονισμό συμβάντων",
+    "connectButton": "Σύνδεση με Google Calendar",
+    "connectedAs": "Google Calendar συγχρονισμένο ως {email}",
+    "connectedLabel": "Κατάσταση σύνδεσης Google Calendar",
+    "statusActive": "Συνδεδεμένο",
+    "disconnect": "Αποσύνδεση",
+    "disconnectLabel": "Αποσύνδεση Google Calendar",
+    "disconnectConfirm": "Αφαίρεση συγχρονισμού Google Calendar;",
+    "disconnectConfirmYes": "Ναι, αποσύνδεση",
+    "disconnectCancel": "Ακύρωση",
+    "dismissLabel": "Απόρριψη",
+    "reconnect": "Επανασύνδεση",
+    "reauthRequired": "Απαιτείται επανασύνδεση με το Google Calendar — η πρόσβασή σας έχει λήξει",
+    "connectSuccess": "Το Google Calendar συνδέθηκε επιτυχώς",
+    "connectError": "Δεν ήταν δυνατή η σύνδεση με το Google Calendar. Παρακαλώ δοκιμάστε ξανά.",
+    "disconnectSuccess": "Το Google Calendar αποσυνδέθηκε",
+    "disconnectError": "Δεν ήταν δυνατή η αποσύνδεση. Παρακαλώ δοκιμάστε ξανά.",
+    "syncNow": "Συγχρονισμός τώρα",
+    "syncSuccess": "{count, plural, one {Συγχρονίστηκε # συμβάν} other {Συγχρονίστηκαν # συμβάντα}} από το Google Calendar",
+    "syncError": "Δεν ήταν δυνατός ο συγχρονισμός. Παρακαλώ δοκιμάστε ξανά."
   }
 }

@@ -86,7 +86,9 @@
   },
   "actions": {
     "createChannel": "Channel",
-    "sendDM": "DM"
+    "sendDM": "DM",
+    "search": "Search messages",
+    "settings": "Conversation settings"
   },
   "status": {
     "notConfigured": "Messaging Not Configured",

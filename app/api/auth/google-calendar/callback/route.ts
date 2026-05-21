@@ -21,23 +21,36 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
+  const cookieStore = await cookies();
+
   if (error || !code || !state) {
     console.error("[GOOGLE_CALENDAR_CALLBACK] OAuth error or missing params", { error });
-    return NextResponse.redirect(`${APP_URL}/app/settings/integrations?error=google_auth_failed`);
+    const returnTo = cookieStore.get("gcal_return_to")?.value ?? null;
+    cookieStore.delete("gcal_return_to");
+    const basePath =
+      returnTo && returnTo.startsWith("/app/") && !returnTo.includes("//")
+        ? returnTo
+        : "/app/calendar";
+    const dest = new URL(`${APP_URL}${basePath}`);
+    dest.searchParams.set("error", "google_auth_failed");
+    return NextResponse.redirect(dest.toString());
   }
 
   // Validate CSRF state cookie
-  const cookieStore = await cookies();
   const savedState = cookieStore.get("gcal_oauth_state")?.value;
   cookieStore.delete("gcal_oauth_state");
 
   if (!savedState || savedState !== state) {
-    return NextResponse.redirect(`${APP_URL}/app/settings/integrations?error=google_auth_failed`);
+    const dest = new URL(`${APP_URL}/app/calendar`);
+    dest.searchParams.set("error", "google_auth_failed");
+    return NextResponse.redirect(dest.toString());
   }
 
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) {
-    return NextResponse.redirect(`${APP_URL}/app/settings/integrations?error=no_org`);
+    const dest = new URL(`${APP_URL}/app/calendar`);
+    dest.searchParams.set("error", "no_org");
+    return NextResponse.redirect(dest.toString());
   }
 
   try {
@@ -91,9 +104,22 @@ export async function GET(req: NextRequest) {
       console.error("[GOOGLE_CALENDAR_CALLBACK] registerWatchChannel failed", err);
     });
 
-    return NextResponse.redirect(`${APP_URL}/app/settings/integrations?connected=google`);
+    // Redirect back to the page that initiated the connect flow, or fall back to calendar.
+    const returnTo = cookieStore.get("gcal_return_to")?.value ?? null;
+    cookieStore.delete("gcal_return_to");
+
+    const basePath =
+      returnTo && returnTo.startsWith("/app/") && !returnTo.includes("//")
+        ? returnTo
+        : "/app/calendar";
+
+    const dest = new URL(`${APP_URL}${basePath}`);
+    dest.searchParams.set("connected", "google");
+    return NextResponse.redirect(dest.toString());
   } catch (err) {
     console.error("[GOOGLE_CALENDAR_CALLBACK] Failed to complete OAuth", err);
-    return NextResponse.redirect(`${APP_URL}/app/settings/integrations?error=google_auth_failed`);
+    const errDest = new URL(`${APP_URL}/app/calendar`);
+    errDest.searchParams.set("error", "google_auth_failed");
+    return NextResponse.redirect(errDest.toString());
   }
 }

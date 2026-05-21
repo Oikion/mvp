@@ -14,6 +14,10 @@
     "privacy": "Privacy & Security",
     "dataControl": "Data Control"
   },
+  "integrations": {
+    "title": "Integrations",
+    "description": "Manage your external service integrations and automations"
+  },
   "notifications": {
     "title": "Notification Preferences",
     "description": "Choose how you want to be notified about activity",

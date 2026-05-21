@@ -26,6 +26,12 @@
     "mandates": {
       "title": "Εντολές"
     },
+    "requests": {
+      "title": "Αιτήματα"
+    },
+    "deals": {
+      "title": "Συμφωνίες"
+    },
     "social": {
       "title": "Κοινωνικά",
       "feed": "Ροή",
@@ -35,6 +41,7 @@
       "sharedWithMe": "Μοιράστηκαν μαζί μου",
       "sharingHub": "Κέντρο Κοινής Χρήσης",
       "deals": "Συνεργασίες",
+      "profile": "Προφίλ",
       "publicProfile": "Δημόσιο Προφίλ"
     },
     "matchmaking": "Αντιστοίχιση",

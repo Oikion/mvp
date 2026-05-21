@@ -97,10 +97,13 @@ export function MatchDistributionChart({ distribution }: Props) {
             itemStyle={{
               color: "hsl(var(--muted-foreground))",
             }}
-            formatter={(value: number) => [
-              `${value} ${t("common.matches")} (${((value / total) * 100).toFixed(1)}%)`,
-              t("common.count")
-            ]}
+            formatter={(value) => {
+              const numValue = typeof value === "number" ? value : 0;
+              return [
+                `${numValue} ${t("common.matches")} (${((numValue / total) * 100).toFixed(1)}%)`,
+                t("common.count"),
+              ] as [string, string];
+            }}
           />
           <Bar dataKey="count" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (

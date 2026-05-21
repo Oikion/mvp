@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 import type { Prisma } from "@prisma/client";
 
 type ContactWithAgent = Prisma.ContactGetPayload<{
@@ -31,7 +32,15 @@ export const getContacts = async (): Promise<ContactWithAgent[]> => {
       },
     });
 
-    return data;
+    const results: ContactWithAgent[] = [];
+    for (const contact of data) {
+      try {
+        results.push(await decryptContactForOrg(contact, organizationId));
+      } catch (err) {
+        console.error(`[GET_CONTACTS] Failed to decrypt contact ${contact.id}:`, err);
+      }
+    }
+    return results;
   } catch (error) {
     console.error("[GET_CONTACTS]", error);
     return [];

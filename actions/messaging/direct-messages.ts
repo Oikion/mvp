@@ -5,7 +5,6 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { requireAction } from "@/lib/permissions";
 import { decryptMessageForOrg } from "@/lib/model-encryption";
-// E2EE: server no longer decrypts messages — clients decrypt locally
 
 /**
  * Start or get a direct message conversation with another user
@@ -47,7 +46,6 @@ export async function startDirectMessage(targetUserId: string): Promise<{
 
     // Only return existing if it's exactly 2 participants (a true 1:1)
     if (existingConversation && existingConversation.participants.length === 2) {
-      console.log("[MESSAGING] Found existing DM conversation:", existingConversation.id);
       return {
         success: true,
         conversationId: existingConversation.id,
@@ -56,7 +54,6 @@ export async function startDirectMessage(targetUserId: string): Promise<{
 
     // Create new conversation
     const conversationId = await generateFriendlyId(prismadb, "Conversation", organizationId);
-    console.log("[MESSAGING] Creating new DM conversation:", conversationId, "between", currentUser.id, "and", targetUserId);
     
     const conversation = await prismadb.conversation.create({
       data: {
@@ -247,6 +244,10 @@ export async function getUserConversations(): Promise<{
           : undefined,
         unreadCount: unreadMap.get(conv.id) ?? 0,
         isMuted,
+        externalThreadId: conv.externalThreadId ?? null,
+        externalSubject: conv.externalSubject ?? null,
+        externalSenderEmail: conv.externalSenderEmail ?? null,
+        externalSenderName: conv.externalSenderName ?? null,
       };
     }));
 
@@ -335,6 +336,9 @@ export async function addConversationParticipants(
   success: boolean;
   error?: string;
 }> {
+  const guard = await requireAction("messaging:manage_members");
+  if (guard) return guard;
+
   try {
     const organizationId = await getCurrentOrgId();
 
@@ -440,6 +444,23 @@ export async function muteConversation(
   try {
     const currentUser = await getCurrentUser();
 
+    // SECURITY: Verify the caller is an active participant before mutating.
+    // Without this check any authenticated user could mute an arbitrary
+    // conversation by guessing a conversationId.
+    const participant = await prismadb.conversationParticipant.findUnique({
+      where: {
+        conversationId_userId: {
+          conversationId,
+          userId: currentUser.id,
+        },
+      },
+      select: { leftAt: true },
+    });
+
+    if (!participant || participant.leftAt) {
+      return { success: false, error: "You are not a participant in this conversation" };
+    }
+
     await prismadb.conversationParticipant.update({
       where: {
         conversationId_userId: {
@@ -469,6 +490,21 @@ export async function unmuteConversation(conversationId: string): Promise<{
 }> {
   try {
     const currentUser = await getCurrentUser();
+
+    // SECURITY: Verify the caller is an active participant before mutating.
+    const participant = await prismadb.conversationParticipant.findUnique({
+      where: {
+        conversationId_userId: {
+          conversationId,
+          userId: currentUser.id,
+        },
+      },
+      select: { leftAt: true },
+    });
+
+    if (!participant || participant.leftAt) {
+      return { success: false, error: "You are not a participant in this conversation" };
+    }
 
     await prismadb.conversationParticipant.update({
       where: {
@@ -500,9 +536,17 @@ export async function deleteConversation(conversationId: string): Promise<{
   try {
     const currentUser = await getCurrentUser();
 
-    // Get the conversation to check its type
-    const conversation = await prismadb.conversation.findUnique({
-      where: { id: conversationId },
+    // SECURITY: For deleteConversation the authorisation gate is participant
+    // membership, NOT organizationId. Cross-org PERSONAL DMs have
+    // organizationId: null, so filtering by org would incorrectly reject them.
+    // We scope by participant membership and then check the current user is listed.
+    const conversation = await prismadb.conversation.findFirst({
+      where: {
+        id: conversationId,
+        participants: {
+          some: { userId: currentUser.id, leftAt: null },
+        },
+      },
       include: {
         participants: {
           where: { leftAt: null },
@@ -514,7 +558,8 @@ export async function deleteConversation(conversationId: string): Promise<{
       return { success: false, error: "Conversation not found" };
     }
 
-    // Check if user is a participant
+    // Check if user is a participant (redundant after the where-clause above, but
+    // kept for clarity and defence-in-depth)
     const isParticipant = conversation.participants.some(
       (p) => p.userId === currentUser.id
     );

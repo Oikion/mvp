@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { getPlatformMetrics } from "@/actions/platform-admin/get-metrics";
 import { getPlatformAdminUser } from "@/lib/platform-admin";
+import { DemoReseedCard } from "./components/DemoReseedCard";
 
 export default async function PlatformAdminDashboardPage({
   params,
@@ -166,6 +167,11 @@ export default async function PlatformAdminDashboardPage({
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Demo Org Maintenance */}
+        <div className="mb-8">
+          <DemoReseedCard />
         </div>
 
         {/* Admin Info Card */}

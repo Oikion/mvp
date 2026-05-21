@@ -26,6 +26,12 @@
     "mandates": {
       "title": "Mandates"
     },
+    "requests": {
+      "title": "Requests"
+    },
+    "deals": {
+      "title": "Deals"
+    },
     "social": {
       "title": "Social",
       "feed": "Feed",
@@ -35,6 +41,7 @@
       "sharedWithMe": "Shared With Me",
       "sharingHub": "Sharing Hub",
       "deals": "Deals",
+      "profile": "Profile",
       "publicProfile": "Public Profile"
     },
     "matchmaking": "Matchmaking",

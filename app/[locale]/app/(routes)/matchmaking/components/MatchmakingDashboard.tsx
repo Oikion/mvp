@@ -111,7 +111,7 @@ export function MatchmakingDashboard({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-tour="matchmaking-results">
       {/* Mode Toggle + Polis Settings */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="inline-flex rounded-lg border bg-muted p-1 gap-1">

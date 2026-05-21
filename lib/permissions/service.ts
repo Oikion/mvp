@@ -159,7 +159,7 @@ async function getUserModuleAccess(
     select: { isEnabled: true },
   });
 
-  if (!networkFeature?.isEnabled) {
+  if (networkFeature && !networkFeature.isEnabled) {
     modules.delete("network");
   }
 
@@ -318,6 +318,20 @@ export async function updateRolePermissions(
   role: OrgRole,
   permissions: Partial<PermissionConfig>
 ): Promise<void> {
+  // SECURITY: Verify the caller belongs to the target org and is an OWNER.
+  // Without this check, any authenticated caller could supply an arbitrary
+  // organizationId and escalate permissions in orgs they don't belong to.
+  const context = await getUserPermissionContext();
+  if (!context) {
+    throw new Error("Not authenticated");
+  }
+  if (context.organizationId !== organizationId) {
+    throw new Error("Cannot modify permissions for a different organization");
+  }
+  if (!context.isOwner) {
+    throw new Error("Only organization owners can modify role permissions");
+  }
+
   // Prevent modifying owner permissions
   if (role === OrgRole.OWNER) {
     throw new Error("Cannot modify owner permissions");
@@ -360,6 +374,18 @@ export async function updateRoleModuleAccess(
   moduleId: ModuleId,
   hasAccess: boolean
 ): Promise<void> {
+  // SECURITY: Verify the caller belongs to the target org and is at least an OWNER.
+  const context = await getUserPermissionContext();
+  if (!context) {
+    throw new Error("Not authenticated");
+  }
+  if (context.organizationId !== organizationId) {
+    throw new Error("Cannot modify module access for a different organization");
+  }
+  if (!context.isOwner) {
+    throw new Error("Only organization owners can modify role module access");
+  }
+
   await prismadb.roleModuleAccess.upsert({
     where: {
       organizationId_role_moduleId: {
@@ -396,6 +422,18 @@ export async function updateUserModuleAccess(
   moduleId: ModuleId,
   hasAccess: boolean
 ): Promise<void> {
+  // SECURITY: Verify the caller belongs to the target org and is at least an OWNER.
+  const context = await getUserPermissionContext();
+  if (!context) {
+    throw new Error("Not authenticated");
+  }
+  if (context.organizationId !== organizationId) {
+    throw new Error("Cannot modify module access for a different organization");
+  }
+  if (!context.isOwner) {
+    throw new Error("Only organization owners can modify user module access");
+  }
+
   await prismadb.userModuleAccess.upsert({
     where: {
       organizationId_userId_moduleId: {

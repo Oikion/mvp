@@ -1,8 +1,9 @@
 import Heading from "@/components/ui/heading";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import React from "react";
 
-interface ContainerProps {
+interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
   description: string;
   visibility?: "public" | "private";
@@ -16,9 +17,10 @@ const Container = ({
   visibility,
   headerExtra,
   children,
+  ...props
 }: ContainerProps) => {
   return (
-    <div className="flex flex-col">
+    <div {...props} className={cn("flex flex-col", props.className)}>
       <div className="shrink-0">
         <div className="flex items-start justify-between gap-4">
           <Heading

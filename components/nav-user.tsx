@@ -18,6 +18,7 @@ import {
   Check,
   Gift,
   Home,
+  MapPin,
 } from "lucide-react"
 
 import {
@@ -51,6 +52,7 @@ import axios from "axios"
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useState } from "react"
 import { availableLocales } from "@/lib/locales"
+import { useDemoMode } from "@/components/demo/DemoModeProvider"
 
 export function NavUser({
   user,
@@ -66,6 +68,12 @@ export function NavUser({
   const { signOut } = useClerk()
   const { setTheme, theme } = useTheme()
   const locale = useLocale()
+  const { restartTour } = useDemoMode()
+
+  const handleStartTour = async () => {
+    router.push("/app")
+    await restartTour()
+  }
 
   const handleThemeChange = (value: string) => {
     setTheme(value)
@@ -220,6 +228,10 @@ export function NavUser({
               <DropdownMenuItem onClick={() => router.push("/app/referral-portal")}>
                 <Gift />
                 {t("Navigation.referrals")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleStartTour}>
+                <MapPin />
+                {t("common.buttons.startTour")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

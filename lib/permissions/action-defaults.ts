@@ -65,7 +65,7 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "contact:reassign_agent": "none",
   "contact:bulk_update": "none",
   "contact:add_comment": "none",
-  "contact:manage_contacts": "none",
+  "contact:manage_relationships": "none",
 
   // Requests - Read only
   "request:read": "all",
@@ -78,12 +78,17 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "request:reassign_agent": "none",
   "request:bulk_update": "none",
   "request:add_comment": "none",
+  "request:manage_matches": "none",
 
   // Activities - Read only
   "activity:read": "all",
   "activity:create": "none",
   "activity:update": "none",
   "activity:delete": "none",
+  "activity:bulk_delete": "none",
+  "activity:export": "none",
+  "activity:reassign": "none",
+  "activity:log_on_behalf": "none",
 
   // Messaging - No access (viewers shouldn't access internal comms)
   "messaging:read": "none",
@@ -127,10 +132,11 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "deal:create": "none",
   "deal:update": "none",
   "deal:delete": "none",
-  "deal:accept": "none",
-  "deal:cancel": "none",
-  "deal:complete": "none",
-  "deal:propose_terms": "none",
+  "deal:export": "none",
+  "deal:share": "none",
+  "deal:reassign_agent": "none",
+  "deal:bulk_update": "none",
+  "deal:add_comment": "none",
   "deal:advance_stage": "none",
   "deal:manage_parties": "none",
 
@@ -176,6 +182,7 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "template:update": "none",
   "template:delete": "none",
   "template:publish": "none",
+  "template:clone": "none",
 
   // XE Portal - No access
   "xe:view_config": "none",
@@ -257,7 +264,7 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "contact:reassign_agent": "none",
   "contact:bulk_update": "none",
   "contact:add_comment": "all",
-  "contact:manage_contacts": "own",
+  "contact:manage_relationships": "own",
 
   // Requests - Full CRUD on own, read all
   "request:read": "all",
@@ -270,12 +277,17 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "request:reassign_agent": "none",
   "request:bulk_update": "none",
   "request:add_comment": "all",
+  "request:manage_matches": "all",
 
   // Activities - Full on own, read all
   "activity:read": "all",
   "activity:create": "all",
   "activity:update": "own",
   "activity:delete": "own",
+  "activity:bulk_delete": "none",
+  "activity:export": "own",
+  "activity:reassign": "none",
+  "activity:log_on_behalf": "none",
 
   // Messaging - Full access except channel management
   "messaging:read": "all",
@@ -319,10 +331,11 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "deal:create": "all",
   "deal:update": "involved",
   "deal:delete": "none",
-  "deal:accept": "involved",
-  "deal:cancel": "involved",
-  "deal:complete": "involved",
-  "deal:propose_terms": "involved",
+  "deal:export": "involved",
+  "deal:share": "involved",
+  "deal:reassign_agent": "none",
+  "deal:bulk_update": "none",
+  "deal:add_comment": "involved",
   "deal:advance_stage": "involved",
   "deal:manage_parties": "involved",
 
@@ -368,6 +381,7 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "template:update": "none",
   "template:delete": "none",
   "template:publish": "none",
+  "template:clone": "none",
 
   // XE Portal - Can sync properties
   "xe:view_config": "none",
@@ -449,7 +463,7 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "contact:reassign_agent": "all",
   "contact:bulk_update": "all",
   "contact:add_comment": "all",
-  "contact:manage_contacts": "all",
+  "contact:manage_relationships": "all",
 
   // Requests - Full CRUD on all
   "request:read": "all",
@@ -462,12 +476,17 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "request:reassign_agent": "all",
   "request:bulk_update": "all",
   "request:add_comment": "all",
+  "request:manage_matches": "all",
 
   // Activities - Full CRUD on all
   "activity:read": "all",
   "activity:create": "all",
   "activity:update": "all",
   "activity:delete": "all",
+  "activity:bulk_delete": "all",
+  "activity:export": "all",
+  "activity:reassign": "all",
+  "activity:log_on_behalf": "all",
 
   // Messaging - Full access including channel management
   "messaging:read": "all",
@@ -510,11 +529,12 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "deal:read": "all",
   "deal:create": "all",
   "deal:update": "all",
-  "deal:accept": "all",
-  "deal:cancel": "all",
-  "deal:complete": "all",
-  "deal:propose_terms": "all",
   "deal:delete": "all",
+  "deal:export": "all",
+  "deal:share": "all",
+  "deal:reassign_agent": "all",
+  "deal:bulk_update": "all",
+  "deal:add_comment": "all",
   "deal:advance_stage": "all",
   "deal:manage_parties": "all",
 
@@ -560,6 +580,7 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "template:update": "all",
   "template:delete": "all",
   "template:publish": "all",
+  "template:clone": "all",
 
   // XE Portal - Full access except config
   "xe:view_config": "all",
@@ -641,7 +662,7 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "contact:reassign_agent": "all",
   "contact:bulk_update": "all",
   "contact:add_comment": "all",
-  "contact:manage_contacts": "all",
+  "contact:manage_relationships": "all",
 
   // Requests - Full CRUD on all
   "request:read": "all",
@@ -654,12 +675,17 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "request:reassign_agent": "all",
   "request:bulk_update": "all",
   "request:add_comment": "all",
+  "request:manage_matches": "all",
 
   // Activities - Full CRUD on all
   "activity:read": "all",
   "activity:create": "all",
   "activity:update": "all",
   "activity:delete": "all",
+  "activity:bulk_delete": "all",
+  "activity:export": "all",
+  "activity:reassign": "all",
+  "activity:log_on_behalf": "all",
 
   // Messaging - Full access
   "messaging:read": "all",
@@ -702,11 +728,12 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "deal:read": "all",
   "deal:create": "all",
   "deal:update": "all",
-  "deal:accept": "all",
-  "deal:cancel": "all",
-  "deal:complete": "all",
-  "deal:propose_terms": "all",
   "deal:delete": "all",
+  "deal:export": "all",
+  "deal:share": "all",
+  "deal:reassign_agent": "all",
+  "deal:bulk_update": "all",
+  "deal:add_comment": "all",
   "deal:advance_stage": "all",
   "deal:manage_parties": "all",
 
@@ -752,6 +779,7 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "template:update": "all",
   "template:delete": "all",
   "template:publish": "all",
+  "template:clone": "all",
 
   // XE Portal - Full access
   "xe:view_config": "all",

@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 
 import { encrypt, decrypt, isEncrypted, encryptWithKey, decryptWithKey } from "@/lib/encryption";
-import { encryptClientForOrg, decryptClientForOrg } from "@/lib/model-encryption";
+import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 
 // Use a deterministic 32-byte key for testing (all zeros — never use in production)
 const TEST_KEY_HEX = "0000000000000000000000000000000000000000000000000000000000000000";
@@ -81,58 +81,58 @@ describe("encryptWithKey / decryptWithKey round-trip", () => {
   });
 });
 
-describe("encryptClientForOrg idempotency", () => {
+describe("encryptContactForOrg idempotency", () => {
   it("does not double-encrypt when called twice", async () => {
-    const data = { client_name: "Nikos Papadopoulos", primary_email: "nikos@example.com" };
-    const once = await encryptClientForOrg(data, TEST_ORG_ID);
-    const twice = await encryptClientForOrg(once, TEST_ORG_ID);
+    const data = { displayName: "Νίκος Παπαδόπουλος", email: "nikos@example.com" };
+    const once = await encryptContactForOrg(data, TEST_ORG_ID);
+    const twice = await encryptContactForOrg(once, TEST_ORG_ID);
 
     // Values should be identical — second call is a no-op
-    expect(twice.client_name).toBe(once.client_name);
-    expect(twice.primary_email).toBe(once.primary_email);
+    expect(twice.displayName).toBe(once.displayName);
+    expect(twice.email).toBe(once.email);
   });
 
-  it("round-trips client fields through encrypt → decrypt", async () => {
+  it("round-trips contact fields through encrypt → decrypt", async () => {
     const original = {
-      client_name: "Maria Ekonomou",
-      primary_email: "maria@example.gr",
-      primary_phone: "+30 210 1234567",
-      afm: "123456789",
+      displayName: "Μαρία Οικονόμου",
+      email: "maria@example.gr",
+      primaryPhone: "+30 210 1234567",
+      taxId: "123456789",
     };
 
-    const encrypted = await encryptClientForOrg(original, TEST_ORG_ID);
+    const encrypted = await encryptContactForOrg(original, TEST_ORG_ID);
 
     // Encrypted values should not be plaintext
-    expect(encrypted.client_name).not.toBe(original.client_name);
-    expect(isEncrypted(encrypted.client_name!)).toBe(true);
+    expect(encrypted.displayName).not.toBe(original.displayName);
+    expect(isEncrypted(encrypted.displayName!)).toBe(true);
 
-    const decrypted = await decryptClientForOrg(encrypted, TEST_ORG_ID);
+    const decrypted = await decryptContactForOrg(encrypted, TEST_ORG_ID);
 
-    expect(decrypted.client_name).toBe(original.client_name);
-    expect(decrypted.primary_email).toBe(original.primary_email);
-    expect(decrypted.primary_phone).toBe(original.primary_phone);
-    expect(decrypted.afm).toBe(original.afm);
+    expect(decrypted.displayName).toBe(original.displayName);
+    expect(decrypted.email).toBe(original.email);
+    expect(decrypted.primaryPhone).toBe(original.primaryPhone);
+    expect(decrypted.taxId).toBe(original.taxId);
   });
 
   it("preserves null and undefined fields without throwing", async () => {
-    const data = { client_name: null, primary_email: undefined };
-    const encrypted = await encryptClientForOrg(data, TEST_ORG_ID);
-    const decrypted = await decryptClientForOrg(encrypted, TEST_ORG_ID);
+    const data = { displayName: null, email: undefined };
+    const encrypted = await encryptContactForOrg(data, TEST_ORG_ID);
+    const decrypted = await decryptContactForOrg(encrypted, TEST_ORG_ID);
 
-    expect(decrypted.client_name).toBeNull();
-    expect(decrypted.primary_email).toBeUndefined();
+    expect(decrypted.displayName).toBeNull();
+    expect(decrypted.email).toBeUndefined();
   });
 
-  it("encrypts communication_notes JSON field", async () => {
+  it("encrypts communicationNotes JSON field", async () => {
     const notes = { preferred_contact: "email", language: "el" };
-    const data = { communication_notes: notes };
+    const data = { communicationNotes: notes };
 
-    const encrypted = await encryptClientForOrg(data, TEST_ORG_ID);
+    const encrypted = await encryptContactForOrg(data, TEST_ORG_ID);
     // JSON field is serialized to an encrypted string
-    expect(typeof encrypted.communication_notes).toBe("string");
-    expect(isEncrypted(encrypted.communication_notes as unknown as string)).toBe(true);
+    expect(typeof encrypted.communicationNotes).toBe("string");
+    expect(isEncrypted(encrypted.communicationNotes as unknown as string)).toBe(true);
 
-    const decrypted = await decryptClientForOrg(encrypted, TEST_ORG_ID);
-    expect(decrypted.communication_notes).toEqual(notes);
+    const decrypted = await decryptContactForOrg(encrypted, TEST_ORG_ID);
+    expect(decrypted.communicationNotes).toEqual(notes);
   });
 });

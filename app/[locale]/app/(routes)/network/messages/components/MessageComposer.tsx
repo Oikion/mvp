@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import {
   AtSign,
   Loader2,
+  Mail,
   Paperclip,
   Reply,
   Send,
@@ -43,6 +44,8 @@ interface MessageComposerProps {
   replyTo?: ReplyInfo | null;
   onCancelReply?: () => void;
   onSend?: (message: string, attachments?: File[]) => Promise<void>;
+  isEmailConversation?: boolean;
+  externalSenderEmail?: string | null;
 }
 
 // Common emoji for quick access
@@ -58,6 +61,8 @@ export function MessageComposer({
   replyTo,
   onCancelReply,
   onSend,
+  isEmailConversation = false,
+  externalSenderEmail,
 }: MessageComposerProps) {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -306,6 +311,14 @@ export function MessageComposer({
 
   return (
     <div className="border-t p-4 bg-background">
+      {/* Email reply indicator */}
+      {isEmailConversation && externalSenderEmail && (
+        <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+          <Mail className="h-3.5 w-3.5" />
+          <span>Replying via email to <span className="font-medium">{externalSenderEmail}</span></span>
+        </div>
+      )}
+
       {/* Reply preview */}
       {replyTo && (
         <div className="flex items-center gap-2 mb-3 p-2 bg-primary/5 border border-primary/20 rounded-lg">
@@ -323,8 +336,9 @@ export function MessageComposer({
             size="icon"
             className="h-6 w-6 flex-shrink-0"
             onClick={onCancelReply}
+            aria-label="Cancel reply"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       )}
@@ -342,9 +356,10 @@ export function MessageComposer({
           </div>
           <button
             onClick={removeSharedEntity}
-            className="text-muted-foreground hover:text-foreground p-1"
+            className="text-muted-foreground hover:text-foreground p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
+            aria-label="Remove shared item"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -357,13 +372,14 @@ export function MessageComposer({
               key={index}
               className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg text-sm"
             >
-              <Paperclip className="h-4 w-4 text-muted-foreground" />
+              <Paperclip className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <span className="truncate max-w-[150px]">{file.name}</span>
               <button
                 onClick={() => removeAttachment(index)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground p-1"
+                aria-label={`Remove ${file.name}`}
               >
-                ×
+                <X className="h-3 w-3" aria-hidden="true" />
               </button>
             </div>
           ))}
@@ -380,8 +396,9 @@ export function MessageComposer({
             className="h-8 w-8"
             disabled={isDisabled}
             onClick={() => fileInputRef.current?.click()}
+            aria-label="Attach file"
           >
-            <Paperclip className="h-4 w-4" />
+            <Paperclip className="h-4 w-4" aria-hidden="true" />
           </Button>
           <input
             ref={fileInputRef}
@@ -390,6 +407,7 @@ export function MessageComposer({
             className="hidden"
             onChange={handleFileSelect}
             disabled={isDisabled}
+            aria-label="Select files to attach"
           />
 
           {/* Share entity */}
@@ -399,9 +417,9 @@ export function MessageComposer({
             className="h-8 w-8"
             disabled={isDisabled}
             onClick={() => setShareDialogOpen(true)}
-            title="Share property, client, document, or event"
+            aria-label="Share property, contact, document, or event"
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           {/* Emoji picker */}
@@ -412,17 +430,19 @@ export function MessageComposer({
                 size="icon"
                 className="h-8 w-8"
                 disabled={isDisabled}
+                aria-label="Add emoji"
               >
-                <Smile className="h-4 w-4" />
+                <Smile className="h-4 w-4" aria-hidden="true" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-2" align="start">
-              <div className="flex gap-1">
+              <div className="flex gap-1" role="group" aria-label="Quick emojis">
                 {QUICK_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
                     onClick={() => insertEmoji(emoji)}
                     className="p-2 hover:bg-muted rounded text-lg"
+                    aria-label={`Insert ${emoji}`}
                   >
                     {emoji}
                   </button>
@@ -438,8 +458,9 @@ export function MessageComposer({
             className="h-8 w-8"
             disabled={isDisabled}
             onClick={() => insertEmoji("@")}
+            aria-label="Mention someone"
           >
-            <AtSign className="h-4 w-4" />
+            <AtSign className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 
@@ -464,11 +485,12 @@ export function MessageComposer({
           disabled={!canSend}
           size="icon"
           className="h-10 w-10"
+          aria-label={isSending || isUploadingFiles ? "Sending..." : "Send message"}
         >
           {isSending || isUploadingFiles ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4" aria-hidden="true" />
           )}
         </Button>
       </div>

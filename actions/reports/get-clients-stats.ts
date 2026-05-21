@@ -1,12 +1,13 @@
 // @ts-nocheck
+"use server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export const getClientsCount = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return 0;
-  
-  const count = await prismadb.clients.count({
+
+  const count = await prismadb.contact.count({
     where: { organizationId },
   });
   return count;
@@ -15,110 +16,66 @@ export const getClientsCount = async () => {
 export const getClientsByStatus = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
-  
-  const clients = await prismadb.clients.findMany({
+
+  const grouped = await prismadb.contact.groupBy({
+    by: ["status"],
     where: { organizationId },
-    select: {
-      client_status: true,
-    },
+    _count: { id: true },
   });
 
-  const statusCounts = clients.reduce((acc: any, client: any) => {
-    const status = client.client_status || "LEAD";
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {});
+  const statusMap = Object.fromEntries(
+    grouped.map((g: any) => [g.status ?? "LEAD", g._count.id])
+  );
 
-  // Ensure all statuses are present so charts render even with zero counts
-  const ALL_STATUSES = [
-    "LEAD",
-    "ACTIVE",
-    "INACTIVE",
-    "CONVERTED",
-    "LOST",
-  ];
-
-  return ALL_STATUSES.map((status) => {
-    const count = statusCounts[status] || 0;
-    return {
-      name: status,
-      value: typeof count === 'number' && !Number.isNaN(count) ? count : 0,
-    };
-  });
+  const ALL_STATUSES = ["LEAD", "ACTIVE", "INACTIVE", "CONVERTED", "LOST"];
+  return ALL_STATUSES.map((status) => ({
+    name: status,
+    value: (statusMap[status] as number) ?? 0,
+  }));
 };
 
 export const getClientsByMonth = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
-  
-  const clients = await prismadb.clients.findMany({
-    where: { organizationId },
-    select: {
-      createdAt: true,
-    },
-  });
 
-  if (!clients || clients.length === 0) {
-    return [];
-  }
+  type MonthRow = { year: number; month: number; count: bigint };
+  const rows = await prismadb.$queryRaw<MonthRow[]>`
+    SELECT
+      EXTRACT(YEAR FROM "createdAt")::int AS year,
+      EXTRACT(MONTH FROM "createdAt")::int AS month,
+      COUNT(*)::bigint AS count
+    FROM contacts
+    WHERE "organizationId" = ${organizationId}
+    GROUP BY year, month
+    ORDER BY year, month
+  `;
 
-  const clientsByMonth = clients.reduce((acc: any, client: any) => {
-    const date = new Date(client.createdAt);
-    const yearMonth = `${date.getFullYear()}-${date.getMonth() + 1}`;
-    acc[yearMonth] = (acc[yearMonth] || 0) + 1;
-    return acc;
-  }, {});
-
-  const chartData = Object.keys(clientsByMonth)
-    .sort()
-    .map((yearMonth: any) => {
-      const [year, month] = yearMonth.split("-");
-      return {
-        year: parseInt(year),
-        month: parseInt(month),
-        name: `${month}/${year}`,
-        Number: clientsByMonth[yearMonth],
-      };
-    });
-
-  return chartData;
+  return rows.map((r) => ({
+    year: r.year,
+    month: r.month,
+    name: `${r.month}/${r.year}`,
+    Number: Number(r.count),
+  }));
 };
 
 export const getClientsByMonthAndYear = async (year: number) => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
-  
-  const clients = await prismadb.clients.findMany({
-    where: { organizationId },
-    select: {
-      createdAt: true,
-    },
-  });
 
-  if (!clients || clients.length === 0) {
-    return [];
-  }
+  type YearMonthRow = { month: string; count: bigint };
+  const rows = await prismadb.$queryRaw<YearMonthRow[]>`
+    SELECT
+      TO_CHAR("createdAt", 'FMMonth') AS month,
+      COUNT(*)::bigint AS count
+    FROM contacts
+    WHERE "organizationId" = ${organizationId}
+      AND EXTRACT(YEAR FROM "createdAt") = ${year}
+    GROUP BY TO_CHAR("createdAt", 'FMMonth'), EXTRACT(MONTH FROM "createdAt")
+    ORDER BY EXTRACT(MONTH FROM "createdAt")
+  `;
 
-  const clientsByMonth = clients.reduce((acc: any, client: any) => {
-    const yearCreated = new Date(client.createdAt).getFullYear();
-    const month = new Date(client.createdAt).toLocaleString("default", {
-      month: "long",
-    });
-
-    if (yearCreated === year) {
-      acc[month] = (acc[month] || 0) + 1;
-    }
-
-    return acc;
-  }, {});
-
-  const chartData = Object.keys(clientsByMonth).map((month: any) => {
-    return {
-      name: month,
-      Number: clientsByMonth[month],
-    };
-  });
-
-  return chartData;
+  return rows.map((r) => ({
+    name: r.month.trim(),
+    Number: Number(r.count),
+  }));
 };
-

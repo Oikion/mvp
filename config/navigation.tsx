@@ -8,8 +8,7 @@ import { ClipboardListIcon } from "@/components/ui/ClipboardListIcon"
 import { FeedbackIcon } from "@/components/ui/FeedbackIcon"
 import { CalendarIcon } from "@/components/ui/CalendarIcon"
 import { FileTextIcon } from "@/components/ui/FileTextIcon"
-// HandCoinsIcon import removed - was used for Deals navigation (retained for future use)
-// import { HandCoinsIcon } from "@/components/ui/HandCoinsIcon"
+import { HandCoinsIcon } from "@/components/ui/HandCoinsIcon"
 // NetworkIcon import removed - was used for Connections standalone nav item (merged into Profile)
 // import { NetworkIcon } from "@/components/ui/NetworkIcon"
 import { InboxIcon } from "@/components/ui/InboxIcon"
@@ -145,14 +144,22 @@ export function getNavigationConfig({
       moduleId: "crm" as ModuleId,
       notificationKey: "crm",
     }] : []),
-    // Mandates module - buyer/renter briefs (shares CRM permission)
+    // Requests module - buyer/renter briefs (shares CRM permission)
     ...(canAccess("crm") ? [{
-      title: dict.navigation.ModuleMenu.mandates?.title || "Mandates",
-      url: "/app/mandates",
+      title: dict.navigation.ModuleMenu.requests?.title || "Requests",
+      url: "/app/requests",
       icon: ClipboardListIcon,
-      isActive: isRouteActive(pathname, "/app/mandates", locale),
+      isActive: isRouteActive(pathname, "/app/requests", locale) || isRouteActive(pathname, "/app/mandates", locale),
       moduleId: "crm" as ModuleId,
       notificationKey: "mandates",
+    }] : []),
+    // Deals module - deal pipeline
+    ...(canAccess("deals") ? [{
+      title: dict.navigation.ModuleMenu.deals?.title || "Deals",
+      url: "/app/deals",
+      icon: HandCoinsIcon,
+      isActive: isRouteActive(pathname, "/app/deals", locale),
+      moduleId: "deals" as ModuleId,
     }] : []),
   ]
 

@@ -195,6 +195,7 @@ export function AgentContactForm({
                       {field.type === "textarea" ? (
                         <Textarea
                           {...formField}
+                          value={formField.value as string | undefined}
                           placeholder={field.placeholder}
                           rows={4}
                           disabled={isSubmitting}
@@ -230,6 +231,7 @@ export function AgentContactForm({
                       ) : (
                         <Input
                           {...formField}
+                          value={formField.value as string | undefined}
                           type={field.type === "email" ? "email" : field.type === "phone" ? "tel" : "text"}
                           placeholder={field.placeholder}
                           disabled={isSubmitting}

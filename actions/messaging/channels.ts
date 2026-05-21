@@ -150,6 +150,7 @@ export async function getOrganizationChannels(): Promise<{
         slug: true,
         description: true,
         channelType: true,
+        source: true,
         isDefault: true,
         _count: {
           select: { members: true },
@@ -180,6 +181,7 @@ export async function getOrganizationChannels(): Promise<{
       slug: channel.slug,
       description: channel.description,
       channelType: channel.channelType,
+      source: channel.source,
       isDefault: channel.isDefault,
       memberCount: channel._count.members,
       unreadCount: unreadMap.get(channel.id) ?? 0,
@@ -316,14 +318,36 @@ export async function archiveChannel(channelId: string): Promise<{
 }
 
 /**
- * Create default channels for a new organization
+ * Create default channels for a new organization.
+ * INTERNAL USE ONLY — called from Clerk webhooks / onboarding flows with
+ * server-side context. The caller must supply the organizationId that was
+ * just created; we verify it matches the currently authenticated org to
+ * prevent arbitrary-org channel injection from client-side invocations.
+ *
+ * If called outside an authenticated session (e.g. from a Clerk webhook
+ * handler that supplies a verified org ID), set `skipAuthCheck = true`.
  */
-export async function createDefaultChannels(organizationId: string, creatorUserId: string): Promise<{
+export async function createDefaultChannels(organizationId: string, creatorUserId: string, skipAuthCheck = false): Promise<{
   success: boolean;
   channels?: string[];
   error?: string;
 }> {
   try {
+    // SECURITY: Prevent unauthenticated callers from creating channels in
+    // arbitrary organizations. Allow the webhook path to bypass with an
+    // explicit opt-in flag (the caller has already verified org ownership
+    // via Clerk webhook signature).
+    if (!skipAuthCheck) {
+      const guard = await requireAction("messaging:create_channel");
+      if (guard) return guard;
+
+      const { getCurrentOrgId: _getCurrentOrgId } = await import("@/lib/get-current-user");
+      const callerOrgId = await _getCurrentOrgId();
+      if (callerOrgId !== organizationId) {
+        return { success: false, error: "Cannot create channels for a different organization" };
+      }
+    }
+
     const createdChannels: string[] = [];
 
     // Default channels to create

@@ -228,6 +228,56 @@ export async function decryptContactCommentForOrg<T extends MessageWithContent>(
   return decryptMessageForOrg(record, orgId);
 }
 
+// ─────────────────────────────────────────────
+// EmailInboxConfig (IMAP/SMTP credential fields)
+// ─────────────────────────────────────────────
+
+const EMAIL_INBOX_ENCRYPTED_FIELDS = [
+  "imapHost",
+  "imapUser",
+  "imapPasswordEncrypted",
+  "smtpHost",
+  "smtpUser",
+  "smtpPasswordEncrypted",
+] as const;
+
+type EmailInboxStringField = (typeof EMAIL_INBOX_ENCRYPTED_FIELDS)[number];
+type EmailInboxWithEncryptedFields = Partial<Record<EmailInboxStringField, string | null | undefined>>;
+
+export async function encryptEmailInboxForOrg<T extends EmailInboxWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & EmailInboxWithEncryptedFields;
+  for (const field of EMAIL_INBOX_ENCRYPTED_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+export async function decryptEmailInboxForOrg<T extends EmailInboxWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const deks = await getOrgDeksForDecryption(orgId);
+  const result = { ...record } as T & EmailInboxWithEncryptedFields;
+  for (const field of EMAIL_INBOX_ENCRYPTED_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
+        result[field] as string | null | undefined,
+        deks
+      );
+    }
+  }
+  return result as T;
+}
+
 export async function encryptMessageForOrg<T extends MessageWithContent>(
   data: T,
   orgId: string

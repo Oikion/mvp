@@ -11,226 +11,164 @@ export interface TourStep {
 /**
  * Steps where the user must complete an action before Next is enabled.
  * 0-indexed — matches the array index in getTourSteps().
- * Step 9 (import-execute-btn) is intentionally excluded: TourController
+ *
+ * Step 2 (import-upload-zone) requires uploading a file before Next unlocks.
+ * Step 3 (import-execute-btn) is intentionally excluded: TourController
  * auto-advances after the demo guard intercepts the import click.
+ * Steps 1, 4, 6 (nav links) are NOT action-required — clicking Next on those
+ * steps programmatically navigates to the target page via onNextClick in TourController.
  */
-export const ACTION_REQUIRED_STEPS = [4, 5, 8] as const;
+export const ACTION_REQUIRED_STEPS = [2] as const;
 
 /**
- * Real-user tour steps that require a nav click before Next is enabled.
- * Steps 2, 4, 6 are the import-nav, network-nav, and matchmaking-nav steps.
- * Clicking the nav link auto-advances the tour (no separate Next click needed).
+ * Real-user tour has no action-required steps — all steps advance via Next.
+ * Forcing the user to click nav links while the Driver.js overlay is active
+ * locks the screen and leaves them with a Next button that silently does nothing.
  */
-export const REAL_USER_ACTION_REQUIRED_STEPS = [2, 4, 6] as const;
+export const REAL_USER_ACTION_REQUIRED_STEPS: readonly number[] = [];
+
+// ─── Demo-mode tour ───────────────────────────────────────────────────────────
+// 8 steps: Welcome → Import → Upload → Execute → Matchmaking → Results → Network → Done
+// Steps 1, 2, 4, 6 are action-required (user must interact before Next is enabled).
 
 const stepsEl: TourStep[] = [
-  // Chapter 1 — Orientation (steps 0–2, observational)
+  // Step 0 — Welcome (full-screen, no element)
   {
-    element: "[data-tour='sidebar-nav']",
     popover: {
-      title: "Το κέντρο ελέγχου σου",
-      description: "Από εδώ έχεις πρόσβαση σε CRM, MLS, μηνύματα και έγγραφα — όλα σε ένα μέρος.",
-      side: "right",
+      title: "Καλωσόρισες στο Oikion",
+      description: "Ο demo χώρος σου έχει ήδη 20 επαφές, 18 ακίνητα, 6 αιτήματα και 30+ ραντεβού. Σε 8 βήματα θα εισάγεις δεδομένα, θα δεις αυτόματες αντιστοιχίσεις και θα εξερευνήσεις το επαγγελματικό σου δίκτυο.",
     },
   },
-  {
-    element: "[data-tour='oikosync-feed']",
-    popover: {
-      title: "Ζωντανή ροή ομάδας",
-      description: "Μηνύματα, ενημερώσεις, pin ακινήτων και αντιδράσεις εμφανίζονται εδώ σε πραγματικό χρόνο.",
-      side: "right",
-    },
-  },
-  {
-    element: "[data-tour='first-message']",
-    popover: {
-      title: "Η ομάδα σου είναι ενεργή",
-      description: "Ο demo χώρος εργασίας σου έχει ήδη δραστηριότητα. Κάνε κλικ σε οποιοδήποτε μήνυμα για να το ανοίξεις.",
-      side: "top",
-    },
-  },
-  // Chapter 2 — Editing & Linking (steps 3–6, mixed)
-  {
-    element: "[data-tour='crm-nav']",
-    popover: {
-      title: "Βάση επαφών σου",
-      description: "Στο CRM βρίσκεις όλες τις επαφές, πελάτες και συνεργάτες σου, οργανωμένους και ασφαλισμένους.",
-      side: "right",
-    },
-  },
-  {
-    // ACTION_REQUIRED_STEPS[0] — index 4
-    element: "[data-tour='first-contact-row']",
-    popover: {
-      title: "Επαφές — κάνε κλικ για να ανοίξεις",
-      description: "Κάθε επαφή αποθηκεύεται κρυπτογραφημένη. Κάνε κλικ σε αυτήν για να δεις τις λεπτομέρειες.",
-      side: "top",
-    },
-  },
-  {
-    // ACTION_REQUIRED_STEPS[1] — index 5
-    element: "[data-tour='contact-edit-btn']",
-    popover: {
-      title: "Επεξεργασία επαφής",
-      description: "Κάνε κλικ στο Επεξεργασία για να τροποποιήσεις τα στοιχεία. Οι αλλαγές κρυπτογραφούνται αυτόματα.",
-      side: "left",
-    },
-  },
-  {
-    element: "[data-tour='link-entity-btn']",
-    popover: {
-      title: "Σύνδεση οντοτήτων",
-      description: "Συνδέεις επαφές με ακίνητα, αιτήματα ή συμφωνίες — δημιουργώντας ένα ολοκληρωμένο ιστορικό.",
-      side: "left",
-    },
-  },
-  // Chapter 3 — Importing (steps 7–9, mixed)
+  // Step 1 — Import nav (Next navigates to import page)
   {
     element: "[data-tour='import-nav']",
     popover: {
-      title: "Μαζική εισαγωγή",
-      description: "Εισάγεις επαφές ή ακίνητα από CSV με ένα βήμα — το σύστημα αντιστοιχεί τα πεδία αυτόματα.",
+      title: "Εισαγωγή δεδομένων",
+      description: "Μεταφέρεις επαφές και ακίνητα από CSV σε λίγα δευτερόλεπτα. Κάνε κλικ Next → για να ανοίξεις τη σελίδα εισαγωγής.",
       side: "right",
     },
   },
+  // Step 2 — Upload zone (ACTION: upload a file)
   {
-    // ACTION_REQUIRED_STEPS[2] — index 8
     element: "[data-tour='import-upload-zone']",
     popover: {
       title: "Ανέβασε το αρχείο σου",
-      description: "Σύρε ένα CSV ή κάνε κλικ για να επιλέξεις αρχείο. Δοκίμασε τώρα — τα δεδομένα δεν θα αποθηκευτούν στον demo χώρο.",
+      description: "Κάνε κλικ μέσα στη ζώνη για να επιλέξεις ένα CSV. Τα δεδομένα δεν αποθηκεύονται στο demo.",
       side: "top",
     },
   },
+  // Step 3 — Execute (not action-required — auto-advances after demo guard intercepts click)
   {
-    // index 9 — not action-required; TourController auto-advances after demo guard intercepts
     element: "[data-tour='import-execute-btn']",
     popover: {
       title: "Εκτέλεση εισαγωγής",
-      description: "Κάνε κλικ για να ξεκινήσει η εισαγωγή. Στον demo χώρο, τα αποτελέσματα είναι προσομοιωμένα.",
+      description: "Κάνε κλικ για εκκίνηση. Στο demo, τα αποτελέσματα είναι άμεσα και προσομοιωμένα.",
       side: "top",
     },
   },
-  // Chapter 4 — Create Org CTA (steps 10–11)
+  // Step 4 — Matchmaking nav (Next navigates to matchmaking page)
   {
-    element: "[data-tour='demo-banner-cta']",
+    element: "[data-tour='matchmaking-nav']",
     popover: {
-      title: "Έτοιμος να ξεκινήσεις;",
-      description: "Όταν είσαι έτοιμος, δημιούργησε τον πραγματικό σου οργανισμό και εισήγαγε τα δεδομένα σου.",
-      side: "bottom",
+      title: "Αυτόματες αντιστοιχίσεις",
+      description: "Η πλατφόρμα αντιστοιχεί ακίνητα με αιτήματα χωρίς χειροκίνητη αναζήτηση. Κάνε κλικ Next → για να δεις τις αντιστοιχίσεις σου.",
+      side: "right",
     },
   },
+  // Step 5 — Matchmaking results (observational)
   {
-    // index 11 — no element, full-screen completion overlay
+    element: "[data-tour='matchmaking-results']",
     popover: {
-      title: "Ολοκλήρωσες τον οδηγό!",
-      description: "Τώρα μπορείς να εξερευνήσεις ελεύθερα τον demo χώρο σου ή να δημιουργήσεις τον πραγματικό σου οργανισμό.",
+      title: "Αντιστοιχίες με score",
+      description: "Κάθε ζεύγος βαθμολογείται αυτόματα 0–100 βάσει τοποθεσίας, τιμής, μεγέθους και κριτηρίων. Μηδέν χειροκίνητη δουλειά.",
+      side: "top",
+    },
+  },
+  // Step 6 — Network nav (Next navigates to network feed)
+  {
+    element: "[data-tour='network-nav']",
+    popover: {
+      title: "Επαγγελματικό δίκτυο",
+      description: "Σύνδεσε με άλλα γραφεία, μοιράσου ακίνητα και ολοκλήρωσε συναλλαγές μαζί. Κάνε κλικ Next → για να εξερευνήσεις.",
+      side: "right",
+    },
+  },
+  // Step 7 — Completion (full-screen, no element)
+  {
+    popover: {
+      title: "Είσαι έτοιμος!",
+      description: "Εξερεύνησε τον demo χώρο σου ελεύθερα ή δημιούργησε τον πραγματικό σου οργανισμό για να ξεκινήσεις.",
     },
   },
 ];
 
 const stepsEn: TourStep[] = [
-  // Chapter 1 — Orientation (steps 0–2, observational)
+  // Step 0 — Welcome (full-screen, no element)
   {
-    element: "[data-tour='sidebar-nav']",
     popover: {
-      title: "Your command centre",
-      description: "CRM, MLS, messages, and documents — everything in one place.",
-      side: "right",
+      title: "Welcome to Oikion",
+      description: "Your demo workspace already has 20 contacts, 18 properties, 6 requests, and 30+ calendar events. In 8 steps you'll import data, see automatic matches, and explore your professional network.",
     },
   },
-  {
-    element: "[data-tour='oikosync-feed']",
-    popover: {
-      title: "Live team feed",
-      description: "Messages, updates, property pins, and reactions appear here in real time.",
-      side: "right",
-    },
-  },
-  {
-    element: "[data-tour='first-message']",
-    popover: {
-      title: "Your team is already active",
-      description: "Your demo workspace has pre-loaded activity. Click any message to expand it.",
-      side: "top",
-    },
-  },
-  // Chapter 2 — Editing & Linking (steps 3–6, mixed)
-  {
-    element: "[data-tour='crm-nav']",
-    popover: {
-      title: "Your contact database",
-      description: "All contacts, clients, and partners — organised and encrypted.",
-      side: "right",
-    },
-  },
-  {
-    // ACTION_REQUIRED_STEPS[0] — index 4
-    element: "[data-tour='first-contact-row']",
-    popover: {
-      title: "Contacts — click to open",
-      description: "Each contact is stored encrypted. Click one to see their full profile.",
-      side: "top",
-    },
-  },
-  {
-    // ACTION_REQUIRED_STEPS[1] — index 5
-    element: "[data-tour='contact-edit-btn']",
-    popover: {
-      title: "Edit a contact",
-      description: "Click Edit to update contact details. Changes are encrypted automatically.",
-      side: "left",
-    },
-  },
-  {
-    element: "[data-tour='link-entity-btn']",
-    popover: {
-      title: "Link entities",
-      description: "Connect contacts to properties, requests, or deals — building a complete activity history.",
-      side: "left",
-    },
-  },
-  // Chapter 3 — Importing (steps 7–9, mixed)
+  // Step 1 — Import nav (Next navigates to import page)
   {
     element: "[data-tour='import-nav']",
     popover: {
-      title: "Bulk import",
-      description: "Import contacts or properties from a CSV in one step — fields are mapped automatically.",
+      title: "Import your data",
+      description: "Transfer contacts and properties from a CSV in seconds. Click Next → to open the import page.",
       side: "right",
     },
   },
+  // Step 2 — Upload zone (ACTION: upload a file)
   {
-    // ACTION_REQUIRED_STEPS[2] — index 8
     element: "[data-tour='import-upload-zone']",
     popover: {
       title: "Upload your file",
-      description: "Drag a CSV or click to choose a file. Try it now — data won't be saved in the demo.",
+      description: "Click inside the zone to open the file browser and pick a CSV. Nothing is saved in the demo.",
       side: "top",
     },
   },
+  // Step 3 — Execute (not action-required — auto-advances after demo guard intercepts click)
   {
-    // index 9 — not action-required; TourController auto-advances after demo guard intercepts
     element: "[data-tour='import-execute-btn']",
     popover: {
       title: "Run the import",
-      description: "Click to start the import. In the demo, results are simulated.",
+      description: "Click to start. In the demo, results are instant and simulated.",
       side: "top",
     },
   },
-  // Chapter 4 — Create Org CTA (steps 10–11)
+  // Step 4 — Matchmaking nav (Next navigates to matchmaking page)
   {
-    element: "[data-tour='demo-banner-cta']",
+    element: "[data-tour='matchmaking-nav']",
     popover: {
-      title: "Ready to start?",
-      description: "When you're ready, create your real agency and import your actual data.",
-      side: "bottom",
+      title: "Automatic matching",
+      description: "The platform scores every property against every client request — no manual searching. Click Next → to see your matches.",
+      side: "right",
     },
   },
+  // Step 5 — Matchmaking results (observational)
   {
-    // index 11 — no element, full-screen completion overlay
+    element: "[data-tour='matchmaking-results']",
     popover: {
-      title: "Tour complete!",
-      description: "You can now explore your demo workspace freely, or create your real agency to get started.",
+      title: "Scored matches",
+      description: "Every pair is scored 0–100 automatically based on location, price, size, and criteria. Zero manual work.",
+      side: "top",
+    },
+  },
+  // Step 6 — Network nav (Next navigates to network feed)
+  {
+    element: "[data-tour='network-nav']",
+    popover: {
+      title: "Your professional network",
+      description: "Connect with other agencies, share listings, and close deals together. Click Next → to explore.",
+      side: "right",
+    },
+  },
+  // Step 7 — Completion (full-screen, no element)
+  {
+    popover: {
+      title: "You're all set!",
+      description: "Explore your demo workspace freely, or create your real agency to get started.",
     },
   },
 ];
@@ -240,142 +178,109 @@ export function getTourSteps(locale: "el" | "en"): TourStep[] {
 }
 
 // ─── Real-user onboarding tour (non-demo orgs) ───────────────────────────────
-// Covers: Navigation, Import, Network, Matchmaking (8 steps, no action gates)
+// All steps target sidebar elements that are always in the DOM — no navigation
+// required. This prevents the screen-lock / Next-does-nothing problem caused
+// by action-required steps that force the user to click a specific element
+// while the Driver.js overlay blocks everything else.
 
 const realUserStepsEl: TourStep[] = [
-  // Chapter 1 — Navigation
+  // Step 0 — Welcome (full-screen)
   {
-    element: "[data-tour='sidebar-nav']",
     popover: {
-      title: "Η πλοήγησή σου",
-      description: "Από εδώ έχεις πρόσβαση σε όλα: ακίνητα, επαφές, αιτήματα, συμφωνίες και δίκτυο — ένα μέρος για τα πάντα.",
-      side: "right",
+      title: "Καλωσόρισες στο Oikion",
+      description: "Σε λίγα βήματα θα γνωρίσεις τα βασικά: εισαγωγή δεδομένων, αυτόματες αντιστοιχίσεις και το επαγγελματικό σου δίκτυο.",
     },
   },
-  {
-    // No element — shows centered; describes CMD+K search
-    popover: {
-      title: "Γρήγορη αναζήτηση — ⌘K",
-      description: "Πάτησε ⌘K (ή Ctrl+K) από οποιαδήποτε σελίδα για να αναζητήσεις ακίνητα, επαφές, έγγραφα και να πλοηγηθείς άμεσα.",
-    },
-  },
-  // Chapter 2 — Import
+  // Step 1 — Import nav
   {
     element: "[data-tour='import-nav']",
     popover: {
       title: "Εισαγωγή δεδομένων",
-      description: "Εισήγαγε επαφές ή ακίνητα από CSV με ένα βήμα — το σύστημα αντιστοιχεί τα πεδία αυτόματα. Κάνε κλικ για να συνεχίσεις.",
+      description: "Εισήγαγε επαφές ή ακίνητα από CSV με ένα βήμα — το σύστημα αντιστοιχεί τα πεδία αυτόματα.",
       side: "right",
     },
   },
+  // Step 2 — Matchmaking nav
   {
-    element: "[data-tour='import-upload-zone']",
+    element: "[data-tour='matchmaking-nav']",
     popover: {
-      title: "Ανέβασε το αρχείο σου",
-      description: "Σύρε ένα CSV ή κάνε κλικ για να επιλέξεις αρχείο. Το σύστημα θα αντιστοιχίσει αυτόματα τις στήλες στα πεδία της πλατφόρμας.",
-      side: "top",
+      title: "Αυτόματες αντιστοιχίσεις",
+      description: "Η πλατφόρμα βαθμολογεί κάθε ζεύγος ακινήτου–αιτήματος 0–100 αυτόματα. Μηδέν χειροκίνητη αναζήτηση.",
+      side: "right",
     },
   },
-  // Chapter 3 — Network
+  // Step 3 — Network nav
   {
     element: "[data-tour='network-nav']",
     popover: {
       title: "Επαγγελματικό δίκτυο",
-      description: "Σύνδεσε με άλλους μεσίτες, μοιράσου ακίνητα και λάβε αιτήματα συνεργασίας. Κάνε κλικ για να εξερευνήσεις.",
+      description: "Σύνδεσε με άλλα γραφεία, μοιράσου ακίνητα και ολοκλήρωσε συναλλαγές μαζί.",
       side: "right",
     },
   },
+  // Step 4 — Quick search tip (full-screen)
   {
-    element: "[data-tour='network-feed']",
     popover: {
-      title: "Ροή δικτύου",
-      description: "Δες τι κάνουν οι συνεργάτες σου — δημοσιεύσεις ακινήτων, ανακοινώσεις και ενημερώσεις σε πραγματικό χρόνο.",
-      side: "top",
+      title: "Γρήγορη αναζήτηση — ⌘K",
+      description: "Πάτησε ⌘K (ή Ctrl+K) από οποιαδήποτε σελίδα για να αναζητήσεις ακίνητα, επαφές και έγγραφα άμεσα.",
     },
   },
-  // Chapter 4 — Matchmaking
+  // Step 5 — Completion (full-screen)
   {
-    element: "[data-tour='matchmaking-nav']",
-    popover: {
-      title: "Αντιστοίχιση ακινήτων",
-      description: "Η πλατφόρμα αντιστοιχεί αυτόματα τα ακίνητά σου με τα αιτήματα πελατών. Κάνε κλικ για να δεις τις προτάσεις.",
-      side: "right",
-    },
-  },
-  {
-    // No element — full-screen completion
     popover: {
       title: "Έτοιμος να ξεκινήσεις!",
-      description: "Έχεις εξερευνήσει τα βασικά της πλατφόρμας. Μπορείς να επιστρέψεις σε αυτόν τον οδηγό οποιαδήποτε στιγμή από την πλευρική μπάρα.",
+      description: "Μπορείς να επιστρέψεις σε αυτόν τον οδηγό οποιαδήποτε στιγμή από την πλευρική μπάρα.",
     },
   },
 ];
 
 const realUserStepsEn: TourStep[] = [
-  // Chapter 1 — Navigation
+  // Step 0 — Welcome (full-screen)
   {
-    element: "[data-tour='sidebar-nav']",
     popover: {
-      title: "Your navigation hub",
-      description: "Access everything from here: properties, contacts, requests, deals, and your network — all in one place.",
-      side: "right",
+      title: "Welcome to Oikion",
+      description: "In a few steps you'll learn the essentials: importing data, automatic matching, and your professional network.",
     },
   },
-  {
-    // No element — shows centered; describes CMD+K search
-    popover: {
-      title: "Quick search — ⌘K",
-      description: "Press ⌘K (or Ctrl+K) from anywhere to search properties, contacts, documents, and navigate instantly.",
-    },
-  },
-  // Chapter 2 — Import
+  // Step 1 — Import nav
   {
     element: "[data-tour='import-nav']",
     popover: {
       title: "Import your data",
-      description: "Bring in contacts or properties from a CSV in one step — fields are mapped automatically. Click to continue.",
+      description: "Bring in contacts or properties from a CSV in one step — fields are mapped automatically.",
       side: "right",
     },
   },
+  // Step 2 — Matchmaking nav
   {
-    element: "[data-tour='import-upload-zone']",
+    element: "[data-tour='matchmaking-nav']",
     popover: {
-      title: "Upload your file",
-      description: "Drag a CSV or click to choose a file. The system will auto-map columns to the platform's fields.",
-      side: "top",
+      title: "Automatic matching",
+      description: "The platform scores every property–request pair 0–100 automatically. No manual searching needed.",
+      side: "right",
     },
   },
-  // Chapter 3 — Network
+  // Step 3 — Network nav
   {
     element: "[data-tour='network-nav']",
     popover: {
       title: "Your professional network",
-      description: "Connect with other agents, share listings, and receive collaboration requests. Click to explore.",
+      description: "Connect with other agencies, share listings, and close deals together.",
       side: "right",
     },
   },
+  // Step 4 — Quick search tip (full-screen)
   {
-    element: "[data-tour='network-feed']",
     popover: {
-      title: "Network feed",
-      description: "See what your partners are doing — property posts, announcements, and updates in real time.",
-      side: "top",
+      title: "Quick search — ⌘K",
+      description: "Press ⌘K (or Ctrl+K) from anywhere to search properties, contacts, and documents instantly.",
     },
   },
-  // Chapter 4 — Matchmaking
+  // Step 5 — Completion (full-screen)
   {
-    element: "[data-tour='matchmaking-nav']",
-    popover: {
-      title: "Smart matchmaking",
-      description: "The platform automatically matches your listings against client requests. Click to see the suggestions.",
-      side: "right",
-    },
-  },
-  {
-    // No element — full-screen completion
     popover: {
       title: "You're all set!",
-      description: "You've explored the platform basics. You can revisit this tour at any time from the sidebar.",
+      description: "You can revisit this tour at any time from the sidebar.",
     },
   },
 ];

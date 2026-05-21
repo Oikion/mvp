@@ -1,7 +1,8 @@
 // @ts-nocheck
+"use server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe, getCurrentUser } from "@/lib/get-current-user";
-import { decryptCalendarEventForOrg, decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptCalendarEventForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 
 export interface UpcomingEvent {
   id: string;
@@ -73,10 +74,10 @@ export const getUpcomingEvents = async (limit: number = 5): Promise<UpcomingEven
           avatar: true,
         },
       },
-      Clients: {
+      Contacts: {
         select: {
           id: true,
-          client_name: true,
+          displayName: true,
         },
       },
       Properties: {
@@ -98,9 +99,9 @@ export const getUpcomingEvents = async (limit: number = 5): Promise<UpcomingEven
       const dec = await decryptCalendarEventForOrg(event, organizationId);
       // Decrypt linked client names
       const clients = await Promise.all(
-        event.Clients.map(async (c) => {
-          const dc = await decryptClientForOrg(c, organizationId);
-          return { id: dc.id, name: dc.client_name };
+        event.Contacts.map(async (c) => {
+          const dc = await decryptContactForOrg(c, organizationId);
+          return { id: dc.id, name: dc.displayName };
         })
       );
       return {

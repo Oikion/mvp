@@ -1,27 +1,26 @@
-// @ts-nocheck
+"use server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 
 export const getRecentClients = async (limit: number = 5) => {
   const organizationId = await getCurrentOrgIdSafe();
 
-  // Return empty array if no organization context (e.g., session not synced yet)
   if (!organizationId) {
     return [];
   }
 
-  const data = await prismadb.clients.findMany({
+  const data = await prismadb.contact.findMany({
     where: { organizationId },
     select: {
       id: true,
       friendlyId: true,
-      client_name: true,
-      primary_email: true,
-      client_status: true,
+      displayName: true,
+      email: true,
+      status: true,
       createdAt: true,
-      assigned_to: true,
-      Users_Clients_assigned_toToUsers: {
+      assignedAgentId: true,
+      assignedAgent: {
         select: {
           name: true,
         },
@@ -32,19 +31,19 @@ export const getRecentClients = async (limit: number = 5) => {
     },
     take: limit,
   });
-  // Decrypt and map to consistent format
+
   const decrypted = await Promise.all(
-    data.map((c) => decryptClientForOrg(c, organizationId))
+    data.map((c) => decryptContactForOrg(c, organizationId))
   );
+
   return decrypted.map((c) => ({
     id: c.id,
     friendlyId: c.friendlyId,
-    name: c.client_name,
-    email: c.primary_email,
-    status: c.client_status,
+    name: c.displayName,
+    email: c.email,
+    status: c.status,
     createdAt: c.createdAt,
-    assigned_to: c.assigned_to,
-    assigned_to_user: c.Users_Clients_assigned_toToUsers,
+    assigned_to: c.assignedAgentId,
+    assigned_to_user: c.assignedAgent,
   }));
 };
-

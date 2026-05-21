@@ -3,7 +3,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
-import { decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 
 export interface SharedClientData {
   id: string;
@@ -53,46 +53,46 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
     orderBy: { createdAt: "desc" },
   });
 
-  // Fetch the actual client entities
-  const rawShares = await Promise.all(
-    shares.map(async (share) => {
-      const client = await prismadb.clients.findUnique({
-        where: { id: share.entityId },
-        select: {
-          id: true,
-          organizationId: true,
-          client_name: true,
-          primary_email: true,
-          primary_phone: true,
-          client_status: true,
-          createdAt: true,
-        },
-      });
+  // Fetch all client entities in a single query instead of N individual lookups
+  const entityIds = shares.map((s) => s.entityId);
+  const contacts = await prismadb.contact.findMany({
+    where: { id: { in: entityIds } },
+    select: {
+      id: true,
+      organizationId: true,
+      client_name: true,
+      primary_email: true,
+      primary_phone: true,
+      client_status: true,
+      createdAt: true,
+    },
+  });
+  const contactMap = new Map(contacts.map((c) => [c.id, c]));
 
-      if (!client) return null;
-
-      return {
-        id: client.id,
-        organizationId: client.organizationId,
-        shareId: share.id,
-        client_name: client.client_name,
-        primary_email: client.primary_email,
-        primary_phone: client.primary_phone,
-        client_status: client.client_status as string | null,
-        createdAt: client.createdAt,
-        sharedAt: share.createdAt,
-        permissions: share.permissions,
-        message: share.message,
-        sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
-      } as SharedClientData & { organizationId: string };
-    })
-  );
+  const rawShares = shares.map((share) => {
+    const client = contactMap.get(share.entityId);
+    if (!client) return null;
+    return {
+      id: client.id,
+      organizationId: client.organizationId,
+      shareId: share.id,
+      client_name: client.client_name,
+      primary_email: client.primary_email,
+      primary_phone: client.primary_phone,
+      client_status: client.client_status as string | null,
+      createdAt: client.createdAt,
+      sharedAt: share.createdAt,
+      permissions: share.permissions,
+      message: share.message,
+      sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
+    } as SharedClientData & { organizationId: string };
+  });
 
   const results: SharedClientData[] = [];
   for (const c of rawShares) {
     if (!c) continue;
     try {
-      results.push(await decryptClientForOrg(c, c.organizationId));
+      results.push(await decryptContactForOrg(c, c.organizationId));
     } catch (err) {
       console.error(`[GET_SHARED_CLIENTS] Failed to decrypt client ${c.id}:`, err);
     }

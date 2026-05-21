@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { canPerformAction } from "@/lib/permissions";
 import { getCurrentOrgId } from "@/lib/get-current-user";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/crm/contacts/[contactId]/name
@@ -36,9 +37,11 @@ export async function GET(
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
+    const decrypted = await decryptContactForOrg(contact, organizationId);
+
     return NextResponse.json({
-      id: contact.id,
-      name: contact.displayName || "Unnamed Contact",
+      id: decrypted.id,
+      name: decrypted.displayName || "Unnamed Contact",
     });
   } catch (error) {
     console.error("[CONTACT_NAME_GET]", error);

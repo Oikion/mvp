@@ -1,6 +1,6 @@
 "use client";
 
-import { Hash, Users, Megaphone, Lock, Loader2, BellOff, Bell, CheckCheck, Trash2, LogOut, Eye } from "lucide-react";
+import { Hash, Users, Megaphone, Lock, Loader2, BellOff, Bell, CheckCheck, Trash2, LogOut, Eye, Mail } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,7 +11,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
-import { ChannelType } from "@prisma/client";
+import { ChannelType, ChannelSource } from "@prisma/client";
 
 export interface ConversationItem {
   id: string;
@@ -22,6 +22,7 @@ export interface ConversationItem {
   unreadCount?: number;
   isDefault?: boolean;
   channelType?: ChannelType;
+  channelSource?: ChannelSource;
   isMuted?: boolean;
 }
 
@@ -51,8 +52,9 @@ export function ConversationList({
 }: ConversationListProps) {
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center py-8" role="status" aria-label="Loading conversations">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden="true" />
+        <span className="sr-only">Loading conversations...</span>
       </div>
     );
   }
@@ -72,6 +74,8 @@ export function ConversationList({
           <ContextMenuTrigger asChild>
             <button
               type="button"
+              aria-current={selectedId === item.id ? "true" : undefined}
+              aria-label={`${item.name}${item.unreadCount && item.unreadCount > 0 ? `, ${item.unreadCount} unread` : ""}${item.isMuted ? ", muted" : ""}`}
               onClick={() => onSelect(item.id)}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors",
@@ -81,8 +85,10 @@ export function ConversationList({
             >
               {/* Icon/Avatar */}
               {item.type === "channel" ? (
-                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded bg-muted">
-                  {item.channelType === "PRIVATE" ? (
+                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded bg-muted" aria-hidden="true">
+                  {item.channelSource === "EMAIL" ? (
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  ) : item.channelType === "PRIVATE" ? (
                     <Lock className="h-4 w-4 text-muted-foreground" />
                   ) : item.channelType === "ANNOUNCEMENT" ? (
                     <Megaphone className="h-4 w-4 text-muted-foreground" />
@@ -91,12 +97,12 @@ export function ConversationList({
                   )}
                 </div>
               ) : item.type === "group" ? (
-                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded bg-muted">
+                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded bg-muted" aria-hidden="true">
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </div>
               ) : (
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  {item.avatar && <AvatarImage src={item.avatar} />}
+                <Avatar className="h-8 w-8 flex-shrink-0" aria-hidden="true">
+                  {item.avatar && <AvatarImage src={item.avatar} alt="" />}
                   <AvatarFallback className="text-xs">
                     {item.name
                       .split(" ")
@@ -124,7 +130,10 @@ export function ConversationList({
                     </Badge>
                   )}
                   {item.isMuted && (
-                    <BellOff className="h-3 w-3 text-muted-foreground" />
+                    <>
+                      <BellOff className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                      <span className="sr-only">(muted)</span>
+                    </>
                   )}
                 </div>
                 {item.lastMessage && (
@@ -136,8 +145,12 @@ export function ConversationList({
 
               {/* Unread badge — destructive matches nav sidebar and notification bell */}
               {item.unreadCount && item.unreadCount > 0 && (
-                <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] px-1.5">
-                  {item.unreadCount > 99 ? "99+" : item.unreadCount}
+                <Badge
+                  variant="destructive"
+                  className="h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] px-1.5"
+                  aria-label={`${item.unreadCount > 99 ? "99+" : item.unreadCount} unread messages`}
+                >
+                  <span aria-hidden="true">{item.unreadCount > 99 ? "99+" : item.unreadCount}</span>
                 </Badge>
               )}
             </button>

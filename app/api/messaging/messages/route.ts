@@ -7,6 +7,7 @@ import { generateFriendlyId } from "@/lib/friendly-id";
 import { encryptMessageForOrg, decryptMessageForOrg } from "@/lib/model-encryption";
 import { notifyNewMessage, notifyMention } from "@/actions/messaging/notifications";
 import { publishToChannel, getChannelName, getConversationChannelName, getUserChannelName } from "@/lib/ably";
+import { sendEmailReply, getEmailChannelForConversation } from "@/lib/email/outbound-relay";
 
 /**
  * POST /api/messaging/messages
@@ -395,6 +396,24 @@ export async function POST(req: Request) {
       : content.trim().slice(0, 80) || "New message";
 
     after(async () => {
+      try {
+        // If this is a reply inside an email-backed conversation, relay it outbound
+        if (conversationId) {
+          const emailChannelId = await getEmailChannelForConversation(conversationId, organizationId);
+          if (emailChannelId) {
+            await sendEmailReply({
+              channelId: emailChannelId,
+              conversationId,
+              organizationId,
+              content: content.trim(),
+              agentName: sender.name ?? "Agent",
+            });
+          }
+        }
+      } catch (relayErr) {
+        console.error("[MESSAGING] Email outbound relay error:", relayErr);
+      }
+
       try {
         if (channelId) {
           const channel = await prismadb.channel.findFirst({

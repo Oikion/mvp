@@ -86,7 +86,9 @@
   },
   "actions": {
     "createChannel": "Κανάλι",
-    "sendDM": "Μήνυμα"
+    "sendDM": "Μήνυμα",
+    "search": "Αναζήτηση μηνυμάτων",
+    "settings": "Ρυθμίσεις συνομιλίας"
   },
   "status": {
     "notConfigured": "Τα μηνύματα δεν έχουν ρυθμιστεί",

@@ -17,6 +17,7 @@ export interface Channel {
   slug: string;
   description: string | null;
   channelType: ChannelType;
+  source?: import("@prisma/client").ChannelSource;
   isDefault: boolean;
   memberCount: number;
   unreadCount: number;
@@ -35,6 +36,10 @@ export interface Conversation {
   };
   unreadCount: number;
   isMuted: boolean;
+  externalThreadId?: string | null;
+  externalSubject?: string | null;
+  externalSenderEmail?: string | null;
+  externalSenderName?: string | null;
 }
 
 export interface Message {

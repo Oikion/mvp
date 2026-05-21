@@ -92,6 +92,12 @@ import documentTemplatesEl from "./locales/el/document-templates.json";
 import archiveEl from "./locales/el/archive.json";
 import billingEn from "./locales/en/billing.json";
 import billingEl from "./locales/el/billing.json";
+import conversionEn from "./locales/en/conversion.json";
+import conversionEl from "./locales/el/conversion.json";
+import onboardingEn from "./locales/en/onboarding.json";
+import onboardingEl from "./locales/el/onboarding.json";
+import cookiesEn from "./locales/en/cookies.json";
+import cookiesEl from "./locales/el/cookies.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -153,6 +159,9 @@ function loadMessages(locale: string) {
     messages.notifications = notificationsEl;
     messages.Notifications = notificationsEl; // Capital N for compatibility
     messages.billing = billingEl;
+    messages.conversion = conversionEl;
+    messages.onboarding = onboardingEl;
+    messages.cookies = cookiesEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -211,6 +220,9 @@ function loadMessages(locale: string) {
     messages.notifications = notificationsEn;
     messages.Notifications = notificationsEn; // Capital N for compatibility
     messages.billing = billingEn;
+    messages.conversion = conversionEn;
+    messages.onboarding = onboardingEn;
+    messages.cookies = cookiesEn;
   }
 
   return messages;

@@ -10,7 +10,6 @@ import { Link } from "@/navigation";
 import { useRouter } from "next/navigation";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { deleteSocialPost } from "@/actions/social-feed/delete-social-post";
-import { getMyProfileVisibility } from "@/actions/social-feed/create-social-post";
 import { useMessagingCredentials } from "@/hooks/swr/useMessaging";
 import { useAblyFeed } from "@/hooks/useAbly";
 import type { DiscoverAgentItem } from "@/actions/network/discover-agents";
@@ -33,6 +32,7 @@ interface FeedPageProps {
   locale: string;
   suggestedAgents: DiscoverAgentItem[];
   suggestedAgencies: DiscoverAgencyItem[];
+  profileVisibility: { hasProfile: boolean; visibility: ProfileVisibility } | null;
 }
 
 export function FeedPage({
@@ -43,6 +43,7 @@ export function FeedPage({
   locale,
   suggestedAgents,
   suggestedAgencies,
+  profileVisibility: initialProfileVisibility,
 }: FeedPageProps) {
   const router = useRouter();
   const { toast } = useAppToast();
@@ -50,7 +51,7 @@ export function FeedPage({
   const [profileVisibility, setProfileVisibility] = useState<{
     hasProfile: boolean;
     visibility: ProfileVisibility;
-  } | null>(null);
+  } | null>(initialProfileVisibility);
 
   // Real-time posts state
   const [localPosts, setLocalPosts] = useState<SocialPost[]>(initialPosts);
@@ -62,10 +63,6 @@ export function FeedPage({
   useEffect(() => {
     setLocalPosts(initialPosts);
   }, [initialPosts]);
-
-  useEffect(() => {
-    getMyProfileVisibility().then(setProfileVisibility);
-  }, []);
 
   // Get Ably credentials for real-time updates
   const { credentials, isConfigured } = useMessagingCredentials();
@@ -160,23 +157,24 @@ export function FeedPage({
 
   return (
     <Container
+      data-tour="network-feed"
       title={t.title || "Feed"}
       description={
         t.description || "Share properties and clients with your connections"
       }
       headerExtra={
         isConfigured && (
-          <div className="flex items-center gap-1.5 text-xs">
+          <div className="flex items-center gap-1.5 text-xs" aria-live="polite" aria-atomic="true">
             {isSubscribed ? (
               <>
-                <Wifi className="h-3 w-3 text-success" />
+                <Wifi className="h-3 w-3 text-success" aria-hidden="true" />
                 <span className="text-muted-foreground">
                   {t.realtime?.connected || "Live"}
                 </span>
               </>
             ) : (
               <>
-                <WifiOff className="h-3 w-3 text-muted-foreground" />
+                <WifiOff className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
                 <span className="text-muted-foreground">
                   {t.realtime?.connecting || "Connecting..."}
                 </span>

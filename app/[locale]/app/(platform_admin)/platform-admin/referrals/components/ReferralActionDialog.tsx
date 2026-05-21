@@ -32,7 +32,7 @@ import type { AdminReferralData } from "@/actions/referrals/admin-get-all-referr
 import { adminCreatePayout } from "@/actions/referrals/admin-update-payout";
 import {
   adminUpdateReferralStatus,
-  adminUpdateCommissionRate,
+  adminUpdateCommissionRateByReferralId,
 } from "@/actions/referrals/admin-update-commission";
 
 interface ReferralActionDialogProps {
@@ -150,35 +150,7 @@ export function ReferralActionDialog({
 
     setIsLoading(true);
     try {
-      // We need the referral code ID, which we can get from the referral
-      // For now, we'll use a workaround - the admin action needs the code ID
-      // This would typically require fetching the full referral details
-      const { adminGetReferralDetails } = await import(
-        "@/actions/referrals/admin-get-all-referrals"
-      );
-      const details = await adminGetReferralDetails(referral.id);
-
-      if (!details) {
-        toast.error(t("errors.referralNotFound"));
-        return;
-      }
-
-      // Get the referral code ID from the referral
-      const { prismadb } = await import("@/lib/prisma");
-      const ref = await prismadb.referral.findUnique({
-        where: { id: referral.id },
-        select: { referralCodeId: true },
-      });
-
-      if (!ref) {
-        toast.error(t("errors.referralNotFound"));
-        return;
-      }
-
-      const result = await adminUpdateCommissionRate({
-        referralCodeId: ref.referralCodeId,
-        commissionRate: rate,
-      });
+      const result = await adminUpdateCommissionRateByReferralId(referral.id, rate);
 
       if (result.success) {
         toast.success(t("commissionUpdated"));

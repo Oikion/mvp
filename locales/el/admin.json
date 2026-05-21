@@ -116,6 +116,8 @@
   "moduleAccessDescription": "Ρυθμίστε ποια modules μπορούν να έχουν πρόσβαση οι Θεατές από προεπιλογή",
   "permissionsSaved": "Τα δικαιώματα αποθηκεύτηκαν επιτυχώς",
   "permissionsSaveError": "Αποτυχία αποθήκευσης δικαιωμάτων",
+  "rolesSaved": "Ο ρόλος ενημερώθηκε επιτυχώς",
+  "rolesSaveError": "Αποτυχία ενημέρωσης ρόλου",
   "cannotModifyOwnerPermissions": "Δεν είναι δυνατή η τροποποίηση των δικαιωμάτων του ιδιοκτήτη",
   "resetToDefaults": "Επαναφορά στις Προεπιλογές",
   "saveChanges": "Αποθήκευση Αλλαγών",

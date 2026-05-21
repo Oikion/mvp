@@ -184,7 +184,6 @@
     "selectMandates": "Select requests...",
     "searchMandates": "Search requests...",
     "noMandatesFound": "No requests found",
-    "loading": "Loading...",
     "createContact": "Create contact",
     "createClient": "Create contact",
     "createProperty": "Create property",
@@ -331,5 +330,27 @@
   "eventList": {
     "eventsForDay": "Events for this day",
     "noEventsForDay": "No events for this day"
+  },
+  "googleCalendar": {
+    "connectPrompt": "Sync with Google Calendar for two-way event updates",
+    "connectButton": "Connect Google Calendar",
+    "connectedAs": "Google Calendar synced as {email}",
+    "connectedLabel": "Google Calendar connection status",
+    "statusActive": "Connected",
+    "disconnect": "Disconnect",
+    "disconnectLabel": "Disconnect Google Calendar",
+    "disconnectConfirm": "Remove Google Calendar sync?",
+    "disconnectConfirmYes": "Yes, disconnect",
+    "disconnectCancel": "Cancel",
+    "dismissLabel": "Dismiss",
+    "reconnect": "Reconnect",
+    "reauthRequired": "Google Calendar needs to be reconnected — your access has expired",
+    "connectSuccess": "Google Calendar connected successfully",
+    "connectError": "Could not connect Google Calendar. Please try again.",
+    "disconnectSuccess": "Google Calendar disconnected",
+    "disconnectError": "Could not disconnect. Please try again.",
+    "syncNow": "Sync now",
+    "syncSuccess": "{count, plural, one {Synced # event} other {Synced # events}} from Google Calendar",
+    "syncError": "Could not sync Google Calendar. Please try again."
   }
 }

@@ -65,6 +65,17 @@ export function isAccessGateEnabled(): boolean {
 // Staging gate aliases (v2.0 naming)
 // ============================================
 
+export const STAGING_COOKIE_NAME = "oik_staging";
+/** 30 days in seconds */
+export const STAGING_COOKIE_MAX_AGE = ACCESS_COOKIE_MAX_AGE;
+
+/**
+ * Compute a staging cookie token (HMAC-SHA256 of code with secret).
+ */
+export function computeStagingToken(code: string, secret: string): string {
+  return computeAccessToken(code, secret);
+}
+
 /**
  * Verify whether the given cookie value is the valid staging access token.
  * Alias for verifyAccessCookie — uses STAGING_ACCESS_CODE / STAGING_COOKIE_SECRET env vars.

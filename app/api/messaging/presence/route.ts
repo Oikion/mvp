@@ -15,7 +15,15 @@ export async function POST(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const body = await req.json();
+    // sendBeacon sends text/plain; use req.text() + manual parse to avoid
+    // req.json() throwing on non-application/json Content-Type in some runtimes
+    let body: Record<string, unknown>;
+    try {
+      const text = await req.text();
+      body = text ? JSON.parse(text) : {};
+    } catch {
+      return new NextResponse("Invalid request body", { status: 400 });
+    }
     if (body?.status !== "OFFLINE") {
       return new NextResponse("Only OFFLINE status supported via this endpoint", { status: 400 });
     }

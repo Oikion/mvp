@@ -57,6 +57,59 @@ export async function adminUpdateCommissionRate(input: UpdateCommissionInput): P
 }
 
 /**
+ * Update commission rate by referral ID (resolves referralCodeId server-side)
+ * Use this from client components to avoid importing prismadb on the client.
+ */
+export async function adminUpdateCommissionRateByReferralId(
+  referralId: string,
+  commissionRate: number
+): Promise<{ success: boolean; error?: string }> {
+  const admin = await requirePlatformAdmin();
+
+  try {
+    if (commissionRate < 0 || commissionRate > 100) {
+      return { success: false, error: "Commission rate must be between 0 and 100" };
+    }
+
+    const referral = await prismadb.referral.findUnique({
+      where: { id: referralId },
+      select: { referralCodeId: true },
+    });
+
+    if (!referral) {
+      return { success: false, error: "Referral not found" };
+    }
+
+    const referralCode = await prismadb.referralCode.findUnique({
+      where: { id: referral.referralCodeId },
+    });
+
+    if (!referralCode) {
+      return { success: false, error: "Referral code not found" };
+    }
+
+    const previousRate = Number(referralCode.commissionRate);
+
+    await prismadb.referralCode.update({
+      where: { id: referral.referralCodeId },
+      data: { commissionRate },
+    });
+
+    await logAdminAction(admin.clerkId, "WARN_USER", referral.referralCodeId, {
+      action: "UPDATE_COMMISSION_RATE",
+      previousRate,
+      newRate: commissionRate,
+      userId: referralCode.userId,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[ADMIN_UPDATE_COMMISSION_RATE_BY_REFERRAL]", error);
+    return { success: false, error: "Failed to update commission rate" };
+  }
+}
+
+/**
  * Toggle referral code active status
  */
 export async function adminToggleReferralCodeStatus(

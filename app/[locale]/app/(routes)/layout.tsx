@@ -214,7 +214,7 @@ export default async function AppLayout({
           />
           <SidebarInset className="flex flex-col h-screen overflow-hidden bg-surface-2">
             <TourController />
-            <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
+            <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4" role="banner">
               <div className="flex items-center gap-3">
                 <SidebarTrigger className="-ml-1" data-tour="sidebar-toggle" />
                 <Separator orientation="vertical" className="h-4" />

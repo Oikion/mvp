@@ -12,7 +12,7 @@ import {
 } from "@/lib/external-api-middleware";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchCalendarWebhook } from "@/lib/webhooks";
-import { decryptCalendarEventForOrg, decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptCalendarEventForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/v1/calendar/events
@@ -66,8 +66,8 @@ export const GET = withExternalApi(
         assignedUserId: true,
         createdAt: true,
         updatedAt: true,
-        Clients: {
-          select: { id: true, client_name: true },
+        Contacts: {
+          select: { id: true, displayName: true },
         },
         Properties: {
           select: { id: true, property_name: true },
@@ -84,9 +84,9 @@ export const GET = withExternalApi(
       items.map(async (event) => {
         const dec = await decryptCalendarEventForOrg(event, context.organizationId);
         const clients = await Promise.all(
-          event.Clients.map(async (c) => {
-            const dc = await decryptClientForOrg(c, context.organizationId);
-            return { id: dc.id, client_name: dc.client_name };
+          event.Contacts.map(async (c) => {
+            const dc = await decryptContactForOrg(c, context.organizationId);
+            return { id: dc.id, displayName: dc.displayName };
           })
         );
         return { ...dec, Clients: clients };
@@ -160,7 +160,9 @@ export const POST = withExternalApi(
     // Validate that linked entities belong to the caller's organization
     const relations: Record<string, unknown> = {};
     if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
-      const ownedClients = await prismadb.clients.findMany({
+      // SECURITY: Verify all supplied clientIds belong to the caller's org (IDOR guard).
+      // Use the canonical `contact` model (clients were renamed to contacts in v2.0).
+      const ownedClients = await prismadb.contact.findMany({
         where: { id: { in: clientIds }, organizationId: context.organizationId },
         select: { id: true },
       });

@@ -25,7 +25,7 @@ import {
 } from "@/lib/export";
 import { requireCanExport } from "@/lib/permissions/guards";
 import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
-import { decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -101,33 +101,31 @@ export async function GET(req: NextRequest) {
     
     // Apply status filter if provided
     if (statusFilter.length > 0) {
-      whereClause.client_status = { in: statusFilter };
+      whereClause.status = { in: statusFilter };
     }
-    
+
     // Apply search filter if provided
     if (searchQuery) {
       whereClause.OR = [
-        { client_name: { contains: searchQuery, mode: "insensitive" } },
-        { primary_email: { contains: searchQuery, mode: "insensitive" } },
+        { displayName: { contains: searchQuery, mode: "insensitive" } },
+        { email: { contains: searchQuery, mode: "insensitive" } },
       ];
     }
-    
-    // Fetch clients with full data for export
-    const clients = await prismadb.clients.findMany({
+
+    // Fetch contacts with full data for export
+    const clients = await prismadb.contact.findMany({
       where: whereClause,
       select: {
         id: true,
         createdAt: true,
-        client_name: true,
-        primary_email: true,
-        primary_phone: true,
-        client_type: true,
-        client_status: true,
-        billing_city: true,
-        billing_country: true,
-        description: true,
-        assigned_to: true,
-        Users_Clients_assigned_toToUsers: {
+        displayName: true,
+        email: true,
+        primaryPhone: true,
+        category: true,
+        status: true,
+        notes: true,
+        assignedAgentId: true,
+        assignedAgent: {
           select: { name: true },
         },
       },
@@ -188,15 +186,15 @@ export async function GET(req: NextRequest) {
     // Inline export (small datasets)
     // ===========================================
     
-    // Decrypt encrypted client fields before export
+    // Decrypt encrypted contact fields before export
     const decryptedClients = await Promise.all(
-      clients.map((c) => decryptClientForOrg(c, orgId))
+      clients.map((c) => decryptContactForOrg(c, orgId))
     );
 
     // Transform data for export
     const exportData = decryptedClients.map(client => ({
       ...client,
-      assigned_to_name: client.Users_Clients_assigned_toToUsers?.name || "",
+      assigned_to_name: client.assignedAgent?.name || "",
     }));
     
     // Create audit log

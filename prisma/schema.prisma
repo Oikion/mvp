@@ -127,6 +127,7 @@ model CalendarEvent {
   @@index([startTime])
   @@index([archivedAt])
   @@index([organizationId, archivedAt])
+  @@index([organizationId, startTime])
 }
 
 model CalendarReminder {
@@ -383,6 +384,7 @@ model EventInvitee {
   @@index([organizationId])
   @@index([status])
   @@index([userId])
+  @@index([userId, status])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -529,6 +531,8 @@ model Notification {
   @@index([read])
   @@index([type])
   @@index([userId])
+  @@index([organizationId, type])
+  @@index([userId, read])
 }
 
 model ProfileShowcaseProperty {
@@ -667,6 +671,8 @@ model Properties {
   @@index([xePublished])
   @@index([archivedAt])
   @@index([organizationId, archivedAt])
+  @@index([organizationId, property_status])
+  @@index([organizationId, property_status, draft_status])
 }
 
 model PropertyImage {
@@ -748,6 +754,7 @@ model SharedEntity {
   @@index([entityType, entityId])
   @@index([sharedById])
   @@index([sharedWithId])
+  @@index([sharedWithId, entityType])
 }
 
 model SocialPost {
@@ -869,7 +876,7 @@ model Users {
   marketingConsent                                   Boolean                       @default(false)
   firstName                                          String?
   lastName                                           String?
-  referralBoxDismissed                               Boolean                       @default(false)
+  referralBoxDismissed                               Boolean                       @default(true)
   referralApplicationStatus                          ReferralApplicationStatus?
   layoutPreference                                   LayoutPreference              @default(DEFAULT)
   dashboardConfig                                    Json?
@@ -2950,6 +2957,8 @@ model ImportHistory {
   @@index([userId])
   @@index([createdAt])
   @@index([organizationId, fileHash])
+  @@index([organizationId, importPhase, createdAt])
+  @@index([status])
 }
 
 enum ImportEntityType {
@@ -3756,6 +3765,7 @@ enum ContactSource {
   SOCIAL_MEDIA
   WEB
   OTHER
+  EMAIL_INBOUND
 }
 
 enum ContactRelationshipType {

@@ -116,6 +116,8 @@
   "moduleAccessDescription": "Configure which modules Viewers can access by default",
   "permissionsSaved": "Permissions saved successfully",
   "permissionsSaveError": "Failed to save permissions",
+  "rolesSaved": "Role updated successfully",
+  "rolesSaveError": "Failed to update role",
   "cannotModifyOwnerPermissions": "Cannot modify owner permissions",
   "resetToDefaults": "Reset to Defaults",
   "saveChanges": "Save Changes",

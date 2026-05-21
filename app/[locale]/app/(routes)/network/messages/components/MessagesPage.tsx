@@ -336,6 +336,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
                   type: "channel" as const,
                   isDefault: c.isDefault,
                   channelType: c.channelType,
+                  channelSource: c.source,
                   unreadCount: c.unreadCount,
                 }))}
                 selectedId={selectedChannelId}
@@ -462,16 +463,16 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
               </div>
               <div className="flex items-center gap-2">
                 <MessageSearch locale={locale}>
-                  <Button variant="ghost" size="icon">
-                    <Search className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" aria-label={t("actions.search")}>
+                    <Search className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </MessageSearch>
                 <ConversationSettings
                   channel={selectedChannel}
                   conversation={selectedConversation}
                 >
-                  <Button variant="ghost" size="icon">
-                    <Settings className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" aria-label={t("actions.settings")}>
+                    <Settings className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </ConversationSettings>
               </div>
@@ -482,6 +483,9 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
               channelId={selectedChannelId || undefined}
               conversationId={selectedConversationId || undefined}
               credentials={credentials}
+              externalSubject={selectedConversation?.externalSubject ?? null}
+              externalSenderEmail={selectedConversation?.externalSenderEmail ?? null}
+              externalSenderName={selectedConversation?.externalSenderName ?? null}
               onReply={(messageId, content, senderName) => {
                 setReplyTo({ messageId, content, senderName });
               }}
@@ -501,6 +505,8 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
               }
               replyTo={replyTo}
               onCancelReply={() => setReplyTo(null)}
+              isEmailConversation={!!selectedConversation?.externalThreadId}
+              externalSenderEmail={selectedConversation?.externalSenderEmail ?? null}
             />
           </>
         ) : (

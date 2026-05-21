@@ -1,5 +1,6 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId } from "@/lib/get-current-user";
+import { decryptContactForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 export interface MentionOption {
   id: string;
@@ -68,8 +69,13 @@ export async function getMentionOptions(): Promise<{
     }),
   ]);
 
+  const [decryptedClients, decryptedEvents] = await Promise.all([
+    Promise.all(clients.map((c) => decryptContactForOrg(c, organizationId).catch(() => c))),
+    Promise.all(events.map((e) => decryptCalendarEventForOrg(e, organizationId).catch(() => e))),
+  ]);
+
   return {
-    clients: clients.map((c) => ({
+    clients: decryptedClients.map((c) => ({
       id: c.id,
       name: c.displayName,
       type: "contact" as const,
@@ -79,7 +85,7 @@ export async function getMentionOptions(): Promise<{
       name: p.property_name,
       type: "property" as const,
     })),
-    events: events
+    events: decryptedEvents
       .filter((e) => e.title)
       .map((e) => ({
         id: e.id,

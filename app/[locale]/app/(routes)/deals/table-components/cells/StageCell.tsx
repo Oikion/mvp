@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
 import { EditableDropdownCell } from "@/components/ui/data-table/editable-dropdown-cell";
+import type { BadgeVariant } from "@/components/ui/badge";
 
 const DEAL_STAGES = [
   "INTEREST",
@@ -19,13 +20,13 @@ const DEAL_STAGES = [
   "FALLEN_THROUGH",
 ] as const;
 
-const STAGE_VARIANTS: Record<string, string> = {
+const STAGE_VARIANTS: Record<string, BadgeVariant> = {
   INTEREST: "secondary",
   OFFER: "info",
   NEGOTIATION: "warning",
   PRELIMINARY_AGREEMENT: "purple",
   DUE_DILIGENCE: "purple",
-  TRANSFER_TAX: "orange",
+  TRANSFER_TAX: "amber",
   SIGNING: "success",
   REGISTRATION: "success",
   COMPLETED: "success",

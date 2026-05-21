@@ -60,6 +60,7 @@ import activitiesEn from "@/locales/en/activities.json";
 import documentTemplatesEn from "@/locales/en/document-templates.json";
 import archiveEn from "@/locales/en/archive.json";
 import billingEn from "@/locales/en/billing.json";
+import legalEn from "@/locales/en/legal.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -108,6 +109,7 @@ import activitiesEl from "@/locales/el/activities.json";
 import documentTemplatesEl from "@/locales/el/document-templates.json";
 import archiveEl from "@/locales/el/archive.json";
 import billingEl from "@/locales/el/billing.json";
+import legalEl from "@/locales/el/legal.json";
 
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const metadataBaseUrl = new URL(appBaseUrl);
@@ -152,6 +154,7 @@ function getLocales(locale: string) {
     messages.notifications = notificationsEl;
     messages.Notifications = notificationsEl;
     messages.billing = billingEl;
+    messages.legal = legalEl;
     messages.website = websiteEl;
     messages.auth = authEl;
     messages.signIn = signInEl;
@@ -209,6 +212,7 @@ function getLocales(locale: string) {
     messages.notifications = notificationsEn;
     messages.Notifications = notificationsEn;
     messages.billing = billingEn;
+    messages.legal = legalEn;
     messages.website = websiteEn;
     messages.auth = authEn;
     messages.signIn = signInEn;

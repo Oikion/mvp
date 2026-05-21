@@ -8,6 +8,9 @@ config({ path: path.join(__dirname, '.env.local'), override: true })
 
 export default defineConfig({
   schema: path.join(__dirname, 'prisma', 'schema.prisma'),
+  datasource: {
+    url: process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL ?? '',
+  },
 })
 
 

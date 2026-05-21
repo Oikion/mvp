@@ -1,10 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { buildOAuthUrl } from "@/lib/google-calendar/client";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
 
-export async function GET() {
+const ALLOWED_RETURN_PREFIX = "/app/";
+
+export async function GET(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -12,13 +14,23 @@ export async function GET() {
 
   const state = randomBytes(16).toString("hex");
   const cookieStore = await cookies();
-  cookieStore.set("gcal_oauth_state", state, {
+
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 600, // 10 minutes
+    sameSite: "lax" as const,
+    maxAge: 600,
     path: "/",
-  });
+  };
+
+  cookieStore.set("gcal_oauth_state", state, cookieOptions);
+
+  // Store an optional returnTo path so the callback can redirect back to the caller.
+  // Validate it is an internal path to prevent open-redirect.
+  const returnTo = req.nextUrl.searchParams.get("returnTo");
+  if (returnTo && returnTo.startsWith(ALLOWED_RETURN_PREFIX) && !returnTo.includes("//")) {
+    cookieStore.set("gcal_return_to", returnTo, cookieOptions);
+  }
 
   const url = buildOAuthUrl(state);
   return NextResponse.redirect(url);

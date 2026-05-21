@@ -5,6 +5,7 @@ import { canPerformAction } from "@/lib/permissions";
 import {
   encryptContactCommentForOrg,
   decryptContactCommentForOrg,
+  decryptContactForOrg,
 } from "@/lib/model-encryption";
 import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
 import { EncryptionMode } from "@prisma/client";
@@ -118,6 +119,8 @@ export async function POST(
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
+    const decryptedContact = await decryptContactForOrg(contact, organizationId);
+
     // Determine encryption mode
     const encryptionMode = await getOrgEncryptionMode(organizationId);
     const isE2EE = encryptionMode === EncryptionMode.E2EE;
@@ -225,7 +228,7 @@ export async function POST(
     void notifyCommentAdded({
       entityType: "CONTACT",
       entityId: contactId,
-      entityName: contact.displayName ?? "Contact",
+      entityName: decryptedContact.displayName ?? "Contact",
       commentPreview: content.slice(0, 100) + (content.length > 100 ? "…" : ""),
       organizationId,
       actorId: user.id,

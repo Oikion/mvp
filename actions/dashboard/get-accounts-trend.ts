@@ -1,4 +1,5 @@
 // @ts-nocheck
+"use server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
@@ -15,7 +16,7 @@ export const getAccountsTrend = async () => {
   const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
   const [currentCount, previousCount] = await Promise.all([
-    prismadb.clients.count({
+    prismadb.contact.count({
       where: {
         organizationId,
         createdAt: {
@@ -23,7 +24,7 @@ export const getAccountsTrend = async () => {
         },
       },
     }),
-    prismadb.clients.count({
+    prismadb.contact.count({
       where: {
         organizationId,
         createdAt: {

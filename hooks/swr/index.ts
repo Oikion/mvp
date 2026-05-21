@@ -310,3 +310,7 @@ export {
   getClientCommentsKey,
 } from "./useClientComments";
 export type { ClientComment } from "./useClientComments";
+
+// Google Calendar
+export { useGoogleCalendarConnection } from "./useGoogleCalendarConnection";
+export type { GoogleCalendarConnectionStatus } from "./useGoogleCalendarConnection";

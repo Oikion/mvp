@@ -834,6 +834,16 @@ export async function getDeals(params?: unknown) {
 }
 
 /**
+ * Get all deals for the current org, returning a plain array.
+ * Convenience wrapper around getDeals() for RSC pages that need a direct array.
+ */
+export async function getMyDeals(): Promise<any[]> {
+  const result = await getDeals();
+  if (!result || typeof result !== "object" || !("success" in result) || !result.success) return [];
+  return (result as any).data ?? [];
+}
+
+/**
  * Get a single deal by ID or friendlyId.
  */
 export async function getDeal(

@@ -114,7 +114,7 @@ export async function getPlatformOrganizations(
           memberCount,
           createdAt: new Date(org.createdAt),
           imageUrl: org.imageUrl,
-          networkEnabled: networkEnabledByOrgId.get(org.id) ?? false,
+          networkEnabled: networkEnabledByOrgId.get(org.id) ?? true,
         };
       })
     );

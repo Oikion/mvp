@@ -5,10 +5,11 @@ import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
 import { EditableDropdownCell } from "@/components/ui/data-table/editable-dropdown-cell";
+import type { BadgeVariant } from "@/components/ui/badge";
 
 const DEAL_TYPES = ["SALE", "RENT"] as const;
 
-const TYPE_VARIANTS: Record<string, string> = {
+const TYPE_VARIANTS: Record<string, BadgeVariant> = {
   SALE: "outline",
   RENT: "secondary",
 };

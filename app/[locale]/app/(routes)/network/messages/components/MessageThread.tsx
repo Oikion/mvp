@@ -57,6 +57,7 @@ import { useE2EE } from "@/hooks/useE2EE";
 import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
 import type { Message, MessagingCredentials } from "@/hooks/swr/useMessaging";
+import { EmailConversationHeader } from "./EmailConversationHeader";
 
 // Common emojis for quick reactions
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "🎉", "🤔", "👀", "🙏", "💯", "👎", "😢"];
@@ -65,6 +66,9 @@ interface MessageThreadProps {
   channelId?: string;
   conversationId?: string;
   credentials?: MessagingCredentials;
+  externalSubject?: string | null;
+  externalSenderEmail?: string | null;
+  externalSenderName?: string | null;
   onReply?: (messageId: string, content: string, senderName: string | null) => void;
   onOpenThread?: (message: Message) => void;
 }
@@ -139,7 +143,7 @@ function getInitials(name: string | null | undefined, email?: string | null): st
   return "U";
 }
 
-export function MessageThread({ channelId, conversationId, credentials, onReply, onOpenThread }: MessageThreadProps) {
+export function MessageThread({ channelId, conversationId, credentials, externalSubject, externalSenderEmail, externalSenderName, onReply, onOpenThread }: MessageThreadProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const locale = (params.locale as string) || "en";
@@ -352,10 +356,10 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center" role="status" aria-label="Loading messages">
         <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Loading messages...</span>
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden="true" />
+          <span className="text-sm text-muted-foreground" aria-hidden="true">Loading messages...</span>
         </div>
       </div>
     );
@@ -377,12 +381,24 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
   }
 
   return (
+    <>
+      {externalSenderEmail && (
+        <EmailConversationHeader
+          subject={externalSubject ?? null}
+          senderEmail={externalSenderEmail}
+          senderName={externalSenderName ?? null}
+        />
+      )}
     <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-      <div className="py-4 space-y-6">
+      <div className="py-4 space-y-6" role="log" aria-live="polite" aria-label="Message thread" aria-relevant="additions">
         {/* Connection status indicator */}
         {isConnecting && (
-          <div className="flex items-center justify-center gap-2 py-2 text-xs text-muted-foreground">
-            <Loader2 className="h-3 w-3 animate-spin" />
+          <div
+            className="flex items-center justify-center gap-2 py-2 text-xs text-muted-foreground"
+            role="status"
+            aria-live="polite"
+          >
+            <Loader2 className="h-3 w-3 motion-safe:animate-spin" aria-hidden="true" />
             Connecting to real-time updates...
           </div>
         )}
@@ -485,7 +501,10 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                             {format(new Date(message.createdAt), "HH:mm")}
                           </span>
                           {(message as typeof message & { _isE2EE?: boolean })._isE2EE && (
-                            <Lock className="h-3 w-3 text-muted-foreground" aria-label="End-to-end encrypted" />
+                            <>
+                              <Lock className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                              <span className="sr-only">End-to-end encrypted</span>
+                            </>
                           )}
                           {message.isEdited && (
                             <span className="text-xs text-muted-foreground">(edited)</span>
@@ -522,24 +541,26 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-6 w-6"
+                              className="h-8 w-8"
                               onClick={() => handleSaveEdit(message.id)}
                               disabled={isEditing || !editContent.trim()}
+                              aria-label={isEditing ? "Saving..." : "Save edit"}
                             >
                               {isEditing ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
                               ) : (
-                                <Check className="h-3 w-3" />
+                                <Check className="h-3 w-3" aria-hidden="true" />
                               )}
                             </Button>
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-6 w-6"
+                              className="h-8 w-8"
                               onClick={handleCancelEdit}
                               disabled={isEditing}
+                              aria-label="Cancel edit"
                             >
-                              <X className="h-3 w-3" />
+                              <X className="h-3 w-3" aria-hidden="true" />
                             </Button>
                           </div>
                         ) : (
@@ -656,6 +677,8 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                                       ? "bg-primary/20 border border-primary/30"
                                       : "bg-background/50 hover:bg-background/80"
                                   )}
+                                  aria-label={`${emoji} reaction, ${count} ${count === 1 ? "person" : "people"}${hasReacted ? ", including you" : ""}`}
+                                  aria-pressed={hasReacted}
                                 >
                                   {emoji} {count}
                                 </button>
@@ -667,11 +690,12 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                         {/* Thread indicator */}
                         {message.threadCount > 0 && (
                           <div className="mt-2 pt-2 border-t border-current/10">
-                            <button 
+                            <button
                               className="flex items-center gap-1 text-xs opacity-80 hover:opacity-100 hover:underline"
                               onClick={() => onOpenThread?.(message)}
+                              aria-label={`View thread: ${message.threadCount} ${message.threadCount === 1 ? "reply" : "replies"}`}
                             >
-                              <MessageSquare className="h-3 w-3" />
+                              <MessageSquare className="h-3 w-3" aria-hidden="true" />
                               {message.threadCount} {message.threadCount === 1 ? "reply" : "replies"}
                             </button>
                           </div>
@@ -692,9 +716,9 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                          title="React"
+                          aria-label="Add reaction"
                         >
-                          <Smile className="h-3.5 w-3.5" />
+                          <Smile className="h-3.5 w-3.5" aria-hidden="true" />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent
@@ -702,13 +726,14 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                         align={isCurrentUser ? "end" : "start"}
                         side="top"
                       >
-                        <div className="flex gap-1 flex-wrap max-w-[200px]">
+                        <div className="flex gap-1 flex-wrap max-w-[200px]" role="group" aria-label="Pick a reaction">
                           {REACTION_EMOJIS.map((emoji) => (
                             <button
                               key={emoji}
                               onClick={() => handleReaction(message.id, emoji)}
                               disabled={isAddingReaction}
                               className="text-lg hover:bg-accent rounded p-1 transition-colors"
+                              aria-label={`React with ${emoji}`}
                             >
                               {emoji}
                             </button>
@@ -722,10 +747,10 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      title="Reply"
+                      aria-label="Reply to message"
                       onClick={() => onReply?.(message.id, message.content, senderDisplayName)}
                     >
-                      <Reply className="h-3.5 w-3.5" />
+                      <Reply className="h-3.5 w-3.5" aria-hidden="true" />
                     </Button>
 
                     {/* More (copy / edit / delete) */}
@@ -735,9 +760,9 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                          title="More"
+                          aria-label="More message options"
                         >
-                          <MoreHorizontal className="h-3.5 w-3.5" />
+                          <MoreHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align={isCurrentUser ? "end" : "start"}>
@@ -842,18 +867,26 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
 
         {/* Typing indicators */}
         {typingUsers.length > 0 && (
-          <div className="flex items-center gap-1.5 py-2 text-sm text-muted-foreground">
+          <div
+            className="flex items-center gap-1.5 py-2 text-sm text-muted-foreground"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <span>
               {typingUsers.map(u => u.userName).join(", ")}
             </span>
-            <span className="flex gap-0.5 font-bold">
-              <span className="animate-bounce" style={{ animationDelay: "0ms" }}>.</span>
-              <span className="animate-bounce" style={{ animationDelay: "150ms" }}>.</span>
-              <span className="animate-bounce" style={{ animationDelay: "300ms" }}>.</span>
+            <span className="flex gap-0.5 font-bold" aria-hidden="true">
+              <span className="motion-safe:animate-bounce" style={{ animationDelay: "0ms" }}>.</span>
+              <span className="motion-safe:animate-bounce" style={{ animationDelay: "150ms" }}>.</span>
+              <span className="motion-safe:animate-bounce" style={{ animationDelay: "300ms" }}>.</span>
+            </span>
+            <span className="sr-only">
+              {typingUsers.map(u => u.userName).join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
             </span>
           </div>
         )}
       </div>
     </ScrollArea>
+    </>
   );
 }

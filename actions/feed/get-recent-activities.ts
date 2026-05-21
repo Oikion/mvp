@@ -6,7 +6,7 @@ import { prismaForOrg } from "@/lib/tenant";
 import { prismadb } from "@/lib/prisma";
 import {
   decryptPropertyForOrg,
-  decryptClientForOrg,
+  decryptContactForOrg,
   decryptDocumentForOrg,
   decryptCalendarEventForOrg,
 } from "@/lib/model-encryption";
@@ -53,12 +53,12 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         },
       },
     }),
-    prisma.clients.findMany({
+    prisma.contact.findMany({
       take: perType,
       where: { createdAt: { gte: thirtyDaysAgo } },
       orderBy: { createdAt: "desc" },
       include: {
-        Users_Clients_assigned_toToUsers: {
+        assignedAgent: {
           select: { id: true, name: true, avatar: true },
         },
       },
@@ -106,7 +106,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
   // Decrypt all entity types concurrently
   const [decryptedProperties, decryptedClients, decryptedDocs, decryptedEvents] = await Promise.all([
     Promise.all(properties.map((p) => decryptPropertyForOrg(p, orgId))),
-    Promise.all(clients.map((c) => decryptClientForOrg(c, orgId))),
+    Promise.all(clients.map((c) => decryptContactForOrg(c, orgId))),
     Promise.all(documents.map((d) => decryptDocumentForOrg(d, orgId))),
     Promise.all(events.map((e) => decryptCalendarEventForOrg(e, orgId))),
   ]);
@@ -138,13 +138,13 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
 
   for (const client of decryptedClients) {
     const isUpdated = client.updatedAt && client.updatedAt > client.createdAt;
-    const assignedUser = client.Users_Clients_assigned_toToUsers;
+    const assignedUser = client.assignedAgent;
     activities.push({
       id: `client-${client.id}`,
       type: "contact",
       action: isUpdated ? "updated" : "created",
-      title: client.client_name || "Unnamed Client",
-      description: client.description || undefined,
+      title: client.displayName || "Unnamed Contact",
+      description: client.notes || undefined,
       timestamp: (isUpdated ? client.updatedAt : client.createdAt)?.toISOString() || new Date().toISOString(),
       actor: assignedUser ? {
         id: assignedUser.id,
@@ -152,10 +152,9 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         avatar: assignedUser.avatar || undefined,
       } : undefined,
       entityId: client.id,
-      entityFriendlyId: (client as any).friendlyId,
+      entityFriendlyId: client.friendlyId,
       metadata: {
-        personType: client.person_type,
-        status: client.client_status,
+        status: client.status,
       },
     });
   }

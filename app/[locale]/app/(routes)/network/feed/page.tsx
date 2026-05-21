@@ -2,6 +2,7 @@ import { getDictionary } from "@/dictionaries";
 import { FeedPage } from "./components/FeedPage";
 import { getSocialPosts } from "@/actions/social-feed/get-social-posts";
 import { getShareableItems } from "@/actions/social-feed/get-shareable-items";
+import { getMyProfileVisibility } from "@/actions/social-feed/create-social-post";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
 import { discoverAgents } from "@/actions/network/discover-agents";
 import { discoverAgencies } from "@/actions/network/discover-agencies";
@@ -14,13 +15,14 @@ export default async function NetworkFeed({
   const { locale } = await params;
   const dict = await getDictionary(locale);
 
-  const [posts, shareableItems, currentUser, agentsResult, agenciesResult] =
+  const [posts, shareableItems, currentUser, agentsResult, agenciesResult, profileVisibility] =
     await Promise.all([
       getSocialPosts(),
       getShareableItems(),
       getCurrentUserSafe(),
       discoverAgents({ limit: 5 }),
       discoverAgencies({ limit: 5 }),
+      getMyProfileVisibility(),
     ]);
 
   return (
@@ -32,6 +34,7 @@ export default async function NetworkFeed({
       locale={locale}
       suggestedAgents={agentsResult.agents}
       suggestedAgencies={agenciesResult.agencies}
+      profileVisibility={profileVisibility}
     />
   );
 }

@@ -19,6 +19,7 @@ import { format, startOfWeek, endOfWeek, addDays, isWithinInterval, startOfDay, 
 import { el, enUS } from "date-fns/locale";
 import { useTranslations, useLocale } from "next-intl";
 
+import { GoogleCalendarBanner } from "./GoogleCalendarBanner";
 import { ViewSelector, CalendarViewMode } from "./ViewSelector";
 import { CalendarFilters, CalendarFiltersState } from "./CalendarFilters";
 import { EventCreateForm, EventCreateTrigger, EventCreateSidePanel } from "./EventCreateForm";
@@ -31,7 +32,7 @@ import { EventActionsMenu } from "./EventActionsMenu";
 import { MiniMonthCalendar } from "./MiniMonthCalendar";
 import { DayHourView } from "./DayHourView";
 import { EventListSidebar } from "./EventListSidebar";
-import { useCalendarEvents, useOrgUsers, useClients, useProperties } from "@/hooks/swr";
+import { useCalendarEvents, useOrgUsers, useContacts, useProperties } from "@/hooks/swr";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -277,7 +278,7 @@ export function CalendarPageView() {
   const { users } = useOrgUsers();
 
   // Prefetch selector data so dropdowns open instantly
-  useClients();
+  useContacts();
   useProperties();
 
   // Filter events based on current filters
@@ -576,6 +577,9 @@ export function CalendarPageView() {
 
   return (
     <div className="space-y-6">
+      {/* Google Calendar integration banner */}
+      <GoogleCalendarBanner />
+
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard

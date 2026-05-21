@@ -37,6 +37,13 @@ const nextConfig = {
     "playwright-core",
     // SVGO uses dynamic requires; keep it external to avoid webpack warnings
     "svgo",
+    // Prisma 7 uses @prisma/adapter-pg which pulls in the pg driver.
+    // pg requires Node.js built-ins (fs, dns, net, tls) — must not be bundled
+    // for the browser even when imported via dynamic import() in a client component.
+    "pg",
+    "pg-native",
+    "pg-connection-string",
+    "@prisma/adapter-pg",
   ],
 
   // Transpile packages configuration
