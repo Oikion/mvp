@@ -22,7 +22,7 @@
     },
     {
       "path": "/api/cron/poll-email-inboxes",
-      "schedule": "*/2 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
