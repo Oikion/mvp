@@ -209,15 +209,18 @@ export function EventActionsMenu({
           <Button
             variant="ghost"
             className="h-8 w-8 p-0 data-[state=open]:bg-muted"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent card click
-            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <MoreHorizontal className="h-4 w-4" />
             <span className="sr-only">{t("eventActions.openMenu")}</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuContent
+          align="end"
+          className="w-[160px] z-[9999]"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

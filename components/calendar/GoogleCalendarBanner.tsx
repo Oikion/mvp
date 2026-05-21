@@ -170,19 +170,6 @@ export function GoogleCalendarBanner({ className }: Props) {
             <>
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground"
-                onClick={handleSync}
-                disabled={syncing}
-                aria-label={t("syncNow")}
-              >
-                <RefreshCw
-                  className={cn("h-3.5 w-3.5", syncing && "animate-spin")}
-                  aria-hidden="true"
-                />
-              </Button>
-              <Button
-                variant="ghost"
                 size="sm"
                 className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
                 onClick={() => setConfirmDisconnect(true)}
@@ -229,7 +216,7 @@ export function GoogleCalendarBanner({ className }: Props) {
     );
   }
 
-  // Not connected — connect prompt
+  // Not connected — connect prompt (no sync button in toolbar either)
   return (
     <div
       className={cn(
@@ -247,5 +234,53 @@ export function GoogleCalendarBanner({ className }: Props) {
         </a>
       </Button>
     </div>
+  );
+}
+
+/**
+ * Standalone sync button for the calendar toolbar.
+ * Only renders when the user has an active Google Calendar connection.
+ */
+export function GoogleCalendarSyncButton() {
+  const t = useTranslations("calendar.googleCalendar");
+  const { connection, isConnected, isLoading, refresh } = useGoogleCalendarConnection();
+  const { toast } = useAppToast();
+  const { success: toastSuccess, error: toastError } = toast;
+  const [syncing, setSyncing] = useState(false);
+
+  if (isLoading || !isConnected || connection?.status !== "ACTIVE") return null;
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/auth/google-calendar/sync", { method: "POST" });
+      if (!res.ok) {
+        toastError(t("syncError"));
+        return;
+      }
+      const data = await res.json();
+      toastSuccess(t("syncSuccess", { count: data.synced ?? 0 }));
+      refresh();
+    } catch {
+      toastError(t("syncError"));
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      className="h-8 w-8"
+      onClick={handleSync}
+      disabled={syncing}
+      aria-label={t("syncNow")}
+    >
+      <RefreshCw
+        className={cn("h-4 w-4", syncing && "animate-spin")}
+        aria-hidden="true"
+      />
+    </Button>
   );
 }

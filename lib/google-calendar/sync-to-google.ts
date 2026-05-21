@@ -4,14 +4,17 @@ import { getAuthenticatedClient } from "./client";
 import { decryptCalendarEventForOrg } from "@/lib/model-encryption";
 import type { calendar_v3 } from "googleapis";
 
-function toGoogleEvent(event: {
-  title?: string | null;
-  description?: string | null;
-  startTime: Date;
-  endTime: Date;
-  location?: string | null;
-  recurrenceRule?: string | null;
-}): calendar_v3.Schema$Event {
+function toGoogleEvent(
+  event: {
+    title?: string | null;
+    description?: string | null;
+    startTime: Date;
+    endTime: Date;
+    location?: string | null;
+    recurrenceRule?: string | null;
+  },
+  attendeeEmails: string[] = []
+): calendar_v3.Schema$Event {
   return {
     summary: event.title ?? "(No title)",
     description: event.description ?? undefined,
@@ -20,6 +23,9 @@ function toGoogleEvent(event: {
     end: { dateTime: event.endTime.toISOString(), timeZone: "UTC" },
     ...(event.recurrenceRule
       ? { recurrence: [`RRULE:${event.recurrenceRule}`] }
+      : {}),
+    ...(attendeeEmails.length > 0
+      ? { attendees: attendeeEmails.map((email) => ({ email })) }
       : {}),
     extendedProperties: {
       private: { oikionSource: "true" },
@@ -48,6 +54,11 @@ export async function pushEventToGoogle(
       googleEventId: true,
       assignedUserId: true,
       organizationId: true,
+      EventInvitee: {
+        select: {
+          Users: { select: { email: true } },
+        },
+      },
     },
   });
 
@@ -58,8 +69,11 @@ export async function pushEventToGoogle(
 
   // Decrypt encrypted fields (title, description, location) before sending to Google
   const decrypted = await decryptCalendarEventForOrg(event, event.organizationId);
+  const attendeeEmails = event.EventInvitee
+    .map((inv) => inv.Users?.email)
+    .filter((e): e is string => !!e);
   const cal = google.calendar({ version: "v3", auth: oauth2Client });
-  const googleEvent = toGoogleEvent(decrypted);
+  const googleEvent = toGoogleEvent(decrypted, attendeeEmails);
 
   try {
     if (event.googleEventId) {
@@ -67,11 +81,13 @@ export async function pushEventToGoogle(
         calendarId: "primary",
         eventId: event.googleEventId,
         requestBody: googleEvent,
+        sendUpdates: "all",
       });
     } else {
       const res = await cal.events.insert({
         calendarId: "primary",
         requestBody: googleEvent,
+        sendUpdates: "all",
       });
       if (res.data.id) {
         await prismadb.calendarEvent.update({

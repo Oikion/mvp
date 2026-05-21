@@ -8,8 +8,8 @@ import {
 import { timingSafeEqual } from "crypto";
 
 export async function POST(req: NextRequest) {
-  const code = process.env.STAGING_PASSCODE ?? process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE;
-  const secret = process.env.STAGING_PASSCODE_SECRET ?? process.env.STAGING_COOKIE_SECRET ?? process.env.APP_ACCESS_COOKIE_SECRET;
+  const code = (process.env.STAGING_PASSCODE ?? process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE)?.trim();
+  const secret = (process.env.STAGING_PASSCODE_SECRET ?? process.env.STAGING_COOKIE_SECRET ?? process.env.APP_ACCESS_COOKIE_SECRET)?.trim();
 
   // Gate disabled — grant access immediately
   if (!code || !secret) {
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   response.cookies.set(STAGING_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: STAGING_COOKIE_MAX_AGE,
     path: "/",
   });

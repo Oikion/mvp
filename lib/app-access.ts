@@ -81,8 +81,8 @@ export function computeStagingToken(code: string, secret: string): string {
  * Alias for verifyAccessCookie — uses STAGING_ACCESS_CODE / STAGING_COOKIE_SECRET env vars.
  */
 export function verifyStagingCookie(cookieValue: string | undefined): boolean {
-  const code = process.env.STAGING_PASSCODE ?? process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE;
-  const secret = process.env.STAGING_PASSCODE_SECRET ?? process.env.STAGING_COOKIE_SECRET ?? process.env.APP_ACCESS_COOKIE_SECRET;
+  const code = (process.env.STAGING_PASSCODE ?? process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE)?.trim();
+  const secret = (process.env.STAGING_PASSCODE_SECRET ?? process.env.STAGING_COOKIE_SECRET ?? process.env.APP_ACCESS_COOKIE_SECRET)?.trim();
 
   if (!code || !secret) return false;
   if (!cookieValue) return false;

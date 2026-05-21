@@ -6,6 +6,7 @@ import { createNotificationsForUsers } from "@/actions/notifications/create-noti
 import { revalidatePath } from "next/cache";
 import { requireAction } from "@/lib/permissions";
 import { decryptCalendarEventForOrg } from "@/lib/model-encryption";
+import { pushEventToGoogle } from "@/lib/google-calendar/sync-to-google";
 
 export interface InviteToEventParams {
   eventId: string;
@@ -88,6 +89,10 @@ export async function inviteToEvent({ eventId, userIds }: InviteToEventParams): 
       },
     });
 
+    pushEventToGoogle(eventId).catch((err) =>
+      console.error("[INVITE_TO_EVENT] Google Calendar sync failed", err)
+    );
+
     revalidatePath(`/calendar/events/${eventId}`);
     revalidatePath("/calendar");
 
@@ -125,6 +130,10 @@ export async function removeEventInvitee(eventId: string, userId: string): Promi
         organizationId,
       },
     });
+
+    pushEventToGoogle(eventId).catch((err) =>
+      console.error("[REMOVE_EVENT_INVITEE] Google Calendar sync failed", err)
+    );
 
     revalidatePath(`/calendar/events/${eventId}`);
     revalidatePath("/calendar");

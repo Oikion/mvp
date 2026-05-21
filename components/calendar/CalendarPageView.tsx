@@ -19,7 +19,7 @@ import { format, startOfWeek, endOfWeek, addDays, isWithinInterval, startOfDay, 
 import { el, enUS } from "date-fns/locale";
 import { useTranslations, useLocale } from "next-intl";
 
-import { GoogleCalendarBanner } from "./GoogleCalendarBanner";
+import { GoogleCalendarBanner, GoogleCalendarSyncButton } from "./GoogleCalendarBanner";
 import { ViewSelector, CalendarViewMode } from "./ViewSelector";
 import { CalendarFilters, CalendarFiltersState } from "./CalendarFilters";
 import { EventCreateForm, EventCreateTrigger, EventCreateSidePanel } from "./EventCreateForm";
@@ -631,6 +631,7 @@ export function CalendarPageView() {
 
           <div className="flex items-center gap-1.5 flex-wrap">
             <ViewSelector value={viewMode} onChange={setViewMode} />
+            <GoogleCalendarSyncButton />
             <ExportButton
               module="calendar"
               calendarViewOptions
