@@ -8,13 +8,13 @@ import {
 import { timingSafeEqual } from "crypto";
 
 export async function POST(req: NextRequest) {
-  const code = process.env.STAGING_PASSCODE;
-  const secret = process.env.STAGING_PASSCODE_SECRET;
+  const code = process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE;
+  const secret = process.env.STAGING_COOKIE_SECRET ?? process.env.APP_ACCESS_COOKIE_SECRET;
 
   // Gate disabled — grant access immediately
   if (!code || !secret) {
     if (code && !secret) {
-      console.error("[STAGING_ACCESS] STAGING_PASSCODE_SECRET is not configured");
+      console.error("[STAGING_ACCESS] STAGING_COOKIE_SECRET is not configured");
       return NextResponse.json({ error: "Staging gate misconfigured" }, { status: 503 });
     }
     return NextResponse.json({ success: true });
