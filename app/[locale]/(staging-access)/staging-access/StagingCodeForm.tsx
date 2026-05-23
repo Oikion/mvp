@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useCallback, type KeyboardEvent, type ClipboardEvent, type ChangeEvent } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,6 @@ interface Props {
 }
 
 export function StagingCodeForm({ locale, redirectTo }: Props) {
-  const router = useRouter();
   const [digits, setDigits] = useState<string[]>(Array(DIGITS).fill(""));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +38,9 @@ export function StagingCodeForm({ locale, redirectTo }: Props) {
       });
 
       if (res.ok) {
-        router.push(redirectTo || `/${locale}`);
+        // Hard navigation ensures the browser sends the newly-set HttpOnly
+        // cookie in the very next request, bypassing the Next.js router cache.
+        window.location.replace(redirectTo || `/${locale}`);
         return;
       }
 

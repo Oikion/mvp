@@ -18,8 +18,8 @@
 import { createHmac, timingSafeEqual } from "crypto";
 
 export const ACCESS_COOKIE_NAME = "oik_access";
-/** 30 days in seconds */
-export const ACCESS_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+/** 24 hours in seconds */
+export const ACCESS_COOKIE_MAX_AGE = 60 * 60 * 24;
 
 /**
  * Compute the expected cookie token for the given code and secret.
@@ -66,7 +66,7 @@ export function isAccessGateEnabled(): boolean {
 // ============================================
 
 export const STAGING_COOKIE_NAME = "oik_staging";
-/** 30 days in seconds */
+/** 24 hours in seconds — same as ACCESS_COOKIE_MAX_AGE */
 export const STAGING_COOKIE_MAX_AGE = ACCESS_COOKIE_MAX_AGE;
 
 /**

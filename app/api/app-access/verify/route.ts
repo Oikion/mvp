@@ -60,7 +60,11 @@ export async function POST(req: NextRequest) {
   response.cookies.set(ACCESS_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    // "lax" (not "strict") so the cookie survives Clerk's cross-site redirect
+    // back to our domain after sign-in — strict cookies are stripped on
+    // cross-site top-level navigations, causing the middleware to see no
+    // access cookie and restart the gate loop.
+    sameSite: "lax",
     maxAge: ACCESS_COOKIE_MAX_AGE,
     path: "/",
   });

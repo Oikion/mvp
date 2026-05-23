@@ -21,7 +21,6 @@ import {
 import { Eye, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { archiveEntity } from "@/actions/archive/archive-entity";
 import { EventEditForm } from "./EventEditForm";
 
 // Shared cache for event data across all EventActionsMenu instances
@@ -63,8 +62,10 @@ export function EventActionsMenu({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const result = await archiveEntity("event", eventId);
-      if (!result.success) throw new Error(result.error);
+      const response = await fetch(`/api/calendar/events/${apiId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete event");
       toast.success(t("eventDetail.eventDeleted"));
       setIsDeleteDialogOpen(false);
       onEventDeleted?.();

@@ -14,6 +14,12 @@ const LOCALES = ["el", "en"] as const;
 type Locale = (typeof LOCALES)[number];
 const DEFAULT_LOCALE: Locale = "el";
 
+// Orama (used by Fumadocs search) requires full language names, not ISO codes.
+const ORAMA_LANGUAGE: Record<Locale, string> = {
+  el: "greek",
+  en: "english",
+};
+
 type LoaderResult = ReturnType<typeof loader>;
 type PageItem = ReturnType<LoaderResult["getPages"]>[number];
 
@@ -45,10 +51,11 @@ function createI18nSource(
     /** Signals createFromSource to use i18n search mode */
     _i18n: { languages: [...LOCALES], defaultLanguage: DEFAULT_LOCALE },
 
-    /** Returns all pages grouped by language — used by createFromSource */
+    /** Returns all pages grouped by language — used by createFromSource.
+     *  `language` must be an Orama full language name, not an ISO code. */
     getLanguages() {
       return LOCALES.map((lang) => ({
-        language: lang,
+        language: ORAMA_LANGUAGE[lang],
         pages: loaders[lang].getPages(),
       }));
     },

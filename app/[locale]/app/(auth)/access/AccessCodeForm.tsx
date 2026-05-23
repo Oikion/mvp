@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useCallback, type KeyboardEvent, type ClipboardEvent, type ChangeEvent } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "motion/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,6 @@ interface Props {
 }
 
 export function AccessCodeForm({ locale, redirectTo }: Props) {
-  const router = useRouter();
   const t = useTranslations("auth");
   const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "Oikion";
   const [digits, setDigits] = useState<string[]>(Array(DIGITS).fill(""));
@@ -107,7 +105,10 @@ export function AccessCodeForm({ locale, redirectTo }: Props) {
       });
 
       if (res.ok) {
-        router.push(redirectTo || `/${locale}/app/sign-in`);
+        // Hard navigation ensures the browser sends the newly-set HttpOnly
+        // cookie in the very next request, bypassing the Next.js router cache
+        // which may have stored a stale middleware redirect for this URL.
+        window.location.replace(redirectTo || `/${locale}/app`);
         return;
       }
 

@@ -21,10 +21,12 @@ const AccessPage = async ({ params, searchParams }: Props) => {
   const cookieStore = await cookies();
   const cookieValue = cookieStore.get("oik_access")?.value;
   if (verifyAccessCookie(cookieValue)) {
-    redirect(redirectTo || `/${locale}/app/sign-in`);
+    redirect(redirectTo || `/${locale}/app`);
   }
 
-  const destination = redirectTo || `/${locale}/app/sign-in`;
+  // Default to the app root (dashboard), not sign-in — authenticated users
+  // sent to sign-in see Clerk's "already signed in" banner and get stuck.
+  const destination = redirectTo || `/${locale}/app`;
 
   return (
     <AccessCodeForm locale={locale} redirectTo={destination} />
