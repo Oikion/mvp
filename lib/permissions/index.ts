@@ -35,7 +35,6 @@ export {
   hasAllPermissions,
   hasAnyPermission,
   canModifyAssignedAgent,
-  canManageUser,
   isOrgOwner,
   isAtLeastLead,
   isAtLeastMember,

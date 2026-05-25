@@ -13,6 +13,7 @@ import {
   encryptNewsletterSubscriberForOrg,
   decryptNewsletterSubscriberForOrg,
 } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * GET /api/v1/newsletter/subscribers
@@ -71,7 +72,20 @@ export const GET = withExternalApi(
 
     // Decrypt PII fields before returning
     const decryptedItems = await Promise.all(
-      items.map((sub) => decryptNewsletterSubscriberForOrg(sub, context.organizationId))
+      items.map(async (sub) => {
+        const dec = await decryptNewsletterSubscriberForOrg(sub, context.organizationId);
+        // fire-and-forget PII access log — external API response
+        logPiiAccess({
+          userId: context.createdById,
+          organizationId: context.organizationId,
+          entityType: "NEWSLETTER_SUBSCRIBER",
+          entityId: sub.id,
+          action: "API_RESPONSE",
+          fields: ["email", "firstName", "lastName"],
+          source: "GET /api/v1/newsletter/subscribers",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     return createApiSuccessResponse(

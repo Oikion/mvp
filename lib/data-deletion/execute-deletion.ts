@@ -10,6 +10,7 @@
  * then deletes the Users row and Clerk account.
  */
 
+import { createHash } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import { handleUserDeparture } from "@/lib/user-departure";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -110,6 +111,32 @@ export async function runDataDeletion(
           departureResult.errors
         );
       }
+    }
+
+    // Pseudonymize PiiAccessLog entries — GDPR Article 17 compliance.
+    // PiiAccessLog.userId stores the Clerk userId of the accessor.
+    // Replace it with a one-way hash so audit rows remain structurally
+    // valid (audit trail preserved) but are no longer personally identifiable.
+    if (user.clerkUserId) {
+      const userIdHash =
+        "deleted:" +
+        createHash("sha256")
+          .update(user.clerkUserId + (process.env.ADMIN_LOG_SALT ?? "oikion-audit-v1"))
+          .digest("hex")
+          .slice(0, 16);
+
+      await prismadb.piiAccessLog
+        .updateMany({
+          where: { userId: user.clerkUserId },
+          data: { userId: userIdHash },
+        })
+        .catch((e) =>
+          console.error(
+            "[GDPR_ERASURE]",
+            "PiiAccessLog pseudonymization failed",
+            e
+          )
+        );
     }
 
     // Delete the Users row

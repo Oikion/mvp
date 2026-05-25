@@ -6,7 +6,6 @@ import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 
 const webhookBodySchema = z.object({
   event: z.string().max(100),
-  organizationId: z.string().optional(),
   workflowId: z.string().optional(),
   executionId: z.string().optional(),
   timestamp: z.string().optional(),
@@ -54,6 +53,21 @@ function verifyWebhookSignature(payload: string, signature: string, secret: stri
 }
 
 /**
+ * Peek at the event type in a request without consuming the body.
+ * Used to allow health.check requests to skip the orgToken requirement.
+ */
+async function peekEventType(req: NextRequest): Promise<boolean> {
+  try {
+    const cloned = req.clone();
+    const text = await cloned.text();
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    return parsed.event === "health.check";
+  } catch {
+    return false;
+  }
+}
+
+/**
  * POST /api/v1/n8n/webhook
  * Receive webhooks from n8n workflows
  * 
@@ -84,8 +98,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // SECURITY (C-1 fix): Per-org token in URL query parameter binds this request to a specific org.
+    // n8n workflows must include ?orgToken=<token> in the webhook URL.
+    // The token is stored in OrganizationSettings.n8nWebhookToken (unique, generated per org).
+    // organizationId is NEVER trusted from the request body — it comes from this DB lookup only.
+    const { searchParams } = new URL(req.url);
+    const orgToken = searchParams.get("orgToken");
+
+    // health.check requests may omit orgToken — all mutation events require it
+    const isHealthCheck = await peekEventType(req);
+    if (!isHealthCheck && !orgToken) {
+      return NextResponse.json({ error: "Missing orgToken" }, { status: 401 });
+    }
+
+    // For non-health events, resolve organizationId from the per-org token
+    let resolvedOrgId: string | null = null;
+    if (orgToken) {
+      const orgSettings = await prismadb.organizationSettings.findUnique({
+        where: { n8nWebhookToken: orgToken },
+        select: { organizationId: true },
+      });
+      if (!orgSettings) {
+        return NextResponse.json({ error: "Invalid orgToken" }, { status: 401 });
+      }
+      resolvedOrgId = orgSettings.organizationId;
+    }
+
     const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
-    
+
     // SECURITY: Always require webhook secret to be configured
     // This prevents unauthorized requests when secret is not set
     if (!webhookSecret) {
@@ -95,7 +135,7 @@ export async function POST(req: NextRequest) {
         { status: 503 }
       );
     }
-    
+
     // Get raw body for signature verification
     const rawBody = await req.text();
     let body: Record<string, unknown>;
@@ -105,11 +145,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request body: must be valid JSON" }, { status: 400 });
     }
 
-    // Verify signature - always required now that secret must be configured
-    const signature = req.headers.get("x-n8n-signature") || 
+    // Verify HMAC signature — protects against payload tampering
+    const signature = req.headers.get("x-n8n-signature") ||
                      req.headers.get("x-webhook-signature") ||
                      req.headers.get("x-signature");
-    
+
     if (!signature) {
       return NextResponse.json(
         { error: "Missing webhook signature" },
@@ -124,35 +164,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // SECURITY TODO: This endpoint uses a global HMAC secret that doesn't bind to a specific org.
-    // organizationId from the body is trusted but unverified against the token.
-    // Required fix: migrate to per-org webhook secrets stored in DB, looked up by token/org pair.
-    // Tracking: pre-launch-audit-2026-04-22 finding H-04
     const parsed = webhookBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
     }
 
-    const { event, organizationId, workflowId, executionId, timestamp } = parsed.data;
+    const { event, workflowId, executionId, timestamp } = parsed.data;
     const data = parsed.data.data ?? {};
 
-    // Require and verify organizationId for all mutation events.
-    // health.check is the only event that can proceed without it.
-    if (event !== "health.check") {
-      if (!organizationId) {
-        return NextResponse.json({ error: "Missing required field: organizationId" }, { status: 400 });
-      }
-      const orgSettings = await prismadb.organizationSettings.findUnique({
-        where: { organizationId },
-        select: { id: true },
-      });
-      if (!orgSettings) {
-        return NextResponse.json({ error: "Organization not found" }, { status: 404 });
-      }
+    // For mutation events, organizationId must have been resolved from the per-org token above
+    if (event !== "health.check" && !resolvedOrgId) {
+      return NextResponse.json({ error: "Missing orgToken" }, { status: 401 });
     }
 
-    // organizationId presence is verified above for all non-health events
-    const orgId = organizationId!;
+    const orgId = resolvedOrgId!;
 
     // Process the webhook based on event type
     switch (event) {

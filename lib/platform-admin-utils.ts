@@ -70,7 +70,14 @@ export type AdminActionType =
   | "APPROVE_DATA_DELETION"
   | "REJECT_DATA_DELETION"
   | "EXECUTE_DATA_DELETION"
-  | "SEND_CHANGELOG_NOTIFICATION";
+  | "SEND_CHANGELOG_NOTIFICATION"
+  | "SEND_CAMPAIGN"
+  | "SEND_TEST_EMAIL"
+  | "CREATE_CAMPAIGN"
+  | "UPDATE_CAMPAIGN"
+  | "DELETE_CAMPAIGN"
+  | "ADD_AUDIENCE_CONTACT"
+  | "RESEED_DEMO_ORGS";
 
 /**
  * Validate that a reason/message is safe and not malicious

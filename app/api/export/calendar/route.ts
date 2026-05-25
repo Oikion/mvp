@@ -20,6 +20,7 @@ import {
 } from "@/lib/export";
 import { startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { decryptCalendarEventForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -144,7 +145,20 @@ export async function GET(req: NextRequest) {
     
     // Decrypt encrypted event fields before export
     const decryptedEvents = await Promise.all(
-      events.map((e) => decryptCalendarEventForOrg(e, orgId))
+      events.map(async (e) => {
+        const dec = await decryptCalendarEventForOrg(e, orgId);
+        // fire-and-forget PII access log — EXPORT action for each decrypted calendar event
+        logPiiAccess({
+          userId: user.id,
+          organizationId: orgId,
+          entityType: "CALENDAR_EVENT",
+          entityId: e.id,
+          action: "EXPORT",
+          fields: ["title", "description", "location", "attendeeName", "attendeeEmail"],
+          source: "GET /api/export/calendar",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     // Transform data for export

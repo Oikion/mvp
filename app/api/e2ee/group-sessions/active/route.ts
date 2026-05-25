@@ -8,8 +8,8 @@ import { prismadb } from "@/lib/prisma";
  */
 export async function GET(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId, orgId } = await auth();
+    if (!userId || !orgId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -19,6 +19,25 @@ export async function GET(req: Request) {
 
     if (!conversationId && !channelId) {
       return NextResponse.json({ error: "Must provide conversationId or channelId" }, { status: 400 });
+    }
+
+    // Verify the conversation/channel belongs to the caller's org before returning session data
+    if (conversationId) {
+      const conv = await prismadb.conversation.findUnique({
+        where: { id: conversationId },
+        select: { organizationId: true },
+      });
+      if (!conv || conv.organizationId !== orgId) {
+        return NextResponse.json({ session: null });
+      }
+    } else if (channelId) {
+      const chan = await prismadb.channel.findUnique({
+        where: { id: channelId },
+        select: { organizationId: true },
+      });
+      if (!chan || chan.organizationId !== orgId) {
+        return NextResponse.json({ session: null });
+      }
     }
 
     const session = await prismadb.groupSession.findFirst({

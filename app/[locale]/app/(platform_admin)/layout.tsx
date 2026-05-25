@@ -1,6 +1,6 @@
 // app/[locale]/(platform-admin)/layout.tsx
 // Layout for platform admin pages
-// Primary protection is in middleware (middleware.ts)
+// Primary protection is in middleware (proxy.ts)
 // This layout provides the sidebar shell for all platform admin pages
 
 import { auth } from "@clerk/nextjs/server";
@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { getPlatformAdminUser } from "@/lib/platform-admin";
 import { PlatformAdminSidebar } from "./platform-admin/components/PlatformAdminSidebar";
 import { logAdminAccess } from "@/actions/platform-admin/log-admin-access";
+import { logUnauthorizedAccess } from "@/actions/platform-admin/log-security-audit";
 import { getPlatformAdminCounts } from "@/actions/platform-admin/get-admin-counts";
 
 export default async function PlatformAdminLayout({
@@ -28,6 +29,13 @@ export default async function PlatformAdminLayout({
 
   // Basic authentication check (middleware handles admin verification)
   if (!userId) {
+    const headersList = await headers();
+    const userAgent = headersList.get("user-agent") || undefined;
+    const forwardedFor = headersList.get("x-forwarded-for");
+    const realIp = headersList.get("x-real-ip");
+    const ipAddress = forwardedFor?.split(",")[0].trim() || realIp || undefined;
+
+    logUnauthorizedAccess({ userAgent, ipAddress, path: `/${locale}/app/platform-admin` }).catch(() => {});
     return redirect(`/${locale}/app/sign-in`);
   }
 

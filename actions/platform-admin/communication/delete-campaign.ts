@@ -1,7 +1,7 @@
 "use server"
 
 import { prismadb } from "@/lib/prisma"
-import { requirePlatformAdmin } from "@/lib/platform-admin"
+import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin"
 
 interface DeleteCampaignResult {
   success: boolean
@@ -9,7 +9,7 @@ interface DeleteCampaignResult {
 }
 
 export async function deleteCampaign(id: string): Promise<DeleteCampaignResult> {
-  await requirePlatformAdmin()
+  const admin = await requirePlatformAdmin()
 
   try {
     const existing = await prismadb.newsletterCampaign.findUnique({
@@ -29,6 +29,11 @@ export async function deleteCampaign(id: string): Promise<DeleteCampaignResult> 
     }
 
     await prismadb.newsletterCampaign.delete({ where: { id } })
+
+    await logAdminAction(admin.id, "DELETE_CAMPAIGN", id, {}).catch((e) =>
+      console.error("[AUDIT_LOG]", e)
+    )
+
     return { success: true }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error"

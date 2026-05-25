@@ -16,8 +16,8 @@ export interface CreateEntitySessionInput {
     ephemeralPublicKey: string;
     iv: string;
   };
-  /** Megolm session export encrypted with ORK (for admin recovery) */
-  orkBackup: string;
+  /** Megolm session export encrypted with ORK (for admin recovery — optional if ORK not configured) */
+  orkBackup?: string;
   /** Additional user shares (e.g., assigned agent already has access) */
   additionalShares?: Array<{
     userId: string;
@@ -53,6 +53,6 @@ export interface RotateEntitySessionInput {
     ephemeralPublicKey: string;
     iv: string;
   }>;
-  /** New ORK backup */
-  orkBackup: string;
+  /** New ORK backup (optional — omit if ORK is not configured for this org) */
+  orkBackup?: string;
 }

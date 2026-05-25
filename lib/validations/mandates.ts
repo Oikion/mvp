@@ -318,22 +318,28 @@ export type UpdateMandateInput = z.infer<typeof updateMandateSchema>;
 export type MandateQueryParams = z.infer<typeof mandateQuerySchema>;
 
 // =============================================================================
-// Form Schemas — shared between creation wizards and edit forms
+// Form Schemas — shared by NewMandateWizard and EditMandateForm
 // =============================================================================
 
 /**
  * Single source of truth for mandate form field constraints.
- * Both NewMandateWizard and EditMandateForm import from here.
- * assigned_to uses .nullable() because the DB stores null when no agent was set.
- * property_type uses .nullable() because it is optional in the DB.
+ * Uses z.coerce for numeric inputs; all fields optional at schema level.
+ * Wizards enforce required fields via step-level form.trigger() + superRefine;
+ * edit forms must not block saving when a field was never populated.
+ *
+ * Import this in BOTH NewMandateWizard and EditMandateForm.
+ * Never redefine these constraints inline.
  */
 export const mandateFormSchema = z.object({
+  // Step 1: Basics
   title: z.string().min(1, "Title is required").max(200),
   transaction_type: transactionTypeSchema,
   property_type: propertyTypeSchema.optional().nullable(),
   property_purpose: propertyPurposeSchema.optional().nullable(),
   status: mandateStatusSchema.optional().nullable(),
   urgency: mandateUrgencySchema.optional().nullable(),
+
+  // Step 2: Location & Size
   areas_of_interest: z.array(z.string()).optional().default([]),
   municipality: z.string().max(100).optional().nullable(),
   region: z.string().max(100).optional().nullable(),
@@ -341,6 +347,8 @@ export const mandateFormSchema = z.object({
   size_max_sqm: z.coerce.number().min(0).optional().nullable(),
   plot_size_min_sqm: z.coerce.number().min(0).optional().nullable(),
   plot_size_max_sqm: z.coerce.number().min(0).optional().nullable(),
+
+  // Step 3: Requirements
   bedrooms_min: z.coerce.number().int().min(0).optional().nullable(),
   bedrooms_max: z.coerce.number().int().min(0).optional().nullable(),
   bathrooms_min: z.coerce.number().int().min(0).optional().nullable(),
@@ -353,6 +361,8 @@ export const mandateFormSchema = z.object({
   timeline: timelineSchema.optional().nullable(),
   year_built_min: z.coerce.number().int().min(1800).optional().nullable(),
   year_built_max: z.coerce.number().int().optional().nullable(),
+
+  // Step 4: Features & Preferences
   condition: z.array(z.string()).optional().default([]),
   heating_type: z.array(z.string()).optional().default([]),
   energy_cert_min: energyCertClassSchema.optional().nullable(),
@@ -363,12 +373,16 @@ export const mandateFormSchema = z.object({
   amenities: z.array(z.string()).optional().default([]),
   inside_city_plan: z.boolean().optional().default(false),
   legalization_ok: z.boolean().optional().default(false),
+
+  // Step 5: Assignment & Notes
+  // nullable: DB stores null when no agent is assigned at creation time
   assigned_to: z.string().optional().nullable(),
   clientId: z.string().optional(),
   notes: z.string().max(5000).optional().nullable(),
   expires_at: z.string().optional().nullable(),
 });
 
+/** Edit form version — extends base with required `id` for the PUT request. */
 export const mandateEditFormSchema = mandateFormSchema.extend({
   id: z.string().min(1, "Mandate ID is required"),
 });

@@ -15,6 +15,7 @@ import {
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchContactWebhook } from "@/lib/webhooks";
 import { decryptContactForOrg, encryptContactForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * Zod schema for external API contact creation.
@@ -108,7 +109,20 @@ export const GET = withExternalApi(
 
     // Decrypt encrypted contact fields
     const decryptedItems = await Promise.all(
-      items.map((c) => decryptContactForOrg(c, context.organizationId))
+      items.map(async (c) => {
+        const dec = await decryptContactForOrg(c, context.organizationId);
+        // fire-and-forget PII access log — external API response
+        logPiiAccess({
+          userId: context.createdById,
+          organizationId: context.organizationId,
+          entityType: "CONTACT",
+          entityId: c.id,
+          action: "API_RESPONSE",
+          fields: ["displayName", "firstName", "lastName", "companyName", "email", "primaryPhone"],
+          source: "GET /api/v1/crm/contacts",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     // Post-decrypt search (displayName / email are encrypted)

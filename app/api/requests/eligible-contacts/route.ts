@@ -8,6 +8,7 @@ import {
   apiInternalError,
 } from "@/lib/api-response";
 import { decryptContactForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import type { EligibleContact } from "@/lib/types/auto-generate-requests";
 
 export async function GET() {
@@ -72,7 +73,20 @@ export async function GET() {
     }
 
     const decrypted = await Promise.all(
-      contacts.map((c) => decryptContactForOrg(c, organizationId))
+      contacts.map(async (c) => {
+        const dec = await decryptContactForOrg(c, organizationId);
+        // fire-and-forget PII access log
+        logPiiAccess({
+          userId,
+          organizationId,
+          entityType: "CONTACT",
+          entityId: c.id,
+          action: "DECRYPT",
+          fields: ["displayName"],
+          source: "GET /api/requests/eligible-contacts",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     const result: EligibleContact[] = decrypted

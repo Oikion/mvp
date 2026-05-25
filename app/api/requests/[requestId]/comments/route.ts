@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { canPerformAction } from "@/lib/permissions";
 import { encryptRequestCommentForOrg, decryptRequestCommentForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { notifyCommentAdded } from "@/lib/notifications/helpers";
 
 export async function GET(
@@ -44,6 +45,15 @@ export async function GET(
     for (const comment of comments) {
       try {
         decrypted.push(await decryptRequestCommentForOrg(comment, organizationId));
+        logPiiAccess({
+          userId,
+          organizationId,
+          entityType: "REQUEST",
+          entityId: request.id,
+          action: "DECRYPT",
+          fields: ["content"],
+          source: "GET /api/requests/[requestId]/comments",
+        }).catch(() => {});
       } catch (err) {
         console.error(`[REQUEST_COMMENTS_GET] Failed to decrypt comment ${comment.id}:`, err);
       }
@@ -125,6 +135,15 @@ export async function POST(
 
     // Return decrypted content, not ciphertext
     const decrypted = await decryptRequestCommentForOrg(comment, organizationId);
+    logPiiAccess({
+      userId: user.id,
+      organizationId,
+      entityType: "REQUEST",
+      entityId: request.id,
+      action: "DECRYPT",
+      fields: ["content"],
+      source: "POST /api/requests/[requestId]/comments",
+    }).catch(() => {});
     return NextResponse.json(decrypted, { status: 201 });
   } catch (error) {
     console.error("[REQUEST_COMMENTS_POST]", error);

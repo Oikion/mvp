@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { canPerformAction } from "@/lib/permissions";
+import { requireActionOnEntity } from "@/lib/permissions";
+import { handleGuardError } from "@/lib/permissions/action-guards";
 import { logEntityLinkedSymmetric, logEntityUnlinkedSymmetric } from "@/lib/activity-logger";
 
 export async function POST(
@@ -14,24 +15,19 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const check = await canPerformAction("request:update");
-    if (!check.allowed) {
-      return NextResponse.json(
-        { error: check.reason || "Permission denied" },
-        { status: 403 }
-      );
-    }
-
     const { requestId: friendlyId } = await params;
 
     const request = await prismadb.request.findFirst({
       where: { friendlyId, organizationId },
-      select: { id: true },
+      select: { id: true, assignedAgentId: true },
     });
 
     if (!request) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("request:update", "request", request.id, request.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     const body = await req.json();
     const { contactIds, propertyIds } = body as {
@@ -109,24 +105,19 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const check = await canPerformAction("request:update");
-    if (!check.allowed) {
-      return NextResponse.json(
-        { error: check.reason || "Permission denied" },
-        { status: 403 }
-      );
-    }
-
     const { requestId: friendlyId } = await params;
 
     const request = await prismadb.request.findFirst({
       where: { friendlyId, organizationId },
-      select: { id: true },
+      select: { id: true, assignedAgentId: true },
     });
 
     if (!request) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("request:update", "request", request.id, request.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     const { searchParams } = new URL(req.url);
     const contactId = searchParams.get("contactId");

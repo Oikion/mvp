@@ -1566,6 +1566,7 @@ enum PropertyType {
 
 enum ReminderStatus {
   PENDING
+  PROCESSING
   SENT
   FAILED
   CANCELLED
@@ -2491,7 +2492,7 @@ model UserIdentityKey {
   publicKey                String
   wrappedPrivateKey        String
   salt                     String
-  pbkdfIterations          Int          @default(100000)
+  pbkdfIterations          Int          @default(600000)
   keyVersion               Int          @default(1)
   pendingSessionReshare    Boolean      @default(false) // True during PIN reset, cleared when all entity sessions re-shared
   // Ed25519 signing key — nullable for backward compatibility with pre-C2 users
@@ -3033,6 +3034,11 @@ model OrganizationSettings {
   // v2.0 Contact Pipeline Customisation
   contactPipelineConfig Json? // [{stage: "LEAD", label: "New Lead", visible: true, order: 1, color: "#..."}]
 
+  // n8n webhook integration — per-org token replaces global secret (C-1 fix)
+  // Generate with: crypto.randomBytes(32).toString('hex')
+  // Configure n8n to include ?orgToken=<this value> in the webhook URL
+  n8nWebhookToken String? @unique
+
   @@index([organizationId])
   @@index([databaseSiloEnabled])
 }
@@ -3213,7 +3219,7 @@ model OrgRecoveryKey {
 model RecoveryCode {
   id            String          @id @default(uuid())
   recoveryKeyId String
-  codeHash      String          // bcrypt hash of the plaintext code
+  codeHash      String          // SHA-256 hex hash of the plaintext code — used as a lookup index only (not a password hash; security comes from PBKDF2 wrapping of the ORK)
   wrappedOrk    String          @db.Text // ORK encrypted with PBKDF2(code, salt)
   salt          String
   used          Boolean         @default(false)
@@ -4505,4 +4511,18 @@ model UserGoogleCalendarConnection {
   @@index([watchChannelId])
   @@index([status])
   @@map("user_google_calendar_connections")
+}
+
+// NOTE: run `pnpm db:migrate` to apply the CronExecutionLog migration before deploying.
+model CronExecutionLog {
+  id          String    @id @default(cuid())
+  cronName    String
+  status      String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  details     Json?
+  errorMsg    String?
+
+  @@index([cronName, startedAt])
+  @@map("cron_execution_logs")
 }

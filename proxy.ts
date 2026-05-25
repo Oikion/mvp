@@ -404,7 +404,14 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   ) {
     const origin = req.headers.get("origin");
     const host = req.headers.get("host");
-    if (origin && host) {
+    // Origin is REQUIRED on state-changing internal requests — absent = block.
+    if (!origin) {
+      return NextResponse.json(
+        { error: "Forbidden", message: "Origin header required" },
+        { status: 403 }
+      );
+    }
+    if (host) {
       try {
         const originHost = new URL(origin).host;
         if (originHost !== host) {
@@ -466,6 +473,27 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
       
       // Handle preflight OPTIONS requests
       if (req.method === 'OPTIONS') {
+        // Rate-limit OPTIONS requests the same as regular requests on /api/v1/*
+        const optionsIdentifier = getRateLimitIdentifier(req);
+        const optionsRlResult = await rateLimit(optionsIdentifier, 'api');
+        if (!optionsRlResult.success) {
+          return NextResponse.json(
+            {
+              error: 'Too Many Requests',
+              message: 'Rate limit exceeded. Please try again later.',
+              retryAfter: Math.ceil((optionsRlResult.reset - Date.now()) / 1000),
+            },
+            {
+              status: 429,
+              headers: {
+                'X-RateLimit-Limit': optionsRlResult.limit.toString(),
+                'X-RateLimit-Remaining': '0',
+                'X-RateLimit-Reset': optionsRlResult.reset.toString(),
+                'Retry-After': Math.ceil((optionsRlResult.reset - Date.now()) / 1000).toString(),
+              },
+            }
+          );
+        }
         // For OPTIONS, we need to return CORS headers even if origin not in allowlist
         // But we won't set Allow-Origin for unauthorized origins
         if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
@@ -578,13 +606,50 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
 
     if (!isConsentExempt && authResult.orgId) {
       const consentCookie = req.cookies.get("consent_v")?.value;
-      // Cookie format: "<orgId>:<policyVersion>" — orgId prefix ensures consent
-      // is invalidated automatically on org switch (different orgId prefix).
-      // We only check presence + orgId match here; policyVersion staleness is
-      // handled server-side in the consent-required page (which compares against
-      // the DB record and redirects through /api/consent-bypass when up-to-date).
-      const cookieOrgId = consentCookie?.split(":")[0];
-      const consentValid = consentCookie && cookieOrgId === authResult.orgId;
+      // Cookie format: "<orgId>:<policyVersion>:<hmacHex>"
+      // orgId prefix ensures consent is invalidated on org switch.
+      // HMAC signature (HMAC-SHA256) is verified here to detect tampering.
+      // policyVersion staleness is handled server-side in the consent-required page.
+      let consentValid = false;
+      if (consentCookie) {
+        const parts = consentCookie.split(":");
+        // Minimum: orgId:version:hmac (3 parts — orgId itself may contain no colons)
+        if (parts.length >= 3) {
+          const cookieOrgId = parts[0];
+          if (cookieOrgId === authResult.orgId) {
+            // payload is everything except the last segment (the hmac)
+            const hmacHex = parts[parts.length - 1];
+            const payload = parts.slice(0, parts.length - 1).join(":");
+            try {
+              // Use Web Crypto (available in Edge/middleware runtime)
+              const secret = process.env.CONSENT_COOKIE_SECRET ?? process.env.CLERK_SECRET_KEY ?? "";
+              const enc = new TextEncoder();
+              const key = await crypto.subtle.importKey(
+                "raw",
+                enc.encode(secret),
+                { name: "HMAC", hash: "SHA-256" },
+                false,
+                ["sign"]
+              );
+              const expectedBuf = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+              const expectedHex = Array.from(new Uint8Array(expectedBuf))
+                .map((b) => b.toString(16).padStart(2, "0"))
+                .join("");
+              // Constant-time comparison: compare lengths first, then XOR all bytes
+              if (expectedHex.length === hmacHex.length) {
+                const ea = enc.encode(expectedHex);
+                const ga = enc.encode(hmacHex);
+                let diff = 0;
+                for (let i = 0; i < ea.length; i++) diff |= ea[i] ^ ga[i];
+                consentValid = diff === 0;
+              }
+            } catch {
+              // Verification failure — treat as invalid
+              consentValid = false;
+            }
+          }
+        }
+      }
       if (!consentValid) {
         const pathLocale = pathname.split("/")[1];
         const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];

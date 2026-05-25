@@ -44,7 +44,9 @@
     "migrate:colors": "tsx scripts/design-system/migrate-colors.ts",
     "migrate:colors:dry": "tsx scripts/design-system/migrate-colors.ts --dry-run",
     "generate:color-pdf": "npx tsx scripts/generate-color-palette-pdf.ts",
-    "purge-db": "ts-node scripts/purge-database.ts"
+    "purge-db": "ts-node scripts/purge-database.ts",
+    "rewrap-deks": "tsx scripts/rewrap-org-deks.ts",
+    "rewrap-deks:dry": "tsx scripts/rewrap-org-deks.ts --dry-run"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1048.0",

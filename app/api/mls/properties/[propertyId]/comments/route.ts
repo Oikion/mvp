@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { encryptPropertyCommentForOrg, decryptPropertyCommentForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
 import { EncryptionMode } from "@prisma/client";
 import { notifyCommentAdded } from "@/lib/notifications/helpers";
@@ -93,11 +94,23 @@ export async function GET(
     }
 
     return NextResponse.json({
-      comments: await Promise.all(comments.map(async (c) => ({
-        ...await decryptPropertyCommentForOrg(c, propertyOrgId),
-        user: c.Users,
-        isEncrypted: c.entitySessionId !== null,
-      }))),
+      comments: await Promise.all(comments.map(async (c) => {
+        const dec = await decryptPropertyCommentForOrg(c, propertyOrgId);
+        logPiiAccess({
+          userId: user.id,
+          organizationId: propertyOrgId,
+          entityType: "PROPERTY",
+          entityId: propertyId,
+          action: "DECRYPT",
+          fields: ["content"],
+          source: "GET /api/mls/properties/[propertyId]/comments",
+        }).catch(() => {});
+        return {
+          ...dec,
+          user: c.Users,
+          isEncrypted: c.entitySessionId !== null,
+        };
+      })),
       encryptionMode: "STANDARD",
     });
   } catch (error) {
@@ -308,9 +321,21 @@ export async function POST(
       entityOwnerId: propertyCreatedBy,
     }).catch((err) => console.error("[PROPERTY_COMMENT_NOTIFY]", err));
 
-    const responseComment = isE2EE
-      ? comment
-      : await decryptPropertyCommentForOrg(comment, propertyOrgId);
+    let responseComment: typeof comment | Awaited<ReturnType<typeof decryptPropertyCommentForOrg>>;
+    if (isE2EE) {
+      responseComment = comment;
+    } else {
+      responseComment = await decryptPropertyCommentForOrg(comment, propertyOrgId);
+      logPiiAccess({
+        userId: user.id,
+        organizationId: propertyOrgId,
+        entityType: "PROPERTY",
+        entityId: propertyId,
+        action: "DECRYPT",
+        fields: ["content"],
+        source: "POST /api/mls/properties/[propertyId]/comments",
+      }).catch(() => {});
+    }
     return NextResponse.json({ comment: { ...responseComment, user: comment.Users } }, { status: 201 });
   } catch (error) {
     console.error("[PROPERTY_COMMENTS_POST]", error);

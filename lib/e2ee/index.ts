@@ -138,6 +138,14 @@ export async function setupIdentity(
   const signedPK = await generateSignedPreKey(signingPair.privateKey);
   const otpKeys = await generateOneTimePreKeys(10);
 
+  // TODO(C-4): After E2EE setup, prompt admin to configure recovery codes.
+  // Call POST /api/e2ee/recovery/setup with the generated codes from lib/e2ee/recovery.ts.
+  // This flow requires the admin's KEK (PIN-derived) which is available in this scope
+  // (derived above via wrapPrivateKey / wrapEd25519PrivateKey). Do NOT auto-generate
+  // here — the user must first see, copy, and confirm the codes before they are stored.
+  // See lib/e2ee/recovery.ts for generateRecoveryCodes(), wrapOrkWithCode(),
+  // wrapOrkWithKek(), and unwrapOrkWithCode() helpers.
+
   return {
     publicKey,
     wrappedPrivateKey: wrappedKey,

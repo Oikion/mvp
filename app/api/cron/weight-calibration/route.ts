@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual, createHmac } from "crypto";
+import { startCronExecution, completeCronExecution, failCronExecution } from "@/lib/cron-execution";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +19,19 @@ export async function GET(req: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({
-    ok: true,
-    message: "Weight calibration not yet implemented",
-    timestamp: new Date().toISOString(),
-  });
+  const cronLogId = await startCronExecution("weight-calibration");
+
+  try {
+    // Weight calibration is not yet implemented
+    await completeCronExecution(cronLogId, { message: "not yet implemented" });
+    return NextResponse.json({
+      ok: true,
+      message: "Weight calibration not yet implemented",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("[CRON_WEIGHT_CALIBRATION] Fatal error:", err);
+    await failCronExecution(cronLogId, err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

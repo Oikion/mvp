@@ -87,6 +87,20 @@ export async function GET(
       // count === 0 means another request consumed it first — try next key
     }
 
+    // Count remaining unconsumed OTP keys for the target user (post-consumption).
+    // If refillNeeded is true, the X3DH initiator should notify the target user
+    // (e.g., via the in-app notification system) that they should upload more one-time prekeys.
+    // Without OTP keys, new sessions use 3-DH instead of 4-DH, reducing forward secrecy.
+    const remainingOtpCount = await prismadb.userPreKey.count({
+      where: {
+        userId: targetUserId,
+        keyType: "ONE_TIME",
+        isConsumed: false,
+      },
+    });
+    const REFILL_THRESHOLD = 10;
+    const refillNeeded = remainingOtpCount < REFILL_THRESHOLD;
+
     return NextResponse.json({
       identityKey: identityKey.publicKey,
       signingPublicKey: identityKey.signingPublicKey ?? undefined,
@@ -94,6 +108,8 @@ export async function GET(
       signature: signedPreKey.signature,
       oneTimePreKey: oneTimePreKey?.publicKey ?? undefined,
       oneTimePreKeyId: oneTimePreKey?.id ?? undefined,
+      refillNeeded,
+      remainingOtpCount,
     });
   } catch (error) {
     console.error("[E2EE PreKey Bundle GET]", error);

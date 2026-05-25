@@ -1,6 +1,6 @@
 "use server";
 
-import { requirePlatformAdmin } from "@/lib/platform-admin";
+import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin";
 import { prismadb } from "@/lib/prisma";
 import { topUpDemoOrg, type TopUpResult } from "@/lib/demo/seed-demo-org";
 
@@ -23,7 +23,7 @@ interface ReseedSummary {
  * so a failure in one doesn't abort the rest.
  */
 export async function reseedAllDemoOrgs(): Promise<ReseedSummary> {
-  await requirePlatformAdmin();
+  const admin = await requirePlatformAdmin();
 
   const demoSettings = await prismadb.organizationSettings.findMany({
     where: { isDemo: true },
@@ -47,10 +47,17 @@ export async function reseedAllDemoOrgs(): Promise<ReseedSummary> {
       entries.push({ orgId: setting.organizationId, result });
     } catch (err) {
       console.error("[RESEED_DEMO_ORGS] Failed for org", setting.organizationId, err);
-      entries.push({ orgId: setting.organizationId, error: String(err) });
+      entries.push({ orgId: setting.organizationId, error: err instanceof Error ? err.message : JSON.stringify(err) });
     }
   }
 
   const succeeded = entries.filter((e) => !e.error).length;
+
+  await logAdminAction(admin.id, "RESEED_DEMO_ORGS", undefined, {
+    total: entries.length,
+    succeeded,
+    failed: entries.length - succeeded,
+  }).catch((e) => console.error("[AUDIT_LOG]", e));
+
   return { total: entries.length, succeeded, failed: entries.length - succeeded, entries };
 }

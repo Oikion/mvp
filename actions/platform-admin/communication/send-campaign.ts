@@ -3,7 +3,7 @@
 import { prismadb } from "@/lib/prisma"
 import resendHelper from "@/lib/resend"
 import { EMAIL_CONFIG } from "@/lib/resend-segments"
-import { requirePlatformAdmin } from "@/lib/platform-admin"
+import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin"
 import { renderCampaignBlocks } from "./render-campaign-blocks"
 import type { EmailBlock } from "@/lib/communication/types"
 
@@ -25,7 +25,7 @@ function personalizeHtml(
 }
 
 export async function sendCampaign(campaignId: string): Promise<SendCampaignResult> {
-  await requirePlatformAdmin()
+  const admin = await requirePlatformAdmin()
 
   try {
     // 1. Load campaign
@@ -146,6 +146,12 @@ export async function sendCampaign(campaignId: string): Promise<SendCampaignResu
         resendBatchId: allBatchIds.join(",") || null,
       },
     })
+
+    await logAdminAction(admin.id, "SEND_CAMPAIGN", campaign.id, {
+      audienceId: campaign.audienceId,
+      recipientCount: activeContacts.length,
+      subject: campaign.subject,
+    }).catch((e) => console.error("[AUDIT_LOG]", e))
 
     return { success: true, sentCount: totalSent }
   } catch (error) {

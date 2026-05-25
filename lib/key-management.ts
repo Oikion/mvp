@@ -118,16 +118,35 @@ export async function getOrgDek(orgId: string): Promise<Buffer> {
   const dek = randomBytes(32);
   const encryptedDek = encrypt(dek.toString("hex"));
 
-  await prismadb.orgEncryptionKey.create({
-    data: {
-      id: crypto.randomUUID(),
-      organizationId: orgId,
-      encryptedDek,
-      keyVersion: 1,
-      isActive: true,
-      updatedAt: new Date(),
-    },
-  });
+  try {
+    await prismadb.orgEncryptionKey.create({
+      data: {
+        id: crypto.randomUUID(),
+        organizationId: orgId,
+        encryptedDek,
+        keyVersion: 1,
+        isActive: true,
+        updatedAt: new Date(),
+      },
+    });
+  } catch (err: unknown) {
+    const prismaError = err as { code?: string };
+    if (prismaError.code === "P2002") {
+      // Another concurrent request created the key first — fetch and return it
+      const existing = await prismadb.orgEncryptionKey.findFirst({
+        where: { organizationId: orgId, isActive: true },
+        orderBy: { keyVersion: "desc" },
+      });
+      if (existing) {
+        const dekHex = decrypt(existing.encryptedDek);
+        const raceDek = Buffer.from(dekHex, "hex");
+        setCache(orgId, raceDek); // Populate L1
+        await cacheSet(redisKey, existing.encryptedDek, 600); // Populate L2
+        return raceDek;
+      }
+    }
+    throw err;
+  }
 
   setCache(orgId, dek); // Populate L1
   await cacheSet(redisKey, encryptedDek, 600); // Populate L2

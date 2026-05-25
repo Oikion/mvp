@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { decryptCalendarEventForOrg, decryptContactForOrg, decryptRequestForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * GET /api/mls/properties/[propertyId]/linked
@@ -104,6 +105,15 @@ export async function GET(
       linkedContactsRaw.map(async (lc) => {
         if (!lc.contact) return null;
         const decrypted = await decryptContactForOrg(lc.contact, property.organizationId);
+        logPiiAccess({
+          userId: user.id,
+          organizationId: property.organizationId,
+          entityType: "CONTACT",
+          entityId: lc.contact.id,
+          action: "DECRYPT",
+          fields: ["displayName", "email", "primaryPhone"],
+          source: "GET /api/mls/properties/[propertyId]/linked",
+        }).catch(() => {});
         return {
           ...decrypted,
           assigned_to_user: lc.contact.assignedAgent,
@@ -154,10 +164,28 @@ export async function GET(
     const linkedEvents = await Promise.all(
       linkedEventsRaw.map(async (event) => {
         const decrypted = await decryptCalendarEventForOrg(event, property.organizationId);
+        logPiiAccess({
+          userId: user.id,
+          organizationId: property.organizationId,
+          entityType: "CALENDAR_EVENT",
+          entityId: event.id,
+          action: "DECRYPT",
+          fields: ["title", "description", "location"],
+          source: "GET /api/mls/properties/[propertyId]/linked",
+        }).catch(() => {});
         // Decrypt linked contact display names
         const decryptedContacts = await Promise.all(
           event.Contacts.map(async (c) => {
             const dc = await decryptContactForOrg(c, property.organizationId);
+            logPiiAccess({
+              userId: user.id,
+              organizationId: property.organizationId,
+              entityType: "CONTACT",
+              entityId: c.id,
+              action: "DECRYPT",
+              fields: ["displayName"],
+              source: "GET /api/mls/properties/[propertyId]/linked (event contact)",
+            }).catch(() => {});
             return { id: dc.id, client_name: dc.displayName };
           })
         );
@@ -196,6 +224,15 @@ export async function GET(
       linkedRequestMatchesRaw.map(async (match) => {
         const { organizationId: _, ...rest } = match.request;
         const decrypted = await decryptRequestForOrg(rest, property!.organizationId);
+        logPiiAccess({
+          userId: user.id,
+          organizationId: property!.organizationId,
+          entityType: "REQUEST",
+          entityId: match.request.id,
+          action: "DECRYPT",
+          fields: ["name", "notes"],
+          source: "GET /api/mls/properties/[propertyId]/linked",
+        }).catch(() => {});
         return decrypted;
       })
     );
@@ -218,7 +255,19 @@ export async function GET(
     });
 
     const documents = await Promise.all(
-      linkedDocumentsRaw.map((doc) => decryptDocumentForOrg(doc, property.organizationId))
+      linkedDocumentsRaw.map(async (doc) => {
+        const dec = await decryptDocumentForOrg(doc, property.organizationId);
+        logPiiAccess({
+          userId: user.id,
+          organizationId: property.organizationId,
+          entityType: "DOCUMENT",
+          entityId: doc.id,
+          action: "DECRYPT",
+          fields: ["document_name"],
+          source: "GET /api/mls/properties/[propertyId]/linked",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     // Get upcoming events (future events)

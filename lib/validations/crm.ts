@@ -171,3 +171,65 @@ export const clientEditFormSchema = clientFormSchema.extend({
 export type ClientFormValues = z.infer<typeof clientFormSchema>;
 export type ClientEditFormValues = z.infer<typeof clientEditFormSchema>;
 export type ClientQueryParams = z.infer<typeof clientQuerySchema>;
+
+// =============================================================================
+// Form Schemas — shared by NewClientWizard and EditClientForm
+// =============================================================================
+
+/**
+ * Single source of truth for client form field constraints.
+ * All fields optional at schema level — the wizard enforces required fields
+ * via superRefine with translated messages; edit forms must not block saving
+ * when a field was never set (e.g. assigned_to: null in the DB).
+ *
+ * Import this in BOTH NewClientWizard and EditClientForm.
+ * Never redefine these constraints inline.
+ */
+export const clientFormSchema = z.object({
+  // Step 1: Basics
+  client_name: z.string().optional(),
+  person_type: personTypeSchema.optional(),
+  full_name: z.string().optional(),
+  company_name: z.string().optional(),
+  primary_phone: z.string().optional(),
+  primary_email: z.string().email().optional().or(z.literal("")),
+
+  // Step 2: Contact
+  secondary_phone: z.string().optional().or(z.literal("")),
+  secondary_email: z.string().email().optional().or(z.literal("")),
+  channels: z.array(z.string()).optional().default([]),
+  language: z.nativeEnum(Language).optional(),
+
+  // Step 3: Legal / Greek identifiers
+  afm: z.string().optional().or(z.literal("")),
+  doy: z.string().optional().or(z.literal("")),
+  id_doc: z.string().optional().or(z.literal("")),
+  company_gemi: z.string().optional().or(z.literal("")),
+
+  // Step 4: Consent & Source
+  gdpr_consent: z.boolean().optional().default(false),
+  allow_marketing: z.boolean().optional().default(false),
+  lead_source: leadSourceSchema,
+  // nullable: DB stores null when no agent is assigned at creation time
+  assigned_to: z.string().optional().nullable(),
+
+  // Edit-only fields (not shown in wizard but present in EditClientForm)
+  client_type: clientTypeSchema,
+  client_status: clientStatusSchema,
+  description: z.string().optional().nullable(),
+  office_phone: z.string().max(50).optional().nullable(),
+  website: z.string().url().optional().or(z.literal("")).nullable(),
+});
+
+/**
+ * Edit form version — adds required `id` and enforces client_name and
+ * person_type that the edit form always requires.
+ */
+export const clientEditFormSchema = clientFormSchema.extend({
+  id: z.string().min(1, "Client ID is required"),
+  client_name: z.string().min(1, "Client name is required").max(255),
+  person_type: personTypeSchema,
+});
+
+export type ClientFormValues = z.infer<typeof clientFormSchema>;
+export type ClientEditFormValues = z.infer<typeof clientEditFormSchema>;

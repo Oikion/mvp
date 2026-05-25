@@ -14,6 +14,7 @@ import {
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchClientWebhook } from "@/lib/webhooks";
 import { decryptContactForOrg, encryptContactForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 const createClientApiSchema = z.object({
   name: z.string().min(1, "name is required").max(255),
@@ -101,7 +102,19 @@ export const GET = withExternalApi(
 
     // Decrypt encrypted contact fields
     const decryptedItems = await Promise.all(
-      items.map((c) => decryptContactForOrg(c, context.organizationId))
+      items.map(async (c) => {
+        const dec = await decryptContactForOrg(c, context.organizationId);
+        logPiiAccess({
+          userId: context.createdById,
+          organizationId: context.organizationId,
+          entityType: "CONTACT",
+          entityId: c.id,
+          action: "API_RESPONSE",
+          fields: ["displayName", "email", "primaryPhone"],
+          source: "GET /api/v1/crm/clients",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     return createApiSuccessResponse(

@@ -63,6 +63,17 @@ export async function POST(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
+    // Verify caller holds an active share on the current session (prevents non-members from rotating)
+    const callerShare = await prismadb.groupSessionShare.findUnique({
+      where: { groupSessionId_userId: { groupSessionId: oldSession.id, userId } },
+    });
+    if (!callerShare) {
+      return NextResponse.json(
+        { error: "You are not a member of this session" },
+        { status: 403 }
+      );
+    }
+
     // NC-2: Verify all new share recipients are org members
     const orgMembers = await getOrgMembersFromDb({ organizationId: orgId });
     const memberClerkIds = new Set(orgMembers.clerkUserIds);

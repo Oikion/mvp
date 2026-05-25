@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual, createHmac } from "node:crypto";
 import { computeCrossOrgMatches } from "@/actions/network/compute-cross-org-matches";
+import { startCronExecution, completeCronExecution, failCronExecution } from "@/lib/cron-execution";
 
 // Hash both sides to a fixed 32-byte digest so timingSafeEqual always runs
 // regardless of token length, preventing a timing side-channel on secret length.
@@ -25,6 +26,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const cronLogId = await startCronExecution("cross-org-matches");
+
   try {
     const start = Date.now();
     const result = await computeCrossOrgMatches();
@@ -34,6 +37,7 @@ export async function GET(req: Request) {
       `[CRON cross-org-matches] upserted=${result.upserted} expired=${result.expired} errors=${result.errors} duration=${durationMs}ms`,
     );
 
+    await completeCronExecution(cronLogId, { upserted: result.upserted, expired: result.expired, errors: result.errors, durationMs });
     return NextResponse.json({
       ok: true,
       upserted: result.upserted,
@@ -43,6 +47,7 @@ export async function GET(req: Request) {
     });
   } catch (err) {
     console.error("[CRON cross-org-matches] Fatal error:", err);
+    await failCronExecution(cronLogId, err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

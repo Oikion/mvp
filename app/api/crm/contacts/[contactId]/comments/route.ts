@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { canPerformAction } from "@/lib/permissions";
+import { canPerformAction, requireActionOnEntity } from "@/lib/permissions";
+import { handleGuardError } from "@/lib/permissions/action-guards";
 import {
   encryptContactCommentForOrg,
   decryptContactCommentForOrg,
   decryptContactForOrg,
 } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
 import { EncryptionMode } from "@prisma/client";
 import { z } from "zod";
@@ -68,7 +70,20 @@ export async function GET(
     const decrypted = [];
     for (const comment of comments) {
       try {
-        decrypted.push(await decryptContactCommentForOrg(comment, organizationId));
+        const dec = await decryptContactCommentForOrg(comment, organizationId);
+        // fire-and-forget PII access log
+        getCurrentUser().then((actor) => {
+          logPiiAccess({
+            userId: actor.id,
+            organizationId,
+            entityType: "CONTACT_COMMENT",
+            entityId: comment.id,
+            action: "DECRYPT",
+            fields: ["content"],
+            source: "GET /api/crm/contacts/[contactId]/comments",
+          }).catch(() => {});
+        }).catch(() => {});
+        decrypted.push(dec);
       } catch (err) {
         console.error(`[CONTACT_COMMENTS_GET] Failed to decrypt comment ${comment.id}:`, err);
       }
@@ -120,6 +135,15 @@ export async function POST(
     }
 
     const decryptedContact = await decryptContactForOrg(contact, organizationId);
+    logPiiAccess({
+      userId: user.id,
+      organizationId,
+      entityType: "CONTACT",
+      entityId: contactId,
+      action: "DECRYPT",
+      fields: ["displayName"],
+      source: "POST /api/crm/contacts/[contactId]/comments",
+    }).catch(() => {});
 
     // Determine encryption mode
     const encryptionMode = await getOrgEncryptionMode(organizationId);
@@ -238,9 +262,21 @@ export async function POST(
     }).catch((err) => console.error("[CONTACT_COMMENT_NOTIFY]", err));
 
     // For Standard orgs, decrypt before returning to client
-    const responseComment = isE2EE
-      ? comment
-      : await decryptContactCommentForOrg(comment, organizationId);
+    let responseComment: typeof comment | Awaited<ReturnType<typeof decryptContactCommentForOrg>>;
+    if (isE2EE) {
+      responseComment = comment;
+    } else {
+      responseComment = await decryptContactCommentForOrg(comment, organizationId);
+      logPiiAccess({
+        userId: user.id,
+        organizationId,
+        entityType: "CONTACT",
+        entityId: contactId,
+        action: "DECRYPT",
+        fields: ["content"],
+        source: "POST /api/crm/contacts/[contactId]/comments (response)",
+      }).catch(() => {});
+    }
 
     return NextResponse.json(
       { comment: { ...responseComment, Users: comment.user } },
@@ -257,11 +293,6 @@ export async function DELETE(
   { params }: { params: Promise<{ contactId: string }> }
 ) {
   try {
-    const deleteCheck = await canPerformAction("contact:update");
-    if (!deleteCheck.allowed) {
-      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-    }
-
     const organizationId = await getCurrentOrgId();
     const user = await getCurrentUser();
     const { contactId } = await params;
@@ -285,6 +316,15 @@ export async function DELETE(
     if (!comment) {
       return NextResponse.json({ error: "Comment not found" }, { status: 404 });
     }
+
+    // Fetch contact owner for action guard
+    const contact = await prismadb.contact.findFirst({
+      where: { id: contactId, organizationId },
+      select: { assignedAgentId: true },
+    });
+
+    const guard = await requireActionOnEntity("contact:update", "contact", contactId, contact?.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     // Only the comment author can delete
     if (comment.userId !== user.id) {

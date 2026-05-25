@@ -3,6 +3,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { NextResponse } from "next/server";
 import { encryptMyAccountForOrg, decryptMyAccountForOrg } from "@/lib/model-encryption";
 import { safeErrorResponse } from "@/lib/api-error";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 export async function POST(req: Request) {
   try {
@@ -210,7 +211,7 @@ export async function PUT(req: Request) {
 
 export async function GET() {
   try {
-    await getCurrentUser();
+    const actor = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
     // Scope to organization — prevents cross-org data leak
@@ -220,7 +221,20 @@ export async function GET() {
 
     // Decrypt PII fields before returning
     const decrypted = await Promise.all(
-      accounts.map((acc) => decryptMyAccountForOrg(acc, organizationId))
+      accounts.map(async (acc) => {
+        const dec = await decryptMyAccountForOrg(acc, organizationId);
+        // fire-and-forget PII access log
+        logPiiAccess({
+          userId: actor.id,
+          organizationId,
+          entityType: "MY_ACCOUNT",
+          entityId: acc.id,
+          action: "DECRYPT",
+          fields: ["VAT_number", "TAX_number", "bank_name", "bank_account", "bank_code", "bank_IBAN", "bank_SWIFT", "email_accountant"],
+          source: "GET /api/my-account",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     return NextResponse.json(decrypted, { status: 200 });

@@ -64,53 +64,66 @@ export async function POST(req: Request) {
 
     // Create identity key, pepper (if not already created by GET /api/e2ee/pepper),
     // and pre-keys in a transaction
-    const result = await prismadb.$transaction(async (tx) => {
-      const identityKey = await tx.userIdentityKey.create({
-        data: {
-          userId,
-          publicKey,
-          wrappedPrivateKey,
-          salt,
-          pbkdfIterations: pbkdfIterations ?? MIN_PBKDF2_ITERATIONS,
-          signingPublicKey: signingPublicKey ?? null,
-          wrappedSigningPrivateKey: wrappedSigningPrivateKey ?? null,
-          signingSalt: signingSalt ?? null,
-        },
-      });
-
-      // Pepper may already exist (created by GET /api/e2ee/pepper during setup).
-      // Upsert ensures idempotency — no error if it already exists.
-      await tx.userE2eePepper.upsert({
-        where: { userId },
-        update: {},
-        create: { userId, pepper: crypto.randomBytes(32).toString("hex") },
-      });
-
-      // Store signed pre-key
-      if (signedPreKey) {
-        await tx.userPreKey.create({
+    let result;
+    try {
+      result = await prismadb.$transaction(async (tx) => {
+        const identityKey = await tx.userIdentityKey.create({
           data: {
             userId,
-            keyType: "SIGNED",
-            publicKey: signedPreKey.publicKey,
-            signature: signedPreKey.signature,
+            publicKey,
+            wrappedPrivateKey,
+            salt,
+            pbkdfIterations: pbkdfIterations ?? MIN_PBKDF2_ITERATIONS,
+            signingPublicKey: signingPublicKey ?? null,
+            wrappedSigningPrivateKey: wrappedSigningPrivateKey ?? null,
+            signingSalt: signingSalt ?? null,
           },
         });
-      }
 
-      // Store one-time pre-keys
-      if (oneTimePreKeys?.length) {
-        await tx.userPreKey.createMany({
-          data: oneTimePreKeys.map((pk: string) => ({
-            userId,
-            keyType: "ONE_TIME" as const,
-            publicKey: pk,
-          })),
+        // Pepper may already exist (created by GET /api/e2ee/pepper during setup).
+        // Upsert ensures idempotency — no error if it already exists.
+        await tx.userE2eePepper.upsert({
+          where: { userId },
+          update: {},
+          create: { userId, pepper: crypto.randomBytes(32).toString("hex") },
         });
-      }
 
-      return identityKey;
-    });
+        // Store signed pre-key
+        if (signedPreKey) {
+          await tx.userPreKey.create({
+            data: {
+              userId,
+              keyType: "SIGNED",
+              publicKey: signedPreKey.publicKey,
+              signature: signedPreKey.signature,
+            },
+          });
+        }
+
+        // Store one-time pre-keys
+        if (oneTimePreKeys?.length) {
+          await tx.userPreKey.createMany({
+            data: oneTimePreKeys.map((pk: string) => ({
+              userId,
+              keyType: "ONE_TIME" as const,
+              publicKey: pk,
+            })),
+          });
+        }
+
+        return identityKey;
+      });
+    } catch (err: unknown) {
+      const prismaError = err as { code?: string };
+      if (prismaError.code === "P2002") {
+        return NextResponse.json(
+          { error: "E2EE is already configured for this account" },
+          { status: 409 }
+        );
+      }
+      console.error("[e2ee/identity] Failed to create identity key:", err);
+      return NextResponse.json({ error: "Failed to set up E2EE" }, { status: 500 });
+    }
 
     return NextResponse.json({ id: result.id, publicKey: result.publicKey });
   } catch (error) {

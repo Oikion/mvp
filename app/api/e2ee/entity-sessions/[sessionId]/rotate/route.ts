@@ -5,6 +5,21 @@ import { rotateEntitySession } from "@/lib/entity-session/entity-session-service
 import type { EntityType } from "@/lib/entity-session/types";
 import { prismadb } from "@/lib/prisma";
 import { getOrgMembersFromDb } from "@/lib/org-members";
+import { z } from "zod";
+
+const EntitySessionShareSchema = z.object({
+  userId: z.string().min(1),
+  encryptedSession: z.string().min(1).max(65536),
+  ephemeralPublicKey: z.string().min(1),
+  iv: z.string().min(1),
+  startingIndex: z.number().int().min(0).default(0),
+}).strict();
+
+const RotateEntitySessionSchema = z.object({
+  newMegolmSessionId: z.string().min(1),
+  shares: z.array(EntitySessionShareSchema).min(1).max(100),
+  orkBackup: z.string().min(1).max(65536).optional(),
+}).strict();
 
 /**
  * POST /api/e2ee/entity-sessions/[sessionId]/rotate
@@ -53,48 +68,21 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { newMegolmSessionId, shares, orkBackup } = body;
-
-    if (!newMegolmSessionId || !shares?.length || !orkBackup) {
-      return NextResponse.json(
-        { error: "newMegolmSessionId, shares, and orkBackup are required" },
-        { status: 400 }
-      );
+    const parsed = RotateEntitySessionSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
-
-    // Validate blob sizes
-    if (orkBackup.length > 65536) {
-      return NextResponse.json(
-        { error: "orkBackup too large" },
-        { status: 400 }
-      );
-    }
-    for (const share of shares) {
-      if (share.encryptedSession && share.encryptedSession.length > 65536) {
-        return NextResponse.json(
-          { error: "encryptedSession too large" },
-          { status: 400 }
-        );
-      }
-    }
+    const { newMegolmSessionId, shares, orkBackup } = parsed.data;
 
     // Validate share recipients are org members
-    if (shares && Array.isArray(shares) && shares.length > 0) {
-      if (shares.length > 100) {
+    const orgMembers = await getOrgMembersFromDb({ organizationId: currentSession.orgId });
+    const memberIds = new Set(orgMembers.users.map((u: any) => u.id));
+    for (const share of shares) {
+      if (!memberIds.has(share.userId)) {
         return NextResponse.json(
-          { error: "shares must be an array of at most 100 items" },
-          { status: 400 }
+          { error: `User ${share.userId} is not a member of this organization` },
+          { status: 403 }
         );
-      }
-      const orgMembers = await getOrgMembersFromDb({ organizationId: currentSession.orgId });
-      const memberIds = new Set(orgMembers.users.map((u: any) => u.id));
-      for (const share of shares) {
-        if (!memberIds.has(share.userId)) {
-          return NextResponse.json(
-            { error: `User ${share.userId} is not a member of this organization` },
-            { status: 403 }
-          );
-        }
       }
     }
 

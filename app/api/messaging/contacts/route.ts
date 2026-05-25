@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { decryptContactForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * GET /api/messaging/contacts
@@ -37,7 +38,20 @@ export async function GET() {
     });
 
     const decrypted = await Promise.all(
-      contacts.map((c) => decryptContactForOrg(c, organizationId))
+      contacts.map(async (c) => {
+        const dec = await decryptContactForOrg(c, organizationId);
+        // fire-and-forget PII access log
+        logPiiAccess({
+          userId,
+          organizationId,
+          entityType: "CONTACT",
+          entityId: c.id,
+          action: "DECRYPT",
+          fields: ["firstName", "lastName", "displayName", "email", "primaryPhone"],
+          source: "GET /api/messaging/contacts",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     const formattedContacts = decrypted.map((contact) => ({

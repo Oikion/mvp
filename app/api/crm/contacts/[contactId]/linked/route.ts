@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { canPerformAction } from "@/lib/permissions";
 import { decryptCalendarEventForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 /**
  * GET /api/crm/contacts/[contactId]/linked
  * Fetch linked requests and owned properties for a contact.
@@ -88,7 +89,19 @@ export async function GET(
     });
 
     const documents = await Promise.all(
-      linkedDocumentsRaw.map((doc) => decryptDocumentForOrg(doc, organizationId))
+      linkedDocumentsRaw.map(async (doc) => {
+        const dec = await decryptDocumentForOrg(doc, organizationId);
+        logPiiAccess({
+          userId,
+          organizationId,
+          entityType: "DOCUMENT",
+          entityId: doc.id,
+          action: "DECRYPT",
+          fields: ["document_name", "description"],
+          source: "GET /api/crm/contacts/[contactId]/linked",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     // Fetch linked calendar events via M2M
@@ -113,7 +126,19 @@ export async function GET(
     });
 
     const events = await Promise.all(
-      linkedEventsRaw.map((event) => decryptCalendarEventForOrg(event, organizationId))
+      linkedEventsRaw.map(async (event) => {
+        const dec = await decryptCalendarEventForOrg(event, organizationId);
+        logPiiAccess({
+          userId,
+          organizationId,
+          entityType: "CALENDAR_EVENT",
+          entityId: event.id,
+          action: "DECRYPT",
+          fields: ["title", "description", "location"],
+          source: "GET /api/crm/contacts/[contactId]/linked",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     const allEvents = events.map((e) => ({

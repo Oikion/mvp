@@ -246,36 +246,6 @@ export async function canModifyAssignedAgent(): Promise<boolean> {
 }
 
 /**
- * Check if user can manage another user based on role hierarchy
- * Users can only manage users with lower role levels
- */
-export async function canManageUser(
-  targetUserRole: OrgRole
-): Promise<PermissionCheckResult> {
-  const context = await getUserPermissionContext();
-  if (!context) {
-    return { allowed: false, reason: "Not authenticated" };
-  }
-
-  // Must have invite/remove permission
-  if (!context.permissions.canInviteUsers && !context.permissions.canRemoveUsers) {
-    return { allowed: false, reason: "No user management permission" };
-  }
-
-  // Can only manage users with lower roles
-  if (!roleHasPrivilege(context.role, targetUserRole)) {
-    return { allowed: false, reason: "Cannot manage users with equal or higher role" };
-  }
-
-  // Cannot manage other owners
-  if (targetUserRole === OrgRole.OWNER) {
-    return { allowed: false, reason: "Cannot manage organization owners" };
-  }
-
-  return { allowed: true };
-}
-
-/**
  * Check if user is an organization owner
  */
 export async function isOrgOwner(): Promise<boolean> {

@@ -57,3 +57,16 @@ export async function logPiiAccess(entry: PiiAccessLogEntry): Promise<void> {
     console.error("[PiiAccessLog] Failed to write audit entry:", error);
   }
 }
+
+/**
+ * Log a PII access event with a single automatic retry on transient DB failures.
+ * Retries once after 100 ms — swallows errors on both attempts so it never
+ * blocks or throws into the main request path.
+ */
+export async function logPiiAccessWithRetry(entry: PiiAccessLogEntry): Promise<void> {
+  try {
+    await logPiiAccess(entry);
+  } catch {
+    setTimeout(() => logPiiAccess(entry).catch(() => {}), 100);
+  }
+}

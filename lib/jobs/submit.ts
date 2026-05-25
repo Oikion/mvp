@@ -1,14 +1,12 @@
-// @ts-nocheck
-// TODO: Fix type errors
 /**
  * Job Submission Service
- * 
+ *
  * Handles the submission of background jobs to Kubernetes,
  * manages job lifecycle, and provides progress tracking.
  */
 
 import { prismadb } from '@/lib/prisma';
-import { getK8sClientForEnv, K8sClient } from './k8s-client';
+import { getK8sClientForEnv } from './k8s-client';
 import type {
   JobType,
   JobPayload,
@@ -68,7 +66,6 @@ export async function submitJob(options: SubmitJobOptions): Promise<JobSubmissio
     organizationId,
     payload,
     priority = 'normal',
-    metadata,
     createdBy,
     callbackUrl,
   } = options;
@@ -99,6 +96,7 @@ export async function submitJob(options: SubmitJobOptions): Promise<JobSubmissio
         organizationId,
         status: 'PENDING',
         progress: 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         payload: payload as any,
         createdBy,
         priority: priority.toUpperCase() as 'LOW' | 'NORMAL' | 'HIGH',
@@ -177,8 +175,8 @@ export async function getJob(jobId: string): Promise<JobRecord | null> {
     progressMessage: job.progressMessage || undefined,
     k8sJobName: job.k8sJobName || undefined,
     k8sPodName: job.k8sPodName || undefined,
-    payload: job.payload as JobPayload,
-    result: job.result as JobResult | undefined,
+    payload: job.payload as unknown as JobPayload,
+    result: job.result as unknown as JobResult | undefined,
     errorMessage: job.errorMessage || undefined,
     createdAt: job.createdAt,
     startedAt: job.startedAt || undefined,
@@ -196,7 +194,11 @@ export async function getJobsByOrganization(
     offset?: number;
   }
 ): Promise<{ jobs: JobRecord[]; total: number }> {
-  const where: any = { organizationId };
+  const where: {
+    organizationId: string;
+    type?: 'NEWSLETTER_SEND' | 'PORTAL_PUBLISH_XE' | 'BULK_EXPORT';
+    status?: { in: Array<'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED'> };
+  } = { organizationId };
 
   if (options?.type) {
     where.type = JOB_TYPE_TO_PRISMA[options.type];
@@ -226,8 +228,8 @@ export async function getJobsByOrganization(
       progressMessage: job.progressMessage || undefined,
       k8sJobName: job.k8sJobName || undefined,
       k8sPodName: job.k8sPodName || undefined,
-      payload: job.payload as JobPayload,
-      result: job.result as JobResult | undefined,
+      payload: job.payload as unknown as JobPayload,
+      result: job.result as unknown as JobResult | undefined,
       errorMessage: job.errorMessage || undefined,
       createdAt: job.createdAt,
       startedAt: job.startedAt || undefined,
@@ -258,6 +260,7 @@ export async function completeJob(update: JobCompletionUpdate): Promise<void> {
     data: {
       status: update.status === 'completed' ? 'COMPLETED' : 'FAILED',
       progress: update.status === 'completed' ? 100 : undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result: update.result as any,
       errorMessage: update.errorMessage,
       completedAt: new Date(),
@@ -347,6 +350,51 @@ export async function syncJobStatusFromK8s(jobId: string): Promise<void> {
       },
     });
   }
+}
+
+// ===========================================
+// Job Watchdog
+// ===========================================
+
+/**
+ * Finds RUNNING BackgroundJob records older than maxAgeMinutes and attempts
+ * to sync their status from K8s. Jobs with no k8sJobName are force-failed.
+ * Called by the /api/cron/job-watchdog cron every 15 minutes.
+ */
+export async function watchStaleJobs(maxAgeMinutes = 60): Promise<{ recovered: number; checked: number }> {
+  const cutoff = new Date(Date.now() - maxAgeMinutes * 60 * 1000);
+  const staleJobs = await prismadb.backgroundJob.findMany({
+    where: {
+      status: 'RUNNING',
+      startedAt: { lt: cutoff },
+    },
+    select: { id: true, k8sJobName: true, organizationId: true },
+  });
+
+  let recovered = 0;
+  for (const job of staleJobs) {
+    try {
+      if (!job.k8sJobName) {
+        await prismadb.backgroundJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'FAILED',
+            completedAt: new Date(),
+            errorMessage: 'Watchdog: no k8sJobName recorded; force-failed after timeout',
+          },
+        });
+        recovered++;
+        continue;
+      }
+      // Try to sync from K8s — syncJobStatusFromK8s handles not-found gracefully
+      await syncJobStatusFromK8s(job.id);
+      recovered++;
+    } catch (err) {
+      console.error('[JOB_WATCHDOG]', job.id, err);
+    }
+  }
+
+  return { recovered, checked: staleJobs.length };
 }
 
 // ===========================================

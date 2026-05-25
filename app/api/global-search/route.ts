@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
 import { decryptRequestForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * Entity types that can be searched
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
   const startTime = performance.now();
   
   try {
-    await getCurrentUser();
+    const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body: SearchRequestBody = await req.json();
 
@@ -249,7 +250,20 @@ export async function POST(req: Request) {
         }).then(async (requests: any[]) => {
           // Decrypt and filter in memory
           const decrypted = await Promise.all(
-            requests.map((r: any) => decryptRequestForOrg(r, organizationId))
+            requests.map(async (r: any) => {
+              const dec = await decryptRequestForOrg(r, organizationId);
+              // fire-and-forget PII access log — global search decrypt
+              logPiiAccess({
+                userId: currentUser.id,
+                organizationId,
+                entityType: "REQUEST",
+                entityId: r.id,
+                action: "DECRYPT",
+                fields: ["name", "notes", "locationDisplayName"],
+                source: "POST /api/global-search",
+              }).catch(() => {});
+              return dec;
+            })
           );
           const searchTerm = query.toLowerCase();
           const filtered = decrypted.filter((r: any) => {

@@ -42,6 +42,23 @@ describe("isEncrypted", () => {
     expect(isEncrypted("abc:def:ghi")).toBe(false);
     expect(isEncrypted("a:b")).toBe(false);
   });
+
+  // Test the false-positive scenario (regression test for the ciphertext hex validation fix)
+  it("returns false when ciphertext portion is not hex-encoded", () => {
+    // Valid 24-char hex IV, valid 32-char hex authTag, but non-hex ciphertext
+    const validIv = "a1b2c3d4e5f6a7b8c9d0e1f2"; // 24 hex chars
+    const validTag = "f6e5d4c3b2a1f0e9d8c7b6a5949392a1"; // 32 hex chars
+    expect(isEncrypted(`${validIv}:${validTag}:plaintext`)).toBe(false);
+    expect(isEncrypted(`${validIv}:${validTag}:not-valid-hex!`)).toBe(false);
+  });
+
+  it("returns true for genuinely encrypted values with all-hex ciphertext", () => {
+    // All three parts are valid hex — this is what a real encrypted value looks like
+    const validIv = "a1b2c3d4e5f6a7b8c9d0e1f2"; // 24 hex chars
+    const validTag = "f6e5d4c3b2a1f0e9d8c7b6a5949392a1"; // 32 hex chars
+    const validCiphertext = "deadbeefcafe1234deadbeefcafe5678"; // 32 hex chars
+    expect(isEncrypted(`${validIv}:${validTag}:${validCiphertext}`)).toBe(true);
+  });
 });
 
 describe("encrypt / decrypt round-trip", () => {

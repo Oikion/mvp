@@ -13,6 +13,7 @@ import {
 import { dispatchContactWebhook } from "@/lib/webhooks";
 import { decryptContactForOrg, encryptContactForOrg } from "@/lib/model-encryption";
 import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * Zod schema for external API contact update.
@@ -106,6 +107,16 @@ export const GET = withExternalApi(
     }
 
     const decrypted = await decryptContactForOrg(contact, context.organizationId);
+    // fire-and-forget PII access log — external API single contact GET
+    logPiiAccess({
+      userId: context.createdById,
+      organizationId: context.organizationId,
+      entityType: "CONTACT",
+      entityId: contact.id,
+      action: "API_RESPONSE",
+      fields: ["displayName", "firstName", "lastName", "companyName", "email", "secondaryEmail", "primaryPhone", "secondaryPhone", "officePhone", "taxId", "doy", "vatNumber", "notes", "addresses"],
+      source: "GET /api/v1/crm/contacts/[contactId]",
+    }).catch(() => {});
 
     return createApiSuccessResponse({
       contact: {
@@ -176,6 +187,16 @@ export const PUT = withExternalApi(
 
     // Decrypt existing record for webhook plaintext fallbacks
     const decryptedExisting = await decryptContactForOrg(existingContact, context.organizationId);
+    // fire-and-forget PII access log — reading existing record to build webhook payload
+    logPiiAccess({
+      userId: context.createdById,
+      organizationId: context.organizationId,
+      entityType: "CONTACT",
+      entityId: existingContact.id,
+      action: "DECRYPT",
+      fields: ["displayName", "email", "primaryPhone"],
+      source: "PUT /api/v1/crm/contacts/[contactId] (webhook prep)",
+    }).catch(() => {});
 
     const body = await req.json();
 
@@ -298,6 +319,16 @@ export const DELETE = withExternalApi(
 
     // Decrypt before archiving — webhook consumers need plaintext
     const decryptedForWebhook = await decryptContactForOrg(existingContact, context.organizationId);
+    // fire-and-forget PII access log — reading contact to build archive webhook
+    logPiiAccess({
+      userId: context.createdById,
+      organizationId: context.organizationId,
+      entityType: "CONTACT",
+      entityId: existingContact.id,
+      action: "DECRYPT",
+      fields: ["displayName", "email"],
+      source: "DELETE /api/v1/crm/contacts/[contactId] (webhook prep)",
+    }).catch(() => {});
 
     await deleteEntitySessionsForEntity("CONTACT", existingContact.id);
 

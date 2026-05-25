@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { canPerformAction } from "@/lib/permissions";
+import { requireActionOnEntity } from "@/lib/permissions";
+import { handleGuardError } from "@/lib/permissions/action-guards";
 import { createChangeLogEntry } from "@/lib/entity-change-log";
 import {
   logEntityLinkedSymmetric,
@@ -27,11 +28,6 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const writeCheck = await canPerformAction("contact:update");
-    if (!writeCheck.allowed) {
-      return NextResponse.json({ error: writeCheck.reason || "Permission denied" }, { status: 403 });
-    }
-
     const { contactId } = await params;
     const body = await req.json();
     const validation = linkSchema.safeParse(body);
@@ -41,11 +37,14 @@ export async function POST(
 
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true, friendlyId: true },
+      select: { id: true, friendlyId: true, assignedAgentId: true },
     });
     if (!contact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("contact:update", "contact", contactId, contact.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     await Promise.all(
       validation.data.propertyIds.map((propertyId) =>
@@ -112,11 +111,6 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const writeCheck = await canPerformAction("contact:update");
-    if (!writeCheck.allowed) {
-      return NextResponse.json({ error: writeCheck.reason || "Permission denied" }, { status: 403 });
-    }
-
     const { contactId } = await params;
     const body = await req.json();
     const validation = unlinkSchema.safeParse(body);
@@ -126,11 +120,14 @@ export async function DELETE(
 
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true, friendlyId: true },
+      select: { id: true, friendlyId: true, assignedAgentId: true },
     });
     if (!contact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("contact:update", "contact", contactId, contact.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     // Fetch label before deleting
     const unlinkedProperty = await prismadb.properties.findFirst({

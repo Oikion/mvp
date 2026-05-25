@@ -185,11 +185,11 @@ export async function canPerformAction(
   // Handle ownership-based permissions
   if (level === "own") {
     if (!context?.ownerId) {
-      // No owner context provided - require ownership check by caller
+      // No owner context provided — fail closed. Callers must supply entity
+      // ownership context for "own"-scoped actions via canPerformActionOnEntity().
       return {
-        allowed: true,
-        requiresOwnership: true,
-        reason: "Ownership verification required",
+        allowed: false,
+        reason: "Ownership context required — use canPerformActionOnEntity()",
       };
     }
 

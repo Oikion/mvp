@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { decryptContactForOrg, decryptRequestForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * GET /api/documents/[documentId]/linked
@@ -12,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
-    await getCurrentUser();
+    const actor = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const { documentId } = await params;
 
@@ -97,6 +98,15 @@ export async function GET(
     const clients = await Promise.all(
       document.Contacts.map(async (contact) => {
         const decrypted = await decryptContactForOrg(contact, organizationId);
+        logPiiAccess({
+          userId: actor.id,
+          organizationId,
+          entityType: "CONTACT",
+          entityId: contact.id,
+          action: "DECRYPT",
+          fields: ["displayName", "email", "primaryPhone"],
+          source: "GET /api/documents/[documentId]/linked",
+        }).catch(() => {});
         return {
           ...decrypted,
           assigned_to_user: contact.assignedAgent,
@@ -114,7 +124,17 @@ export async function GET(
     // Decrypt request titles
     const mandates = await Promise.all(
       document.Requests.map(async (request) => {
-        return decryptRequestForOrg(request, organizationId);
+        const dec = await decryptRequestForOrg(request, organizationId);
+        logPiiAccess({
+          userId: actor.id,
+          organizationId,
+          entityType: "REQUEST",
+          entityId: request.id,
+          action: "DECRYPT",
+          fields: ["name", "notes"],
+          source: "GET /api/documents/[documentId]/linked",
+        }).catch(() => {});
+        return dec;
       })
     );
 

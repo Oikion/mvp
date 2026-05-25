@@ -1,9 +1,10 @@
 "use server"
 
+import { z } from "zod"
 import { prismadb } from "@/lib/prisma"
 import resendHelper from "@/lib/resend"
 import { EMAIL_CONFIG } from "@/lib/resend-segments"
-import { requirePlatformAdmin } from "@/lib/platform-admin"
+import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin"
 import { renderCampaignBlocks } from "./render-campaign-blocks"
 import type { EmailBlock } from "@/lib/communication/types"
 
@@ -12,11 +13,18 @@ interface SendTestEmailResult {
   error?: string
 }
 
+const emailSchema = z.string().email()
+
 export async function sendTestEmail(
   campaignId: string,
   testEmail: string
 ): Promise<SendTestEmailResult> {
-  await requirePlatformAdmin()
+  const admin = await requirePlatformAdmin()
+
+  const emailParse = emailSchema.safeParse(testEmail)
+  if (!emailParse.success) {
+    return { success: false, error: "Invalid test email address" }
+  }
 
   try {
     // Load campaign
@@ -59,6 +67,10 @@ export async function sendTestEmail(
       console.error("[SEND_TEST_EMAIL] Resend error:", error)
       return { success: false, error: error.message ?? "Failed to send test email" }
     }
+
+    await logAdminAction(admin.id, "SEND_TEST_EMAIL", campaignId, {
+      subject: campaign.subject,
+    }).catch((e) => console.error("[AUDIT_LOG]", e))
 
     return { success: true }
   } catch (error) {

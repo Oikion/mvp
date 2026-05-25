@@ -1,78 +1,29 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { requirePlatformAdmin } from "@/lib/platform-admin";
 import { createNotification } from "@/lib/notifications/notification-service";
+import { z } from "zod";
 
-/**
- * Check if current user is a platform admin
- * This is a route-compatible version of the check
- */
-async function checkPlatformAdmin() {
-  const { userId } = await auth();
+// Allowed origins for attachment URLs — must match project storage providers
+const ALLOWED_ATTACHMENT_ORIGINS = [
+  "https://public.blob.vercel-storage.com",
+  "https://fra1.digitaloceanspaces.com",
+];
 
-  if (!userId) {
-    return null;
-  }
-
-  const clerk = await clerkClient();
-  const user = await clerk.users.getUser(userId);
-  const userEmail = user.emailAddresses?.[0]?.emailAddress?.toLowerCase().trim();
-
-  if (userEmail) {
-    // Production admin emails
-    const prodAdminEmails = process.env.PLATFORM_ADMIN_EMAILS;
-    if (prodAdminEmails) {
-      const adminEmailList = prodAdminEmails
-        .replace(/"/g, "")
-        .split(",")
-        .map((e) => e.toLowerCase().trim());
-
-      if (adminEmailList.includes(userEmail)) {
-        return {
-          id: user.id,
-          clerkId: user.id,
-          email: userEmail,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        };
-      }
-    }
-
-    // Development bypass
-    if (process.env.NODE_ENV !== "production") {
-      const devAdminEmails = process.env.PLATFORM_ADMIN_DEV_EMAILS;
-      if (devAdminEmails) {
-        const devEmailList = devAdminEmails
-          .replace(/"/g, "")
-          .split(",")
-          .map((e) => e.toLowerCase().trim());
-
-        if (devEmailList.includes(userEmail)) {
-          return {
-            id: user.id,
-            clerkId: user.id,
-            email: userEmail,
-            firstName: user.firstName,
-            lastName: user.lastName,
-          };
-        }
-      }
-    }
-  }
-
-  // Check Clerk privateMetadata
-  if (user.privateMetadata?.isPlatformAdmin === true) {
-    return {
-      id: user.id,
-      clerkId: user.id,
-      email: userEmail || "",
-      firstName: user.firstName,
-      lastName: user.lastName,
-    };
-  }
-
-  return null;
-}
+const attachmentSchema = z
+  .object({
+    url: z
+      .string()
+      .url()
+      .refine(
+        (url) => ALLOWED_ATTACHMENT_ORIGINS.some((origin) => url.startsWith(origin)),
+        { message: "Attachment URL must be from an allowed storage origin" }
+      ),
+    name: z.string().min(1).max(255),
+    size: z.number().int().min(0).max(50_000_000),
+    type: z.string().max(100),
+  })
+  .optional();
 
 /**
  * GET /api/platform-admin/feedback/[feedbackId]/comments
@@ -83,13 +34,7 @@ export async function GET(
   props: { params: Promise<{ feedbackId: string }> }
 ) {
   try {
-    const admin = await checkPlatformAdmin();
-    if (!admin) {
-      return NextResponse.json(
-        { error: "Unauthorized: Platform admin access required" },
-        { status: 401 }
-      );
-    }
+    await requirePlatformAdmin();
 
     const { feedbackId } = await props.params;
 
@@ -147,13 +92,7 @@ export async function POST(
   props: { params: Promise<{ feedbackId: string }> }
 ) {
   try {
-    const admin = await checkPlatformAdmin();
-    if (!admin) {
-      return NextResponse.json(
-        { error: "Unauthorized: Platform admin access required" },
-        { status: 401 }
-      );
-    }
+    const admin = await requirePlatformAdmin();
 
     const { feedbackId } = await props.params;
 
@@ -165,7 +104,17 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { content, attachment } = body;
+    const { content } = body;
+
+    // Validate attachment before any other use
+    const attachmentResult = attachmentSchema.safeParse(body.attachment);
+    if (body.attachment && !attachmentResult.success) {
+      return NextResponse.json(
+        { error: "Invalid attachment", details: attachmentResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+    const attachment = attachmentResult.data;
 
     // Content or attachment is required
     if ((!content || typeof content !== "string" || !content.trim()) && !attachment) {

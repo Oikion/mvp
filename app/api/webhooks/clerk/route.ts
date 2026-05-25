@@ -337,6 +337,41 @@ export async function POST(req: Request) {
     }
   }
 
+  // Handle email address events — keep Users.email in sync with Clerk primary email.
+  // These events are not typed in the Clerk SDK's WebhookEvent union, so we cast to
+  // a generic shape for the comparison and data extraction.
+  const rawEvt = evt as { type: string; data: unknown };
+  if (
+    rawEvt.type === "emailAddress.created" ||
+    rawEvt.type === "emailAddress.updated" ||
+    rawEvt.type === "emailAddress.deleted"
+  ) {
+    const data = rawEvt.data as { user_id?: string };
+    const userId = data.user_id;
+
+    if (userId) {
+      try {
+        const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+        const clerkUser = await clerk.users.getUser(userId);
+        const primaryEmail = clerkUser.emailAddresses.find(
+          (e) => e.id === clerkUser.primaryEmailAddressId
+        )?.emailAddress;
+
+        if (primaryEmail) {
+          await prismadb.users.updateMany({
+            where: { clerkUserId: userId },
+            data: { email: primaryEmail },
+          });
+          console.log(`[CLERK_WEBHOOK] Synced email for user ${userId} (${rawEvt.type})`);
+        } else {
+          console.warn(`[CLERK_WEBHOOK] No primary email found for user ${userId} (${rawEvt.type})`);
+        }
+      } catch (error) {
+        console.error("[CLERK_WEBHOOK]", error);
+      }
+    }
+  }
+
   return new Response("Webhook processed", { status: 200 });
 }
 

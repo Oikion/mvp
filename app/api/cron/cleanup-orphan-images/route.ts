@@ -1,27 +1,8 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { deleteFromBlob } from "@/lib/vercel-blob";
-import { timingSafeEqual } from "crypto";
-
-/**
- * Timing-safe comparison for cron authentication tokens
- * Prevents timing attacks that could leak the secret
- */
-function verifyAuthToken(
-  provided: string | null,
-  expected: string | undefined
-): boolean {
-  if (!provided || !expected) return false;
-
-  const expectedBuffer = Buffer.from(`Bearer ${expected}`);
-  const providedBuffer = Buffer.from(provided);
-
-  if (expectedBuffer.length !== providedBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(expectedBuffer, providedBuffer);
-}
+import { verifyAuthToken } from "@/lib/cron-auth";
+import { startCronExecution, completeCronExecution, failCronExecution } from "@/lib/cron-execution";
 
 /**
  * Cron endpoint to clean up orphaned property images.
@@ -33,13 +14,15 @@ function verifyAuthToken(
  * Schedule: daily at 03:00 UTC (configured in vercel.json)
  */
 export async function GET(req: Request) {
-  try {
-    // Verify cron authorization
-    const authHeader = req.headers.get("authorization");
-    if (!verifyAuthToken(authHeader, process.env.CRON_SECRET)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Verify cron authorization
+  const authHeader = req.headers.get("authorization");
+  if (!verifyAuthToken(authHeader, process.env.CRON_SECRET)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
+  const cronLogId = await startCronExecution("cleanup-orphan-images");
+
+  try {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     // Find orphan images older than 24 hours
@@ -89,6 +72,7 @@ export async function GET(req: Request) {
       `[CRON_ORPHAN_IMAGES] Cleaned up ${deleted} orphan images, ${failed} failed out of ${orphans.length} found`
     );
 
+    await completeCronExecution(cronLogId, { found: orphans.length, deleted, failed });
     return NextResponse.json({
       success: true,
       found: orphans.length,
@@ -102,6 +86,7 @@ export async function GET(req: Request) {
         ? error.message
         : "Failed to clean up orphan images";
     console.error("[CRON_ORPHAN_IMAGES]", error);
+    await failCronExecution(cronLogId, error);
     return NextResponse.json(
       { error: errorMessage, timestamp: new Date().toISOString() },
       { status: 500 }

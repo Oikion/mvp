@@ -11,6 +11,7 @@ import { validateAssignedTo } from "@/lib/validate-assigned-to";
 import { notifyContactCreated } from "@/lib/notifications";
 import { createChangeLogEntry } from "@/lib/entity-change-log";
 import { logEntityCreated } from "@/lib/activity-logger";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 export async function GET(req: Request) {
   try {
@@ -79,7 +80,18 @@ export async function GET(req: Request) {
     const decrypted = (await Promise.all(
       results.map(async (contact) => {
         try {
-          return await decryptContactForOrg(contact, organizationId);
+          const dec = await decryptContactForOrg(contact, organizationId);
+          // fire-and-forget PII access log — never blocks the response
+          logPiiAccess({
+            userId,
+            organizationId,
+            entityType: "CONTACT",
+            entityId: contact.id,
+            action: "DECRYPT",
+            fields: ["firstName", "lastName", "displayName", "companyName", "email", "primaryPhone"],
+            source: "GET /api/crm/contacts",
+          }).catch(() => {});
+          return dec;
         } catch (err) {
           console.error(`[CONTACTS_GET] Failed to decrypt contact ${contact.id}:`, err);
           return null;

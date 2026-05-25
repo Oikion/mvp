@@ -11,6 +11,7 @@ import {
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
 import { decryptDocumentForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * GET /api/v1/documents
@@ -75,7 +76,19 @@ export const GET = withExternalApi(
 
     // Decrypt encrypted document fields
     const decryptedItems = await Promise.all(
-      items.map((d) => decryptDocumentForOrg(d, context.organizationId))
+      items.map(async (d) => {
+        const dec = await decryptDocumentForOrg(d, context.organizationId);
+        logPiiAccess({
+          userId: context.createdById,
+          organizationId: context.organizationId,
+          entityType: "DOCUMENT",
+          entityId: d.id,
+          action: "API_RESPONSE",
+          fields: ["document_name", "description"],
+          source: "GET /api/v1/documents",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     return createApiSuccessResponse(

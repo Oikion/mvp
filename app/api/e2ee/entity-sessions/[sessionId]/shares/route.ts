@@ -4,6 +4,15 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { isE2EEOrg } from "@/lib/entity-session/encryption-mode";
 import { createSessionShare } from "@/lib/entity-session/entity-session-service";
 import { getOrgMembersFromDb } from "@/lib/org-members";
+import { z } from "zod";
+
+const AddShareSchema = z.object({
+  userId: z.string().min(1),
+  encryptedSession: z.string().min(1).max(65536),
+  ephemeralPublicKey: z.string().min(1),
+  iv: z.string().min(1),
+  startingIndex: z.number().int().min(0).default(0),
+}).strict();
 
 /**
  * POST /api/e2ee/entity-sessions/[sessionId]/shares
@@ -52,21 +61,11 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { userId: recipientId, encryptedSession, ephemeralPublicKey, iv, startingIndex } = body;
-
-    if (!recipientId || !encryptedSession || startingIndex === undefined) {
-      return NextResponse.json(
-        { error: "userId, encryptedSession, and startingIndex are required" },
-        { status: 400 }
-      );
+    const parsedBody = AddShareSchema.safeParse(body);
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
-
-    if (encryptedSession && encryptedSession.length > 65536) {
-      return NextResponse.json(
-        { error: "encryptedSession too large" },
-        { status: 400 }
-      );
-    }
+    const { userId: recipientId, encryptedSession, ephemeralPublicKey, iv, startingIndex } = parsedBody.data;
 
     // Verify recipientId is a member of the session's org (C1: prevent cross-org share injection)
     const orgMembers = await getOrgMembersFromDb({ organizationId: session.orgId });

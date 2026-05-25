@@ -26,6 +26,7 @@ import {
 import { requireCanExport } from "@/lib/permissions/guards";
 import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
 import { decryptContactForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -188,7 +189,20 @@ export async function GET(req: NextRequest) {
     
     // Decrypt encrypted contact fields before export
     const decryptedClients = await Promise.all(
-      clients.map((c) => decryptContactForOrg(c, orgId))
+      clients.map(async (c) => {
+        const dec = await decryptContactForOrg(c, orgId);
+        // fire-and-forget PII access log — EXPORT action for each decrypted contact
+        logPiiAccess({
+          userId: user.id,
+          organizationId: orgId,
+          entityType: "CONTACT",
+          entityId: c.id,
+          action: "EXPORT",
+          fields: ["displayName", "email", "primaryPhone", "notes"],
+          source: "GET /api/export/crm",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     // Transform data for export

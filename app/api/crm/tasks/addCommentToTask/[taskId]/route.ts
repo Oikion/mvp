@@ -7,6 +7,7 @@ import resendHelper from "@/lib/resend";
 import { notifyTaskCommented } from "@/lib/notifications";
 import { canPerformAction } from "@/lib/permissions/action-service";
 import { encryptTaskCommentForOrg, decryptTaskCommentForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
 import { EncryptionMode } from "@prisma/client";
 
@@ -165,9 +166,21 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
     }
 
     // Decrypt server-side encryption before returning (Standard mode stores ciphertext)
-    const responseComment = isE2EE
-      ? newComment
-      : await decryptTaskCommentForOrg(newComment, organizationId);
+    let responseComment;
+    if (isE2EE) {
+      responseComment = newComment;
+    } else {
+      responseComment = await decryptTaskCommentForOrg(newComment, organizationId);
+      logPiiAccess({
+        userId: user.id,
+        organizationId,
+        entityType: "CONTACT",
+        entityId: taskId,
+        action: "DECRYPT",
+        fields: ["comment"],
+        source: "POST /api/crm/tasks/addCommentToTask/[taskId]",
+      }).catch(() => {});
+    }
 
     return NextResponse.json(responseComment, { status: 201 });
   } catch (error) {

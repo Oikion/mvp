@@ -25,7 +25,15 @@ export async function isOrgPersonal(orgId: string): Promise<boolean> {
     const metadata = org.publicMetadata as Record<string, unknown>;
     return metadata?.type === "personal";
   } catch (error) {
-    console.error("Error checking if org is personal:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    // Transient / network errors: fail closed to protect personal workspaces
+    if (/network|ECONN|ETIMEDOUT|timeout|fetch failed/i.test(message)) {
+      throw new Error(
+        `Cannot verify workspace type — Clerk API unavailable. Operation blocked for safety.`
+      );
+    }
+    // Clerk 404 / permission errors: org genuinely doesn't exist — not personal
+    console.error("[personal-workspace-guard] isOrgPersonal check failed:", error);
     return false;
   }
 }

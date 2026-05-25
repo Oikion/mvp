@@ -7,6 +7,7 @@ import { canPerformAction } from "@/lib/permissions";
 import { createRequestSchema, requestQuerySchema } from "@/lib/validations/requests";
 import { encryptRequestForOrg, decryptRequestForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { logEntityCreated, logEntityLinkedSymmetric } from "@/lib/activity-logger";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 export async function GET(req: Request) {
   try {
@@ -99,10 +100,30 @@ export async function GET(req: Request) {
             Promise.all(
               request.requestContacts.map(async (rc) => {
                 const decContact = await decryptContactForOrg(rc.contact, organizationId);
+                // fire-and-forget PII access log for each contact decrypted
+                logPiiAccess({
+                  userId,
+                  organizationId,
+                  entityType: "CONTACT",
+                  entityId: rc.contact.id,
+                  action: "DECRYPT",
+                  fields: ["displayName"],
+                  source: "GET /api/requests (requestContacts)",
+                }).catch(() => {});
                 return { ...rc, contact: decContact };
               })
             ),
           ]);
+          // fire-and-forget PII access log for request decryption
+          logPiiAccess({
+            userId,
+            organizationId,
+            entityType: "REQUEST",
+            entityId: request.id,
+            action: "DECRYPT",
+            fields: ["name", "notes", "locationDisplayName", "communicationNotes", "areasOfInterest"],
+            source: "GET /api/requests",
+          }).catch(() => {});
           return { ...decReq, requestContacts: decContactPairs };
         } catch (err) {
           console.error(`[REQUESTS_GET] Failed to decrypt request ${request.id}:`, err);

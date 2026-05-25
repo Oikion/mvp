@@ -10,24 +10,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateJobProgress, completeJob, getJob } from '@/lib/jobs';
 import type { JobProgressUpdate, JobCompletionUpdate, JobResult } from '@/lib/jobs';
+import { verifyAuthToken } from '@/lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
-// Shared secret for worker authentication
-const WORKER_SECRET = process.env.WORKER_CALLBACK_SECRET || process.env.CRON_SECRET;
-
 /**
- * Verify worker authentication
+ * Verify worker authentication using timing-safe HMAC comparison.
+ * Fails closed if WORKER_CALLBACK_SECRET is not set — no fallback to CRON_SECRET.
  */
 function verifyWorkerAuth(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
-  
-  if (!authHeader || !WORKER_SECRET) {
-    return false;
-  }
-  
-  const token = authHeader.replace('Bearer ', '');
-  return token === WORKER_SECRET;
+  return verifyAuthToken(authHeader, process.env.WORKER_CALLBACK_SECRET);
 }
 
 // ===========================================

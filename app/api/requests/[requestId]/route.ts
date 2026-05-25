@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
-import { canPerformAction } from "@/lib/permissions";
+import { canPerformAction, requireActionOnEntity } from "@/lib/permissions";
+import { handleGuardError } from "@/lib/permissions/action-guards";
 import { isDemoOrg } from "@/lib/demo/demo-guard";
 import { updateRequestSchema } from "@/lib/validations/requests";
 import { encryptRequestForOrg, decryptRequestForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { logEntityCreated, logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 // Safelist of non-encrypted Request fields tracked by the activity log.
 const REQUEST_TRACKED_FIELDS = [
@@ -142,9 +144,30 @@ export async function GET(
     }
 
     const decrypted = await decryptRequestForOrg(request, organizationId);
+    // fire-and-forget PII access log for request
+    logPiiAccess({
+      userId,
+      organizationId,
+      entityType: "REQUEST",
+      entityId: request.id,
+      action: "DECRYPT",
+      fields: ["name", "notes", "locationDisplayName", "communicationNotes", "areasOfInterest"],
+      source: "GET /api/requests/[requestId]",
+    }).catch(() => {});
+
     const decContacts = [];
     for (const rc of request.requestContacts) {
       const decContact = await decryptContactForOrg(rc.contact, organizationId);
+      // fire-and-forget PII access log for each linked contact
+      logPiiAccess({
+        userId,
+        organizationId,
+        entityType: "CONTACT",
+        entityId: rc.contact.id,
+        action: "DECRYPT",
+        fields: ["displayName", "companyName", "email", "primaryPhone"],
+        source: "GET /api/requests/[requestId] (requestContacts)",
+      }).catch(() => {});
       decContacts.push({ ...rc, contact: decContact });
     }
 
@@ -165,11 +188,6 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { requestId } = await params;
-
-    const updateCheck = await canPerformAction("request:update");
-    if (!updateCheck.allowed) {
-      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-    }
 
     const user = await getCurrentUser();
     if (!user) {
@@ -219,6 +237,9 @@ export async function PUT(
     if (!existing) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("request:update", "request", existing.id, existing.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     const updated = await prismadb.request.update({
       where: { id: existing.id, organizationId },
@@ -277,11 +298,6 @@ export async function DELETE(
     }
     const { requestId } = await params;
 
-    const deleteCheck = await canPerformAction("request:delete");
-    if (!deleteCheck.allowed) {
-      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-    }
-
     if (await isDemoOrg(organizationId)) {
       return NextResponse.json({ success: true });
     }
@@ -289,12 +305,15 @@ export async function DELETE(
     // Resolve friendlyId → id, then soft-delete
     const existing = await prismadb.request.findFirst({
       where: { friendlyId: requestId, organizationId },
-      select: { id: true },
+      select: { id: true, assignedAgentId: true },
     });
 
     if (!existing) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+
+    const deleteGuard = await requireActionOnEntity("request:delete", "request", existing.id, existing.assignedAgentId);
+    if (deleteGuard) return handleGuardError(deleteGuard);
 
     await prismadb.request.update({
       where: { id: existing.id, organizationId },

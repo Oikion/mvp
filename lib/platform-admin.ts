@@ -4,6 +4,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import type { AdminActionType } from "./platform-admin-utils";
 import { prismadb } from "@/lib/prisma";
 import { cacheGet, cacheSet } from "@/lib/redis";
+import { logAdminAccessDenied } from "@/actions/platform-admin/log-security-audit";
 
 /**
  * Platform Admin Security Layer
@@ -161,9 +162,31 @@ export async function getPlatformAdminUser(): Promise<PlatformAdminUser | null> 
 export async function requirePlatformAdmin(): Promise<PlatformAdminUser> {
   const admin = await getPlatformAdminUser();
   if (!admin) {
+    logAdminAccessDenied({ path: "requirePlatformAdmin", denialReason: "not_platform_admin" }).catch(() => {});
     throw new Error("Unauthorized: Platform admin access required");
   }
   return admin;
+}
+
+/**
+ * Clear cached admin status for a user (both L1 in-process and L2 Redis)
+ * Call after admin role changes to force re-verification on next request
+ */
+export async function clearAdminCache(userId: string): Promise<void> {
+  adminStatusCache.delete(userId);
+  await cacheSet(`oik:admin:${userId}`, false, 1).catch(() => {});
+}
+
+const AUDIT_BLOCKED_KEYS = new Set([
+  "email", "phone", "password", "token", "secret",
+  "client_name", "primary_email", "primary_phone",
+]);
+
+function sanitizeDetails(details?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!details) return undefined;
+  return Object.fromEntries(
+    Object.entries(details).filter(([k]) => !AUDIT_BLOCKED_KEYS.has(k.toLowerCase()))
+  );
 }
 
 /**
@@ -197,7 +220,7 @@ export async function logAdminAction(
         adminId,
         action,
         targetId: targetId ?? undefined,
-        details: details as object | undefined,
+        details: (sanitizeDetails(details) as object) ?? undefined,
         timestamp: new Date(timestamp),
       },
     });

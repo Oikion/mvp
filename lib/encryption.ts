@@ -97,6 +97,8 @@ const HEX_RE = /^[0-9a-f]+$/;
  * M-1: Accepts both 12-byte (24 hex) and 16-byte (32 hex) IVs for backward compatibility.
  * M-4: Validates hex characters on iv and authTag to prevent false-positives on plaintext
  *       that coincidentally matches the length heuristic.
+ * M-5: Validates hex characters on ciphertext to prevent false-positives where a plaintext
+ *       value of the form "<24-hex>:<32-hex>:<non-hex>" would bypass the idempotency guard.
  */
 export function isEncrypted(value: string | null | undefined): boolean {
   if (!value) return false;
@@ -106,7 +108,8 @@ export function isEncrypted(value: string | null | undefined): boolean {
   // 24 hex = 12-byte IV (new), 32 hex = 16-byte IV (legacy)
   if (ivLen !== 24 && ivLen !== 32) return false;
   if (parts[1].length !== 32) return false;
-  return HEX_RE.test(parts[0]) && HEX_RE.test(parts[1]);
+  // AES-GCM ciphertext is all hex (empty string is valid — encrypting "" produces 0 ciphertext bytes)
+  return HEX_RE.test(parts[0]) && HEX_RE.test(parts[1]) && (parts[2] === "" || HEX_RE.test(parts[2]));
 }
 
 // ─── Per-org DEK variants ───────────────────────────────────────────────────

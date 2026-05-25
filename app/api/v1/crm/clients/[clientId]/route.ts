@@ -9,6 +9,7 @@ import {
 } from "@/lib/external-api-middleware";
 import { dispatchClientWebhook } from "@/lib/webhooks";
 import { decryptContactForOrg, encryptContactForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
 
 /**
@@ -59,6 +60,15 @@ export const GET = withExternalApi(
 
     // Decrypt encrypted contact fields
     const decrypted = await decryptContactForOrg(client, context.organizationId);
+    logPiiAccess({
+      userId: context.createdById,
+      organizationId: context.organizationId,
+      entityType: "CONTACT",
+      entityId: client.id,
+      action: "API_RESPONSE",
+      fields: ["displayName", "email", "primaryPhone", "secondaryEmail", "secondaryPhone", "companyName"],
+      source: "GET /api/v1/crm/clients/[clientId]",
+    }).catch(() => {});
 
     return createApiSuccessResponse({
       client: {

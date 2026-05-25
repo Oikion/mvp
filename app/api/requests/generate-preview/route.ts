@@ -11,6 +11,7 @@ import {
   validateBody,
 } from "@/lib/api-response";
 import { decryptContactForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { mapPropertyToPreviewRequest } from "@/lib/requests/field-mapper";
 
 const bodySchema = z
@@ -104,6 +105,16 @@ export async function POST(req: Request) {
       Array.from(uniqueContacts.entries()).map(async ([cId, contact]) => {
         const decrypted = await decryptContactForOrg(contact, organizationId);
         contactCache.set(cId, decrypted.displayName ?? "");
+        // fire-and-forget PII access log
+        logPiiAccess({
+          userId,
+          organizationId,
+          entityType: "CONTACT",
+          entityId: cId,
+          action: "DECRYPT",
+          fields: ["displayName"],
+          source: "POST /api/requests/generate-preview",
+        }).catch(() => {});
       })
     );
 

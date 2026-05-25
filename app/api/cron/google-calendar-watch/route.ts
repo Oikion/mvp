@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { timingSafeEqual } from "crypto";
 import { renewExpiringWatchChannels } from "@/lib/google-calendar/watch-manager";
-
-function verifyAuthToken(provided: string | null, expected: string | undefined): boolean {
-  if (!provided || !expected) return false;
-  const expectedBuffer = Buffer.from(`Bearer ${expected}`);
-  const providedBuffer = Buffer.from(provided);
-  if (expectedBuffer.length !== providedBuffer.length) return false;
-  return timingSafeEqual(expectedBuffer, providedBuffer);
-}
+import { verifyAuthToken } from "@/lib/cron-auth";
+import { startCronExecution, completeCronExecution, failCronExecution } from "@/lib/cron-execution";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -16,8 +9,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await renewExpiringWatchChannels();
+  const cronLogId = await startCronExecution("google-calendar-watch");
 
-  console.log(`[CRON_GCAL_WATCH] Renewed ${result.renewed} channels, ${result.failed} failed`);
-  return NextResponse.json({ ...result, ok: true });
+  try {
+    const result = await renewExpiringWatchChannels();
+
+    console.log(`[CRON_GCAL_WATCH] Renewed ${result.renewed} channels, ${result.failed} failed`);
+    await completeCronExecution(cronLogId, { renewed: result.renewed, failed: result.failed });
+    return NextResponse.json({ ...result, ok: true });
+  } catch (err) {
+    console.error("[CRON_GCAL_WATCH] Fatal error:", err);
+    await failCronExecution(cronLogId, err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

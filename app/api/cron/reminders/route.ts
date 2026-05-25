@@ -1,29 +1,12 @@
 import { NextResponse } from "next/server";
 import { getUpcomingReminders, sendReminderNotification } from "@/lib/calendar-reminders";
 import { prismadb } from "@/lib/prisma";
-import { timingSafeEqual } from "crypto";
 import { runDataDeletion } from "@/lib/data-deletion/execute-deletion";
 import resendHelper from "@/lib/resend";
 import { render } from "@react-email/render";
 import { DeletionReminderEmail } from "@/emails/data-control/DeletionReminderEmail";
-
-/**
- * Timing-safe comparison for cron authentication tokens
- * Prevents timing attacks that could leak the secret
- */
-function verifyAuthToken(provided: string | null, expected: string | undefined): boolean {
-  if (!provided || !expected) return false;
-  
-  const expectedBuffer = Buffer.from(`Bearer ${expected}`);
-  const providedBuffer = Buffer.from(provided);
-  
-  // Must be same length for timingSafeEqual
-  if (expectedBuffer.length !== providedBuffer.length) {
-    return false;
-  }
-  
-  return timingSafeEqual(expectedBuffer, providedBuffer);
-}
+import { verifyAuthToken } from "@/lib/cron-auth";
+import { startCronExecution, completeCronExecution, failCronExecution } from "@/lib/cron-execution";
 
 async function processPendingDeletions(): Promise<{
   reminders: number;
@@ -127,16 +110,18 @@ async function processPendingDeletions(): Promise<{
  * Configure in vercel.json or your cron service
  */
 export async function GET(req: Request) {
-  try {
-    // Verify this is a cron request using timing-safe comparison
-    const authHeader = req.headers.get("authorization");
-    if (!verifyAuthToken(authHeader, process.env.CRON_SECRET)) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+  // Verify this is a cron request using timing-safe HMAC comparison
+  const authHeader = req.headers.get("authorization");
+  if (!verifyAuthToken(authHeader, process.env.CRON_SECRET)) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
 
+  const cronLogId = await startCronExecution("reminders");
+
+  try {
     // Get all organizations (or you could process one at a time)
     const organizations = await prismadb.myAccount.findMany({
       select: {
@@ -155,6 +140,14 @@ export async function GET(req: Request) {
         const reminders = await getUpcomingReminders(org.organizationId, 5);
 
         for (const reminder of reminders) {
+          // Atomic claim: only one invocation will win the PENDING→PROCESSING transition.
+          // If another concurrent invocation already claimed this reminder, skip it.
+          const claimed = await prismadb.calendarReminder.updateMany({
+            where: { id: reminder.id, status: "PENDING" },
+            data: { status: "PROCESSING" },
+          });
+          if (claimed.count === 0) continue;
+
           try {
             totalProcessed++;
             await sendReminderNotification(reminder.id);
@@ -170,6 +163,13 @@ export async function GET(req: Request) {
 
     const deletionStats = await processPendingDeletions();
 
+    await completeCronExecution(cronLogId, {
+      processed: totalProcessed,
+      sent: totalSent,
+      failed: totalFailed,
+      deletions: deletionStats,
+    });
+
     return NextResponse.json({
       success: true,
       processed: totalProcessed,
@@ -180,6 +180,7 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Failed to process reminders";
+    await failCronExecution(cronLogId, error);
     return NextResponse.json(
       {
         error: errorMessage,

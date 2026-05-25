@@ -26,6 +26,7 @@ import {
 } from "@/lib/export";
 import { requireCanExport } from "@/lib/permissions/guards";
 import { decryptPropertyForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -161,7 +162,20 @@ export async function GET(req: NextRequest) {
     
     // Decrypt encrypted property fields (primary_email) before export
     const decryptedProperties = await Promise.all(
-      properties.map((p) => decryptPropertyForOrg(p, orgId))
+      properties.map(async (p) => {
+        const dec = await decryptPropertyForOrg(p, orgId);
+        // fire-and-forget PII access log — EXPORT action for each decrypted property
+        logPiiAccess({
+          userId: user.id,
+          organizationId: orgId,
+          entityType: "PROPERTY",
+          entityId: p.id,
+          action: "EXPORT",
+          fields: ["primary_email", "communication_notes"],
+          source: "GET /api/export/mls",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     // Transform data for export

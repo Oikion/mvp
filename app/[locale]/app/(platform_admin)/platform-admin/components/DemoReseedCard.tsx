@@ -10,6 +10,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { reseedAllDemoOrgs } from "@/actions/platform-admin/reseed-demo-orgs";
 
 export function DemoReseedCard() {
@@ -21,7 +32,7 @@ export function DemoReseedCard() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function handleReseed() {
+  function handleConfirmedReseed() {
     setError(null);
     setSummary(null);
     startTransition(async () => {
@@ -29,7 +40,7 @@ export function DemoReseedCard() {
         const result = await reseedAllDemoOrgs();
         setSummary({ total: result.total, succeeded: result.succeeded, failed: result.failed });
       } catch (err) {
-        setError(String(err));
+        setError(err instanceof Error ? err.message : String(err));
       }
     });
   }
@@ -48,10 +59,29 @@ export function DemoReseedCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button onClick={handleReseed} disabled={isPending} variant="outline" size="sm">
-          <RefreshCw className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
-          {isPending ? "Reseeding…" : "Run Reseed"}
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button disabled={isPending} variant="outline" size="sm">
+              <RefreshCw className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
+              {isPending ? "Reseeding…" : "Run Reseed"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reseed all demo organisations?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will top up every demo org with the current full seed dataset. The operation is
+                idempotent but will write data to all demo orgs. Are you sure you want to proceed?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmedReseed}>
+                Yes, run reseed
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {summary && (
           <div className="flex items-center gap-2 text-sm text-success">

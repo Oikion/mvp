@@ -3,6 +3,8 @@ import { prismadb } from "@/lib/prisma";
 import { canPerformAction } from "@/lib/permissions";
 import { getCurrentOrgId } from "@/lib/get-current-user";
 import { decryptContactForOrg } from "@/lib/model-encryption";
+import { getCurrentUser } from "@/lib/get-current-user";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * GET /api/crm/contacts/[contactId]/name
@@ -38,6 +40,18 @@ export async function GET(
     }
 
     const decrypted = await decryptContactForOrg(contact, organizationId);
+    // fire-and-forget PII access log
+    getCurrentUser().then((actor) => {
+      logPiiAccess({
+        userId: actor.id,
+        organizationId,
+        entityType: "CONTACT",
+        entityId: contact.id,
+        action: "DECRYPT",
+        fields: ["displayName"],
+        source: "GET /api/crm/contacts/[contactId]/name",
+      }).catch(() => {});
+    }).catch(() => {});
 
     return NextResponse.json({
       id: decrypted.id,

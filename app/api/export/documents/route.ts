@@ -26,6 +26,7 @@ import {
 import { requireCanExport } from "@/lib/permissions/guards";
 import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
 import { decryptDocumentForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -189,6 +190,16 @@ export async function GET(req: NextRequest) {
     const exportData = await Promise.all(
       documents.map(async (doc) => {
         const decrypted = await decryptDocumentForOrg(doc, orgId);
+        // fire-and-forget PII access log — EXPORT action for each decrypted document
+        logPiiAccess({
+          userId: user.id,
+          organizationId: orgId,
+          entityType: "DOCUMENT",
+          entityId: doc.id,
+          action: "EXPORT",
+          fields: ["document_name", "description"],
+          source: "GET /api/export/documents",
+        }).catch(() => {});
         return {
           ...decrypted,
           created_by_name: (decrypted as any).Users_Documents_created_by_userToUsers?.name || "",

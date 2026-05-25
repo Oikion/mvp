@@ -2,7 +2,7 @@
 
 import resendHelper from "@/lib/resend"
 import { cacheDel } from "@/lib/redis"
-import { requirePlatformAdmin } from "@/lib/platform-admin"
+import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin"
 
 interface AddContactResult {
   success: boolean
@@ -15,7 +15,7 @@ export async function addContact(
   firstName?: string,
   lastName?: string
 ): Promise<AddContactResult> {
-  await requirePlatformAdmin()
+  const admin = await requirePlatformAdmin()
 
   try {
     const resend = await resendHelper()
@@ -50,6 +50,10 @@ export async function addContact(
 
     // Invalidate relevant caches — use the single (non-paginated) contacts cache key
     await cacheDel("comm:audiences", `comm:audience:${audienceId}:contacts`)
+
+    await logAdminAction(admin.id, "ADD_AUDIENCE_CONTACT", audienceId, {}).catch((e) =>
+      console.error("[AUDIT_LOG]", e)
+    )
 
     return { success: true }
   } catch (error) {

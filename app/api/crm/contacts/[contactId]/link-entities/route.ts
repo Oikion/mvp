@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { canPerformAction } from "@/lib/permissions";
+import { requireActionOnEntity } from "@/lib/permissions";
+import { handleGuardError } from "@/lib/permissions/action-guards";
 import { createChangeLogEntry } from "@/lib/entity-change-log";
 import {
   logEntityLinkedSymmetric,
@@ -18,11 +19,6 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const updateCheck = await canPerformAction("contact:update");
-    if (!updateCheck.allowed) {
-      return NextResponse.json({ error: updateCheck.reason || "Permission denied" }, { status: 403 });
-    }
-
     // Resolve local DB user ID (FK target) from Clerk user ID
     const dbUser = await prismadb.users.findFirst({
       where: { clerkUserId: userId },
@@ -35,12 +31,15 @@ export async function POST(
     // Verify the contact belongs to this org
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true, friendlyId: true },
+      select: { id: true, friendlyId: true, assignedAgentId: true },
     });
 
     if (!contact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("contact:update", "contact", contactId, contact.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     const body = await req.json();
     const { requestIds, propertyIds } = body as {
@@ -167,11 +166,6 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const updateCheck = await canPerformAction("contact:update");
-    if (!updateCheck.allowed) {
-      return NextResponse.json({ error: updateCheck.reason || "Permission denied" }, { status: 403 });
-    }
-
     // Resolve local DB user ID (FK target) from Clerk user ID
     const dbUser = await prismadb.users.findFirst({
       where: { clerkUserId: userId },
@@ -184,12 +178,15 @@ export async function DELETE(
     // Verify the contact belongs to this org
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true, friendlyId: true },
+      select: { id: true, friendlyId: true, assignedAgentId: true },
     });
 
     if (!contact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("contact:update", "contact", contactId, contact.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     const contactLabel = contact.friendlyId ?? "Contact";
     const contactUrl = `/app/crm/contacts/${contactId}`;

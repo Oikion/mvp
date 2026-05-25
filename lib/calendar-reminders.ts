@@ -85,6 +85,9 @@ export async function getUpcomingReminders(
 ): Promise<any[]> {
   const now = new Date();
   const futureTime = new Date(now.getTime() + minutesAhead * 60 * 1000);
+  // Look back 2 minutes so late-firing crons don't silently drop reminders that
+  // were scheduled just before the invocation but whose window has just passed.
+  const lookBackTime = new Date(now.getTime() - 2 * 60 * 1000);
 
   return await prismadb.calendarReminder.findMany({
     where: {
@@ -92,7 +95,7 @@ export async function getUpcomingReminders(
       status: "PENDING",
       scheduledFor: {
         lte: futureTime,
-        gte: now,
+        gte: lookBackTime,
       },
     },
     include: {
@@ -169,7 +172,8 @@ export async function sendReminderNotification(
     throw new Error("Reminder not found");
   }
 
-  if (reminder.status !== "PENDING") {
+  // Accept both PENDING (direct call) and PROCESSING (atomically claimed by cron before send).
+  if (reminder.status !== "PENDING" && reminder.status !== "PROCESSING") {
     throw new Error(`Reminder already ${reminder.status}`);
   }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import axios from "axios";
-import { propertyFormSchema, type PropertyFormValues } from "@/lib/validations/mls";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -33,6 +32,7 @@ import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { AddressFieldGroup } from "@/components/form/AddressFieldGroup";
 import { PropertyImageUploader } from "@/components/property-images/PropertyImageUploader";
 import { linkImagesToProperty } from "@/actions/mls/property-images/link-images-to-property";
+import { propertyFormSchema, type PropertyFormValues } from "@/lib/validations/mls";
 
 type Props = {
   users: any[];
@@ -40,7 +40,6 @@ type Props = {
   initialDraftId?: string;
 };
 
-const formSchema = propertyFormSchema;
 type FormValues = PropertyFormValues;
 
 
@@ -105,13 +104,13 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   ];
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(propertyFormSchema),
     defaultValues: {
       property_name: "",
       property_type: undefined,
       property_type_other: "",
       transaction_type: undefined,
-      property_status: "ACTIVE",
+      property_status: "AVAILABLE",
       is_exclusive: false,
       country: "GR",
       municipality: "",
@@ -273,6 +272,17 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     const fieldsToValidate = STEP_FIELDS[step] ?? [];
     const result = await form.trigger(fieldsToValidate as any);
     if (!result) return false;
+
+    // property_type is optional in the shared schema (so edit forms can save
+    // properties that were created without a type), but the creation wizard
+    // must enforce it before the user can advance past step 1.
+    if (step === 1 && !form.getValues("property_type")) {
+      form.setError("property_type", {
+        type: "manual",
+        message: "Property type is required",
+      });
+      return false;
+    }
 
     return true;
   };

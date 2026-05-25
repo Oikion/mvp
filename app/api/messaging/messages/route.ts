@@ -5,6 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { encryptMessageForOrg, decryptMessageForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { notifyNewMessage, notifyMention } from "@/actions/messaging/notifications";
 import { publishToChannel, getChannelName, getConversationChannelName, getUserChannelName } from "@/lib/ably";
 import { sendEmailReply, getEmailChannelForConversation } from "@/lib/email/outbound-relay";
@@ -712,7 +713,20 @@ export async function GET(req: Request) {
     // Decrypt each message with its own org's DEK, not the requester's org.
     // Cross-org DM messages are encrypted with the sender's org key.
     const decryptedMessages = await Promise.all(
-      messages.map((msg) => decryptMessageForOrg(msg, msg.organizationId))
+      messages.map(async (msg) => {
+        const dec = await decryptMessageForOrg(msg, msg.organizationId);
+        // fire-and-forget PII access log
+        logPiiAccess({
+          userId: currentUser.id,
+          organizationId,
+          entityType: "MESSAGE",
+          entityId: msg.id,
+          action: "DECRYPT",
+          fields: ["content"],
+          source: "GET /api/messaging/messages",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     const formattedMessages = decryptedMessages.reverse().map((msg) => {
@@ -752,6 +766,16 @@ export async function GET(req: Request) {
     let formattedParent = undefined;
     if (parentMessage) {
       const decryptedParent = await decryptMessageForOrg(parentMessage, parentMessage.organizationId);
+      // fire-and-forget PII access log for parent message
+      logPiiAccess({
+        userId: currentUser.id,
+        organizationId,
+        entityType: "MESSAGE",
+        entityId: parentMessage.id,
+        action: "DECRYPT",
+        fields: ["content"],
+        source: "GET /api/messaging/messages (thread parent)",
+      }).catch(() => {});
       const parentAgentProfile = decryptedParent.sender?.AgentProfile;
       const parentProfileSlug = parentAgentProfile?.visibility === "PUBLIC"
         ? (parentAgentProfile.slug || decryptedParent.sender?.username)

@@ -59,13 +59,15 @@ export async function createEntitySession(input: CreateEntitySessionInput) {
       },
     });
 
-    // ORK backup
-    await tx.entitySessionBackup.create({
-      data: {
-        entitySessionId: session.id,
-        encryptedSession: orkBackup,
-      },
-    });
+    // ORK backup (only when caller provides one)
+    if (orkBackup) {
+      await tx.entitySessionBackup.create({
+        data: {
+          entitySessionId: session.id,
+          encryptedSession: orkBackup,
+        },
+      });
+    }
 
     // Additional shares (e.g., assigned agent)
     if (additionalShares?.length) {
@@ -213,13 +215,15 @@ export async function rotateEntitySession(input: RotateEntitySessionInput) {
       });
     }
 
-    // Create ORK backup
-    await tx.entitySessionBackup.create({
-      data: {
-        entitySessionId: newSession.id,
-        encryptedSession: orkBackup,
-      },
-    });
+    // Create ORK backup (only when caller provides one)
+    if (orkBackup) {
+      await tx.entitySessionBackup.create({
+        data: {
+          entitySessionId: newSession.id,
+          encryptedSession: orkBackup,
+        },
+      });
+    }
 
     return newSession;
   });

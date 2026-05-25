@@ -1,27 +1,22 @@
 import { NextResponse } from "next/server";
-import { timingSafeEqual } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import { createClerkClient } from "@clerk/backend";
+import { verifyAuthToken } from "@/lib/cron-auth";
+import { startCronExecution, completeCronExecution, failCronExecution } from "@/lib/cron-execution";
 
 const clerkAdmin = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
 
-function verifyAuthToken(provided: string | null, expected: string | undefined): boolean {
-  if (!provided || !expected) return false;
-  const expectedBuffer = Buffer.from(`Bearer ${expected}`);
-  const providedBuffer = Buffer.from(provided);
-  if (expectedBuffer.length !== providedBuffer.length) return false;
-  return timingSafeEqual(expectedBuffer, providedBuffer);
-}
-
 export async function GET(req: Request) {
-  try {
-    const authHeader = req.headers.get("authorization");
-    if (!verifyAuthToken(authHeader, process.env.CRON_SECRET)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const authHeader = req.headers.get("authorization");
+  if (!verifyAuthToken(authHeader, process.env.CRON_SECRET)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
+  const cronLogId = await startCronExecution("cleanup-demo-orgs");
+
+  try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
     const staleSettings = await prismadb.organizationSettings.findMany({
@@ -30,6 +25,7 @@ export async function GET(req: Request) {
     });
 
     if (staleSettings.length === 0) {
+      await completeCronExecution(cronLogId, { purged: 0, total: 0 });
       return NextResponse.json({ purged: 0 });
     }
 
@@ -61,9 +57,11 @@ export async function GET(req: Request) {
     }
 
     console.log(`[CLEANUP_DEMO_ORGS] Purged ${purged}/${orgIds.length} stale demo orgs`);
+    await completeCronExecution(cronLogId, { purged, total: orgIds.length });
     return NextResponse.json({ purged, total: orgIds.length });
   } catch (error) {
     console.error("[CLEANUP_DEMO_ORGS]", error);
+    await failCronExecution(cronLogId, error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

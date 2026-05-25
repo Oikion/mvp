@@ -13,6 +13,7 @@ import {
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchCalendarWebhook } from "@/lib/webhooks";
 import { decryptCalendarEventForOrg, decryptContactForOrg } from "@/lib/model-encryption";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 /**
  * GET /api/v1/calendar/events
@@ -83,9 +84,29 @@ export const GET = withExternalApi(
     const decryptedItems = await Promise.all(
       items.map(async (event) => {
         const dec = await decryptCalendarEventForOrg(event, context.organizationId);
+        // fire-and-forget PII access log for event
+        logPiiAccess({
+          userId: context.createdById,
+          organizationId: context.organizationId,
+          entityType: "CALENDAR_EVENT",
+          entityId: event.id,
+          action: "API_RESPONSE",
+          fields: ["title", "description", "location"],
+          source: "GET /api/v1/calendar/events",
+        }).catch(() => {});
         const clients = await Promise.all(
           event.Contacts.map(async (c) => {
             const dc = await decryptContactForOrg(c, context.organizationId);
+            // fire-and-forget PII access log for linked contact display name
+            logPiiAccess({
+              userId: context.createdById,
+              organizationId: context.organizationId,
+              entityType: "CONTACT",
+              entityId: c.id,
+              action: "API_RESPONSE",
+              fields: ["displayName"],
+              source: "GET /api/v1/calendar/events (Contacts)",
+            }).catch(() => {});
             return { id: dc.id, displayName: dc.displayName };
           })
         );

@@ -14,6 +14,7 @@ import { generateFriendlyId } from '@/lib/friendly-id';
 import { dispatchCalendarWebhook } from '@/lib/webhooks';
 import { encryptCalendarEventForOrg, decryptCalendarEventForOrg } from '@/lib/model-encryption';
 import { pushEventToGoogle } from '@/lib/google-calendar/sync-to-google';
+import { logPiiAccess } from '@/lib/pii-access-log';
 
 /**
  * Create notifications for calendar event creation
@@ -232,7 +233,20 @@ export async function GET(req: Request) {
 
     // Decrypt events before transforming
     const decryptedEvents = await Promise.all(
-      events.map(event => decryptCalendarEventForOrg(event, currentOrgId!))
+      events.map(async (event) => {
+        const dec = await decryptCalendarEventForOrg(event, currentOrgId!);
+        // fire-and-forget PII access log
+        logPiiAccess({
+          userId: currentUser.id,
+          organizationId: currentOrgId!,
+          entityType: "CALENDAR_EVENT",
+          entityId: event.id,
+          action: "DECRYPT",
+          fields: ["title", "description", "location", "attendeeName", "attendeeEmail", "notes"],
+          source: "GET /api/calendar/events",
+        }).catch(() => {});
+        return dec;
+      })
     );
 
     // Transform database events to match CalendarEvent interface
@@ -465,6 +479,16 @@ export async function POST(req: Request) {
 
     // Decrypt before passing to notifications so titles are human-readable
     const decryptedForNotifications = await decryptCalendarEventForOrg(event, organizationId);
+    // fire-and-forget PII access log for event decryption (used for notification content)
+    logPiiAccess({
+      userId: currentUser.id,
+      organizationId,
+      entityType: "CALENDAR_EVENT",
+      entityId: event.id,
+      action: "DECRYPT",
+      fields: ["title", "description", "location"],
+      source: "POST /api/calendar/events (notification)",
+    }).catch(() => {});
 
     // Create notifications for linked entities (async, non-blocking)
     createEventNotifications(

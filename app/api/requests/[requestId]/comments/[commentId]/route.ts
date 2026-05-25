@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { canPerformAction } from "@/lib/permissions";
+import { requireActionOnEntity } from "@/lib/permissions";
+import { handleGuardError } from "@/lib/permissions/action-guards";
 
 export async function DELETE(
   req: Request,
@@ -15,19 +16,17 @@ export async function DELETE(
 
     const { requestId, commentId } = await params;
 
-    const deleteCheck = await canPerformAction("request:delete");
-    if (!deleteCheck.allowed) {
-      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-    }
-
     // Resolve friendlyId → id and verify org ownership
     const request = await prismadb.request.findFirst({
       where: { friendlyId: requestId, organizationId },
-      select: { id: true },
+      select: { id: true, assignedAgentId: true },
     });
     if (!request) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("request:delete", "request", request.id, request.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     const comment = await prismadb.requestComment.findFirst({
       where: { id: commentId, requestId: request.id },

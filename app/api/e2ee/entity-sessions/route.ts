@@ -9,11 +9,26 @@ import {
 } from "@/lib/entity-session/entity-session-service";
 import { getOrgMembersFromDb } from "@/lib/org-members";
 import type { EntityType } from "@/lib/entity-session/types";
+import { z } from "zod";
 
 const VALID_ENTITY_TYPES = new Set(["CONTACT", "PROPERTY", "REQUEST", "TASK"]);
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EntitySessionShareSchema = z.object({
+  userId: z.string().min(1),
+  encryptedSession: z.string().min(1).max(65536),
+  ephemeralPublicKey: z.string().min(1),
+  iv: z.string().min(1),
+  startingIndex: z.number().int().min(0).default(0),
+}).strict();
+
+const CreateEntitySessionSchema = z.object({
+  entityType: z.enum(["CONTACT", "PROPERTY", "REQUEST", "TASK"]),
+  entityId: z.string().uuid(),
+  megolmSessionId: z.string().min(1),
+  creatorShare: EntitySessionShareSchema,
+  additionalShares: z.array(EntitySessionShareSchema).max(50).default([]),
+  orkBackup: z.string().min(1).max(65536).optional(),
+}).strict();
 
 /**
  * GET /api/e2ee/entity-sessions?entityType=CONTACT&entityId=xxx
@@ -153,86 +168,22 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const {
-      entityType: rawEntityTypePost,
-      entityId,
-      megolmSessionId,
-      creatorShare,
-      orkBackup,
-      additionalShares,
-    } = body;
-    const entityType = rawEntityTypePost;
-
-    if (
-      !entityType ||
-      !entityId ||
-      !megolmSessionId ||
-      !creatorShare?.encryptedSession ||
-      !orkBackup
-    ) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+    const parsed = CreateEntitySessionSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
-
-    // NH-4: Require ECIES fields on creator share — without ephemeralPublicKey and iv,
-    // recipients cannot ECIES-decrypt the session export, creating an undecryptable session.
-    if (!creatorShare.ephemeralPublicKey || !creatorShare.iv) {
-      return NextResponse.json(
-        { error: "creatorShare must include ephemeralPublicKey and iv (ECIES fields)" },
-        { status: 400 }
-      );
-    }
-
-    if (!VALID_ENTITY_TYPES.has(entityType)) {
-      return NextResponse.json(
-        { error: "Invalid entity type" },
-        { status: 400 }
-      );
-    }
+    const { entityType, entityId, megolmSessionId, creatorShare, additionalShares, orkBackup } = parsed.data;
 
     // NEW-C5: Assert creatorShare.userId matches the authenticated caller
-    if (!creatorShare || creatorShare.userId !== user.id) {
+    if (creatorShare.userId !== user.id) {
       return NextResponse.json(
         { error: "creatorShare.userId must match the authenticated caller" },
         { status: 403 }
       );
     }
 
-    // NEW-I8: UUID format validation on entityId
-    if (!UUID_RE.test(entityId)) {
-      return NextResponse.json({ error: "Invalid entityId" }, { status: 400 });
-    }
-
-    // Max-length guards on encrypted blobs
-    if (creatorShare.encryptedSession.length > 65536) {
-      return NextResponse.json(
-        { error: "encryptedSession too large" },
-        { status: 400 }
-      );
-    }
-    if (orkBackup && orkBackup.length > 65536) {
-      return NextResponse.json(
-        { error: "orkBackup too large" },
-        { status: 400 }
-      );
-    }
-
     // I3: Validate additionalShares recipients are org members
-    if (additionalShares !== undefined) {
-      if (
-        !Array.isArray(additionalShares) ||
-        additionalShares.length > 100
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "additionalShares must be an array of at most 100 items",
-          },
-          { status: 400 }
-        );
-      }
+    if (additionalShares.length > 0) {
       const orgMembers = await getOrgMembersFromDb({ organizationId: orgId });
       const memberIds = new Set(
         orgMembers.users.map((u: any) => u.id)

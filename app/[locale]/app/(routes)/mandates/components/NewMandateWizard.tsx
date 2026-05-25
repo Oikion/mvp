@@ -1,8 +1,7 @@
-// @ts-nocheck
 "use client";
 
 import axios from "axios";
-import { useState, useEffect, useCallback, useMemo, useRef, KeyboardEvent } from "react";
+import { useState, useEffect, useMemo, useRef, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
@@ -67,7 +66,6 @@ type Props = {
 };
 
 const baseSchema = mandateFormSchema;
-
 type FormValues = MandateFormValues;
 
 // Property types that warrant plot size fields
@@ -864,7 +862,6 @@ export function NewMandateWizard({
                     <FormControl>
                       <Input
                         {...field}
-                        value={field.value ?? ""}
                         placeholder={t(
                           "MandateForm.fields.municipalityPlaceholder"
                         )}
@@ -885,7 +882,6 @@ export function NewMandateWizard({
                     <FormControl>
                       <Input
                         {...field}
-                        value={field.value ?? ""}
                         placeholder={t(
                           "MandateForm.fields.regionPlaceholder"
                         )}
@@ -1847,7 +1843,6 @@ export function NewMandateWizard({
                   <FormControl>
                     <Textarea
                       {...field}
-                      value={field.value ?? ""}
                       placeholder={t(
                         "MandateForm.fields.notesPlaceholder"
                       )}
@@ -1869,7 +1864,7 @@ export function NewMandateWizard({
                     {t("MandateForm.fields.expiresAt")}
                   </FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} value={field.value ?? ""} />
+                    <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

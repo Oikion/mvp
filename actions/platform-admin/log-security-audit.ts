@@ -103,16 +103,27 @@ export async function logSecurityAudit(params: LogSecurityAuditParams): Promise<
     return true;
   } catch (error) {
     // CRITICAL: Always log failures for security monitoring
-    console.error("[SECURITY_AUDIT_ERROR]", {
-      error,
-      eventType,
-      userId,
-      userEmail,
-      path,
-      timestamp: new Date().toISOString(),
-      message: "CRITICAL: Security audit logging failed - investigate immediately",
-    });
-    
+    // NODE_ENV guard: never log PII (userId, userEmail) in production console output
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[SECURITY_AUDIT_ERROR]", {
+        error,
+        eventType,
+        userId,
+        userEmail,
+        path,
+        timestamp: new Date().toISOString(),
+        message: "CRITICAL: Security audit logging failed - investigate immediately",
+      });
+    } else {
+      console.error("[SECURITY_AUDIT_ERROR]", {
+        error,
+        eventType,
+        path,
+        timestamp: new Date().toISOString(),
+        message: "CRITICAL: Security audit logging failed - investigate immediately",
+      });
+    }
+
     // Don't throw - audit logging must not break the application
     return false;
   }

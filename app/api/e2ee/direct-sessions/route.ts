@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
+import { z } from "zod";
+
+const DirectSessionSchema = z.object({
+  conversationId: z.string().uuid(),
+  responderUserId: z.string().min(1).max(255),
+  initialMessage: z.string().min(1).max(65536),
+}).strict();
 
 /**
  * POST /api/e2ee/direct-sessions — Store X3DH initial message
@@ -13,11 +20,11 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { conversationId, responderUserId, initialMessage } = body;
-
-    if (!conversationId || !responderUserId || !initialMessage) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const parsed = DirectSessionSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
+    const { conversationId, responderUserId, initialMessage } = parsed.data;
 
     const session = await prismadb.directSession.create({
       data: {

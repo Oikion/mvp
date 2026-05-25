@@ -19,6 +19,7 @@ import {
   logCalendarEventAdded,
   logCalendarEventRemoved,
 } from "@/lib/activity-logger";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { pushEventToGoogle, deleteEventFromGoogle } from "@/lib/google-calendar/sync-to-google";
 
 /**
@@ -223,6 +224,18 @@ export async function GET(
     }
 
     const decrypted = await decryptCalendarEventForOrg(event, currentOrgId);
+    // fire-and-forget PII access log
+    getCurrentUser().then((actor) => {
+      logPiiAccess({
+        userId: actor.id,
+        organizationId: currentOrgId,
+        entityType: "CALENDAR_EVENT",
+        entityId: event.id,
+        action: "DECRYPT",
+        fields: ["title", "description", "location", "attendeeName", "attendeeEmail", "notes"],
+        source: "GET /api/calendar/events/[eventId]",
+      }).catch(() => {});
+    }).catch(() => {});
 
     // Map Prisma relation names to the keys expected by the EventDetailView UI
     const { Contacts, Properties, Documents, Requests, Users, crm_Accounts_Tasks, CalendarReminder, EventContacts, EventAgents, ...rest } = decrypted as any;
@@ -690,6 +703,16 @@ export async function PUT(
     );
 
     const decryptedEvent = await decryptCalendarEventForOrg(event, currentOrgId);
+    // fire-and-forget PII access log — decryption for PUT response
+    logPiiAccess({
+      userId: currentUser.id,
+      organizationId: currentOrgId,
+      entityType: "CALENDAR_EVENT",
+      entityId: event.id,
+      action: "DECRYPT",
+      fields: ["title", "description", "location", "attendeeName", "attendeeEmail", "notes"],
+      source: "PUT /api/calendar/events/[eventId]",
+    }).catch(() => {});
     return NextResponse.json({
       event: decryptedEvent,
       message: "Event updated successfully",

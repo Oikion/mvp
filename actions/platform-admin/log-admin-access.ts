@@ -1,7 +1,18 @@
 "use server";
 
+import { createHash } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import { parseUserAgent } from "@/lib/user-agent-parser";
+
+/**
+ * One-way hash of a PII value for audit storage.
+ * Uses a salted SHA-256, truncated to 12 hex chars + ellipsis for readability.
+ * Set ADMIN_LOG_SALT in env to rotate the hash space on breach.
+ */
+function hashForAudit(value: string): string {
+  const salt = process.env.ADMIN_LOG_SALT ?? "oikion-audit-v1";
+  return createHash("sha256").update(value + salt).digest("hex").slice(0, 12) + "…";
+}
 
 /**
  * Session window in minutes - how often to log a new session
@@ -76,7 +87,7 @@ export async function logAdminAccess(params: LogAdminAccessParams): Promise<bool
     await prismadb.adminAccessLog.create({
       data: {
         adminUserId,
-        adminEmail,
+        adminEmail: hashForAudit(adminEmail),
         adminName,
         ipAddress,
         userAgent,

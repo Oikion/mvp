@@ -1,11 +1,11 @@
 "use server"
 
 import { prismadb } from "@/lib/prisma"
-import { requirePlatformAdmin } from "@/lib/platform-admin"
+import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin"
 import { serializeCampaign, type SerializedCampaign } from "@/lib/communication/types"
 
 export async function createCampaign(): Promise<SerializedCampaign> {
-  await requirePlatformAdmin()
+  const admin = await requirePlatformAdmin()
 
   const campaign = await prismadb.newsletterCampaign.create({
     data: {
@@ -16,6 +16,10 @@ export async function createCampaign(): Promise<SerializedCampaign> {
       status: "DRAFT",
     },
   })
+
+  await logAdminAction(admin.id, "CREATE_CAMPAIGN", campaign.id, {
+    name: campaign.subject,
+  }).catch((e) => console.error("[AUDIT_LOG]", e))
 
   return serializeCampaign(campaign)
 }

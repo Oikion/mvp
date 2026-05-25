@@ -91,6 +91,7 @@ interface EditMandateFormProps {
   onSave: () => void
 }
 
+// ---------------------------------------------------------------------------
 type EditFormValues = MandateEditFormValues
 
 // ---------------------------------------------------------------------------
@@ -151,7 +152,6 @@ export default function EditMandateForm({
   const form = useForm<EditFormValues>({
     resolver: zodResolver(mandateEditFormSchema),
     defaultValues: {
-      id: mandate.id,
       title: mandate.title ?? "",
       transaction_type:
         (mandate.transaction_type as EditFormValues["transaction_type"]) ??
@@ -265,7 +265,7 @@ export default function EditMandateForm({
     setIsSubmitting(true)
     try {
       // Clean up empty string / null values for optional numeric fields
-      const cleanedData: Record<string, unknown> = {}
+      const cleanedData: Record<string, unknown> = { id: mandate.id }
 
       for (const [key, value] of Object.entries(data)) {
         if (value === "" || value === undefined) {

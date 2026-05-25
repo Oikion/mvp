@@ -5,6 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { decryptWithKey } from "@/lib/encryption";
 import { getOrgDekByVersion } from "@/lib/key-management";
 import { processBackupBatch } from "@/lib/e2ee/session-backup-server";
+import { logPiiAccess } from "@/lib/pii-access-log";
 
 // ---------------------------------------------------------------------------
 // Zod schemas
@@ -84,6 +85,17 @@ export async function GET(req: Request) {
       records.map(async (backup) => {
         const dek = await getOrgDekByVersion(orgId, backup.dekVersion);
         const eciesBlob = decryptWithKey(backup.encryptedState, dek);
+
+        // fire-and-forget PII access log — session backup decryption
+        logPiiAccess({
+          userId,
+          organizationId: orgId,
+          entityType: "E2EE_SESSION_BACKUP",
+          entityId: backup.id,
+          action: "DECRYPT",
+          fields: ["encryptedState"],
+          source: "GET /api/e2ee/session-backups",
+        }).catch(() => {});
 
         return {
           sessionType: backup.sessionType,

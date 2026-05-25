@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { canPerformAction } from "@/lib/permissions";
+import { canPerformAction, requireActionOnEntity } from "@/lib/permissions";
+import { handleGuardError } from "@/lib/permissions/action-guards";
 import { isDemoOrg } from "@/lib/demo/demo-guard";
 import { updateContactSchema } from "@/lib/validations/contacts";
 import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { isFriendlyId } from "@/lib/friendly-id";
+import { logPiiAccess } from "@/lib/pii-access-log";
 import { createChangeLogEntry, diffEntity, CONTACT_WATCHED_FIELDS } from "@/lib/entity-change-log";
 import { logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
 
@@ -111,6 +113,19 @@ export async function GET(
 
     const decrypted = await decryptContactForOrg(contact, organizationId);
 
+    // fire-and-forget PII access log — getCurrentUser() is already called by canPerformAction above
+    getCurrentUser().then((actor) => {
+      logPiiAccess({
+        userId: actor.id,
+        organizationId,
+        entityType: "CONTACT",
+        entityId: contact.id,
+        action: "DECRYPT",
+        fields: ["firstName", "lastName", "displayName", "companyName", "email", "secondaryEmail", "primaryPhone", "secondaryPhone", "officePhone", "whatsapp", "viber", "taxId", "doy", "vatNumber", "notes", "communicationNotes", "addresses"],
+        source: "GET /api/crm/contacts/[contactId]",
+      }).catch(() => {});
+    }).catch(() => {});
+
     // Merge bidirectional relationships
     const relationships = [
       ...(decrypted.contactRelationshipsA || []).map((r: any) => ({
@@ -141,11 +156,6 @@ export async function PUT(
   { params }: { params: Promise<{ contactId: string }> }
 ) {
   try {
-    const updateCheck = await canPerformAction("contact:update");
-    if (!updateCheck.allowed) {
-      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-    }
-
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const { contactId } = await params;
@@ -182,6 +192,9 @@ export async function PUT(
     if (!existing) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("contact:update", "contact", contactId, existing.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     const encrypted = await encryptContactForOrg(data, organizationId);
     const { addresses: encAddresses, communicationNotes: encCommNotes, ...encryptedRest } = encrypted as Record<string, unknown>;
@@ -241,11 +254,6 @@ export async function DELETE(
   { params }: { params: Promise<{ contactId: string }> }
 ) {
   try {
-    const deleteCheck = await canPerformAction("contact:delete");
-    if (!deleteCheck.allowed) {
-      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-    }
-
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const { contactId } = await params;
@@ -256,12 +264,15 @@ export async function DELETE(
 
     const existing = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true },
+      select: { id: true, assignedAgentId: true },
     });
 
     if (!existing) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
+
+    const guard = await requireActionOnEntity("contact:delete", "contact", contactId, existing.assignedAgentId);
+    if (guard) return handleGuardError(guard);
 
     await prismadb.contact.update({
       where: { id: contactId, organizationId },
