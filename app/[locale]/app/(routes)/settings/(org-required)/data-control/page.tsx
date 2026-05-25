@@ -16,7 +16,7 @@ export default async function DataControlPage() {
   const isOwner = context.role === OrgRole.OWNER;
   const isAdmin = context.role === OrgRole.OWNER || context.role === OrgRole.LEAD;
 
-  if (!isAdmin) redirect("/app/settings");
+  if (!isAdmin) redirect("/app/admin");
 
   const [settings, consentCounts] = await Promise.all([
     prismadb.organizationSettings.findUnique({

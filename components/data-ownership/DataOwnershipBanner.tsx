@@ -1,10 +1,10 @@
 "use client";
 
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/navigation";
 
 interface DataOwnershipBannerProps {
   needsSelection: boolean;
@@ -16,7 +16,6 @@ export function DataOwnershipBanner({
   isAdmin,
 }: DataOwnershipBannerProps) {
   const t = useTranslations("dataOwnership.banner");
-  const locale = useLocale();
   const router = useRouter();
   if (!needsSelection) return null;
 
@@ -34,7 +33,7 @@ export function DataOwnershipBanner({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => router.push(`/${locale}/app/settings/data-control`)}
+            onClick={() => router.push("/app/settings/data-control")}
             className="shrink-0"
           >
             {t("chooseNow")}
