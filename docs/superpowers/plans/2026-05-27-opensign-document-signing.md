@@ -92,11 +92,11 @@ Append after the last model in `schema.prisma`:
 
 ```prisma
 model SigningEnvelope {
-  id                 String               @id @default(uuid())
+  id                 String               @id @default(cuid())
   organizationId     String
 
   sourceDocumentId   String
-  sourceDocument     Documents            @relation("EnvelopeSource", fields: [sourceDocumentId], references: [id])
+  sourceDocument     Documents            @relation("EnvelopeSource", fields: [sourceDocumentId], references: [id], onDelete: Restrict)
   signedDocumentId   String?
   signedDocument     Documents?           @relation("EnvelopeSigned", fields: [signedDocumentId], references: [id])
 
@@ -119,14 +119,14 @@ model SigningEnvelope {
 
   @@index([organizationId])
   @@index([sourceDocumentId])
-  @@index([openSignEnvelopeId])
+  // Note: @@index([openSignEnvelopeId]) omitted — @unique already creates this index
   @@index([openSignFileId])
   @@index([status])
   @@index([organizationId, status])
 }
 
 model SigningEnvelopeSigner {
-  id               String         @id @default(uuid())
+  id               String         @id @default(cuid())
   envelopeId       String
   envelope         SigningEnvelope @relation(fields: [envelopeId], references: [id], onDelete: Cascade)
 
@@ -238,6 +238,9 @@ export interface UploadDocumentResult {
 
 export interface CreateEnvelopeResult {
   envelopeId: string;
+  // OpenSign should return the signer IDs it assigned, keyed by the order we sent.
+  // Verify the exact shape against API v1.2 docs; populate openSignSignerId from this at creation.
+  signers?: { email: string; signerId: string; order: number }[];
 }
 
 export type OpenSignError =
@@ -376,8 +379,11 @@ export function verifyOpenSignWebhook(
     .update(payload)
     .digest("hex");
 
-  const sigBuf = Buffer.from(signature);
-  const expBuf = Buffer.from(expected);
+  // Decode hex → raw bytes before comparing (matches lib/app-access.ts pattern).
+  // Buffer.from(hexStr) would interpret chars as UTF-8 (64 bytes for SHA-256 hex),
+  // making timingSafeEqual compare ASCII representations rather than raw digest bytes.
+  const sigBuf = Buffer.from(signature, "hex");
+  const expBuf = Buffer.from(expected, "hex");
 
   if (sigBuf.length !== expBuf.length) return false;
 
@@ -769,11 +775,13 @@ Find where each role's allowed actions are declared and add the signing actions:
 "signing:read_envelope",
 "signing:cancel_envelope",
 
-// VIEWER — read only
-"signing:read_envelope",
+// VIEWER — NO signing permissions
+// Signing envelopes expose decrypted signer PII (name, email); granting VIEWER read access
+// would violate least-privilege. If read-only signing status is needed for VIEWER in future,
+// create a separate "signing:read_status" action that returns only status/timestamps, not PII.
 ```
 
-> Match the exact format used in the file for other modules. `VIEWER` gets only `signing:read_envelope`.
+> Match the exact format used in the file for other modules. `VIEWER` gets **no** signing actions by default.
 
 - [ ] **Step 3: Add sign endpoint to strict rate-limit tier in `lib/rate-limit.ts`**
 
@@ -811,7 +819,7 @@ git commit -m "feat(signing): add signing permissions and strict rate-limit tier
 
 ```typescript
 // tests/actions/signing/create-envelope.test.ts
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prismadb: {
@@ -829,7 +837,8 @@ vi.mock("@/lib/permissions/action-guards", () => ({
 vi.mock("@/lib/opensign/client", () => ({
   openSignClient: {
     uploadDocument: vi.fn().mockResolvedValue({ fileId: "file-123" }),
-    createEnvelope: vi.fn().mockResolvedValue({ envelopeId: "env-456" }),
+    createEnvelope: vi.fn().mockResolvedValue({ envelopeId: "env-456", signers: [] }),
+    cancelEnvelope: vi.fn().mockResolvedValue(undefined),
   },
 }));
 vi.mock("@/lib/model-encryption", () => ({
@@ -851,6 +860,7 @@ describe("createEnvelope", () => {
   };
 
   beforeEach(() => {
+    vi.stubEnv("OPENSIGN_WEBHOOK_SECRET", "test-webhook-secret-abcdef1234567890");
     vi.mocked(getCurrentOrgIdSafe).mockResolvedValue(orgId);
     vi.mocked(prismadb.documents.findFirst).mockResolvedValue(mockDoc as never);
     vi.mocked(prismadb.signingEnvelope.findFirst).mockResolvedValue(null);
@@ -865,6 +875,11 @@ describe("createEnvelope", () => {
       ok: true,
       arrayBuffer: async () => new ArrayBuffer(8),
     });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
   });
 
   it("returns null when not authenticated", async () => {
@@ -906,6 +921,33 @@ describe("createEnvelope", () => {
     expect(result).toBeNull();
   });
 
+  it("returns null when OPENSIGN_WEBHOOK_SECRET is not set", async () => {
+    vi.unstubAllEnvs();
+    const { createEnvelope } = await import("@/actions/signing/create-envelope");
+    const result = await createEnvelope({
+      documentId: "doc-001",
+      subject: "Sign this",
+      signers: [{ name: "Alice", email: "alice@test.com", signerType: "EXTERNAL", order: 1 }],
+    });
+    expect(result).toBeNull();
+  });
+
+  it("duplicate-envelope check includes organizationId in the where clause", async () => {
+    const { createEnvelope } = await import("@/actions/signing/create-envelope");
+    await createEnvelope({
+      documentId: "doc-001",
+      subject: "Sign this",
+      signers: [{ name: "Alice", email: "alice@test.com", signerType: "EXTERNAL", order: 1 }],
+    });
+    // Security: the findFirst for the active-envelope guard MUST be scoped to the org.
+    // Without this, a document from org-A could be blocked by an envelope from org-B (data leak / DoS).
+    expect(vi.mocked(prismadb.signingEnvelope.findFirst)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ organizationId: orgId }),
+      }),
+    );
+  });
+
   it("calls OpenSign client and creates envelope record on success", async () => {
     const { createEnvelope } = await import("@/actions/signing/create-envelope");
     const result = await createEnvelope({
@@ -918,6 +960,19 @@ describe("createEnvelope", () => {
     expect(openSignClient.createEnvelope).toHaveBeenCalled();
     expect(prismadb.signingEnvelope.create).toHaveBeenCalled();
     expect(result).toMatchObject({ id: "envelope-789" });
+  });
+
+  it("calls cancelEnvelope when DB write fails after OpenSign succeeds", async () => {
+    vi.mocked(prismadb.signingEnvelope.create).mockRejectedValueOnce(new Error("DB error"));
+    const { createEnvelope } = await import("@/actions/signing/create-envelope");
+    const result = await createEnvelope({
+      documentId: "doc-001",
+      subject: "Sign this",
+      signers: [{ name: "Alice", email: "alice@test.com", signerType: "EXTERNAL", order: 1 }],
+    });
+    const { openSignClient } = await import("@/lib/opensign/client");
+    expect(openSignClient.cancelEnvelope).toHaveBeenCalledWith("env-456");
+    expect(result).toBeNull();
   });
 });
 ```
@@ -973,10 +1028,11 @@ export async function createEnvelope(input: CreateEnvelopeInput) {
   if (!document) return null;
   if (document.document_file_mimeType !== "application/pdf") return null;
 
-  // Enforce one active envelope per document
+  // Enforce one active envelope per document (scoped to org to prevent cross-tenant bypass)
   const existing = await prismadb.signingEnvelope.findFirst({
     where: {
       sourceDocumentId: input.documentId,
+      organizationId,
       status: { in: ACTIVE_STATUSES },
     },
   });
@@ -992,7 +1048,12 @@ export async function createEnvelope(input: CreateEnvelopeInput) {
   const fileName = `${input.documentId}.pdf`;
 
   // Build per-org callback token (HMAC of orgId with webhook secret)
-  const orgToken = createHmac("sha256", process.env.OPENSIGN_WEBHOOK_SECRET ?? "")
+  // Guard first — falling back to "" silently disables webhook auth
+  if (!process.env.OPENSIGN_WEBHOOK_SECRET) {
+    console.error("[SIGNING] OPENSIGN_WEBHOOK_SECRET is not set — aborting envelope creation");
+    return null;
+  }
+  const orgToken = createHmac("sha256", process.env.OPENSIGN_WEBHOOK_SECRET)
     .update(organizationId)
     .digest("hex");
   const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/opensign?org=${orgToken}`;
@@ -1000,11 +1061,13 @@ export async function createEnvelope(input: CreateEnvelopeInput) {
   // Upload to OpenSign
   let openSignFileId: string;
   let openSignEnvelopeId: string;
+  // signerIdMap: order → OpenSign-assigned signerId (populated if API returns them)
+  let signerIdMap: Record<number, string> = {};
   try {
     const { fileId } = await openSignClient.uploadDocument(buffer, fileName);
     openSignFileId = fileId;
 
-    const { envelopeId } = await openSignClient.createEnvelope({
+    const openSignRes = await openSignClient.createEnvelope({
       documentFileId: openSignFileId,
       signers: input.signers.map((s) => ({
         name: s.name,
@@ -1018,7 +1081,14 @@ export async function createEnvelope(input: CreateEnvelopeInput) {
         : undefined,
       callbackUrl,
     });
-    openSignEnvelopeId = envelopeId;
+    openSignEnvelopeId = openSignRes.envelopeId;
+
+    // Populate signer IDs eagerly if the API returns them (avoids null-lookup bug at webhook time)
+    if (openSignRes.signers) {
+      for (const s of openSignRes.signers) {
+        if (s.signerId && s.order) signerIdMap[s.order] = s.signerId;
+      }
+    }
   } catch (err) {
     console.error("[SIGNING] opensign API call failed:", err);
     return null;
@@ -1052,16 +1122,22 @@ export async function createEnvelope(input: CreateEnvelopeInput) {
             email: s.email,
             order: s.order,
             status: "PENDING",
-            openSignSignerId: null,
+            // Eagerly set if API returned signer IDs; webhook Step 0 handles any gaps
+            openSignSignerId: signerIdMap[s.order] ?? null,
           })),
         },
       },
     });
     return envelope;
   } catch (err) {
-    // OpenSign succeeded but DB write failed — mark as FAILED so we can track it
+    // OpenSign succeeded but our DB write failed — attempt best-effort cancellation
+    // so the envelope doesn't remain active in OpenSign with no corresponding DB record.
     console.error("[SIGNING] DB write failed after opensign envelope creation:", err);
-    // Best-effort: we can't update a record that wasn't created, so just log
+    try {
+      await openSignClient.cancelEnvelope(openSignEnvelopeId);
+    } catch (cancelErr) {
+      console.error("[SIGNING] compensation cancel also failed for openSignEnvelopeId:", openSignEnvelopeId, cancelErr);
+    }
     return null;
   }
 }
@@ -1379,7 +1455,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 400 });
   }
 
-  const payload = JSON.parse(body) as OpenSignWebhookPayload;
+  // Guard against malformed JSON — a valid HMAC + bad JSON would otherwise throw a
+  // SyntaxError and return 500, causing OpenSign to retry indefinitely.
+  let payload: OpenSignWebhookPayload;
+  try {
+    payload = JSON.parse(body) as OpenSignWebhookPayload;
+  } catch {
+    console.error("[OPENSIGN_WEBHOOK] malformed JSON body from IP:", ip);
+    return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  }
 
   const envelope = await prismadb.signingEnvelope.findUnique({
     where: { openSignEnvelopeId: payload.envelopeId },
@@ -1392,16 +1476,38 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  // Tenant guard: verify the org token in the query param
+  // Tenant guard: verify the org token in the query param.
+  // Both orgToken and expectedToken are hex strings — decode to raw bytes before
+  // comparing (same rationale as verifyOpenSignWebhook).
   const orgToken = request.nextUrl.searchParams.get("org") ?? "";
   const expectedToken = createHmac("sha256", process.env.OPENSIGN_WEBHOOK_SECRET!)
     .update(envelope.organizationId)
     .digest("hex");
-  const orgBuf = Buffer.from(orgToken);
-  const expBuf = Buffer.from(expectedToken);
+  const orgBuf = Buffer.from(orgToken, "hex");
+  const expBuf = Buffer.from(expectedToken, "hex");
   if (orgBuf.length !== expBuf.length || !timingSafeEqual(orgBuf, expBuf)) {
     console.error("[OPENSIGN_WEBHOOK] org token mismatch for envelopeId:", envelope.id);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Step 0 (all statuses): hydrate openSignSignerId on signers from webhook payload.
+  // openSignSignerId is null at row-creation time (we don't know OpenSign's IDs yet).
+  // This must happen before any status-specific logic that matches on openSignSignerId.
+  if (payload.signers && payload.signers.length > 0) {
+    // Match by signer order (position in the array OpenSign returns, 0-indexed → 1-based order).
+    // Verify this assumption against OpenSign v1.2 docs — adjust if OpenSign returns
+    // signers in a different order or with a separate "order" field.
+    for (let i = 0; i < payload.signers.length; i++) {
+      const s = payload.signers[i];
+      if (s.signerId) {
+        await prismadb.signingEnvelopeSigner.updateMany({
+          where: { envelopeId: envelope.id, order: i + 1, openSignSignerId: null },
+          data: { openSignSignerId: s.signerId },
+        }).catch(() => {
+          // Non-fatal — the ID may already be set from a previous webhook
+        });
+      }
+    }
   }
 
   if (payload.status === "completed") {
@@ -1414,11 +1520,11 @@ export async function POST(request: NextRequest) {
         envelope.organizationId,
       );
 
-      // Upload signed PDF to Vercel Blob
+      // Upload signed PDF to Vercel Blob (private access — Vercel Blob now supports this)
       const blob = await put(
         `documents/signed-${envelope.id}.pdf`,
         signedPdfBuffer,
-        { access: "public" }, // TODO: switch to private when Vercel Blob supports it
+        { access: "private" },
       );
 
       // Encrypt signed document name
@@ -1427,9 +1533,13 @@ export async function POST(request: NextRequest) {
         envelope.organizationId,
       );
 
-      // Look up the next friendlyId — use the same helper as create-document.ts
-      // (search for getNextDocumentFriendlyId or the counter pattern in that file)
       const src = envelope.sourceDocument;
+
+      // friendlyId: look up the counter helper used in actions/documents/create-document.ts
+      // (likely getNextDocumentFriendlyId(tx, organizationId) or similar).
+      // Replace the placeholder below with that helper — a millisecond-based ID collides
+      // under concurrent webhooks and will crash the $transaction with a unique constraint.
+      const friendlyId = `doc-signed-${envelope.id}`; // unique per envelope; replace with counter
 
       await prismadb.$transaction(async (tx) => {
         const signedDocument = await tx.documents.create({
@@ -1441,16 +1551,13 @@ export async function POST(request: NextRequest) {
             document_file_mimeType: "application/pdf",
             document_system_type: "CONTRACT",
             size: signedPdfBuffer.byteLength,
-            // Inherit entity links and tags from source
             linkedPropertiesIds: src.linkedPropertiesIds,
             contactsIDs: src.contactsIDs,
             linkedCalendarEventsIds: src.linkedCalendarEventsIds,
             linkedTasksIds: src.linkedTasksIds,
             linkedMandatesIds: src.linkedMandatesIds,
             tags: src.tags,
-            // friendlyId: use the same generation pattern as actions/signing/create-document.ts
-            // For now generate a timestamped fallback; replace with real counter helper
-            friendlyId: `doc-signed-${Date.now()}`,
+            friendlyId,
           },
         });
 
@@ -1486,6 +1593,7 @@ export async function POST(request: NextRequest) {
       data: { status: newStatus },
     });
 
+    // openSignSignerId was hydrated above in Step 0 — the updateMany now matches correctly
     if (payload.status === "declined" && payload.signers) {
       for (const s of payload.signers) {
         if (s.status === "declined" && s.signerId) {
@@ -1548,7 +1656,9 @@ git commit -m "feat(signing): add OpenSign webhook handler with HMAC + tenant gu
     "addOrgMember": "Add org member",
     "addExternalSigner": "Add external signer",
     "nameLabel": "Full name",
+    "namePlaceholder": "e.g. Maria Papadopoulou",
     "emailLabel": "Email address",
+    "emailPlaceholder": "email@example.com",
     "subjectLabel": "Subject",
     "messageLabel": "Message (optional)",
     "expiryLabel": "Expiry date (optional)",
@@ -1558,7 +1668,23 @@ git commit -m "feat(signing): add OpenSign webhook handler with HMAC + tenant gu
     "loadingMembers": "Loading org members…",
     "errorLoadingMembers": "Failed to load org members",
     "unsavedChanges": "You have unsaved changes. Are you sure you want to close?",
-    "sendError": "Failed to send for signing. Please try again."
+    "sendError": "Failed to send for signing. Please try again.",
+    "next": "Next",
+    "back": "Back",
+    "discard": "Discard",
+    "discardTitle": "Discard changes?",
+    "keepEditing": "Keep editing",
+    "subjectPlaceholder": "e.g. Purchase Agreement — Signature Required",
+    "messagePlaceholder": "Optional note to all signers…",
+    "stepIndicatorLabel": "Signing steps",
+    "dragSigner": "Drag to reorder {name}",
+    "removeSigner": "Remove {name} from signers",
+    "dnd": {
+      "dragStart": "Picked up {name}. Use arrow keys to move.",
+      "dragOver": "Moving {dragged} over {target}.",
+      "dragEnd": "Dropped {dragged} in new position after {target}.",
+      "dragCancel": "Dragging cancelled. {name} returned to original position."
+    }
   },
   "status": {
     "DRAFT": "Draft",
@@ -1619,7 +1745,9 @@ git commit -m "feat(signing): add OpenSign webhook handler with HMAC + tenant gu
     "addOrgMember": "Προσθήκη μέλους",
     "addExternalSigner": "Προσθήκη εξωτερικού υπογράφοντα",
     "nameLabel": "Ονοματεπώνυμο",
+    "namePlaceholder": "π.χ. Μαρία Παπαδοπούλου",
     "emailLabel": "Διεύθυνση email",
+    "emailPlaceholder": "email@example.com",
     "subjectLabel": "Θέμα",
     "messageLabel": "Μήνυμα (προαιρετικό)",
     "expiryLabel": "Ημερομηνία λήξης (προαιρετική)",
@@ -1629,7 +1757,23 @@ git commit -m "feat(signing): add OpenSign webhook handler with HMAC + tenant gu
     "loadingMembers": "Φόρτωση μελών…",
     "errorLoadingMembers": "Αποτυχία φόρτωσης μελών",
     "unsavedChanges": "Έχετε μη αποθηκευμένες αλλαγές. Θέλετε σίγουρα να κλείσετε;",
-    "sendError": "Αποτυχία αποστολής για υπογραφή. Παρακαλώ δοκιμάστε ξανά."
+    "sendError": "Αποτυχία αποστολής για υπογραφή. Παρακαλώ δοκιμάστε ξανά.",
+    "next": "Επόμενο",
+    "back": "Πίσω",
+    "discard": "Απόρριψη",
+    "discardTitle": "Απόρριψη αλλαγών;",
+    "keepEditing": "Συνέχεια επεξεργασίας",
+    "subjectPlaceholder": "π.χ. Συμφωνητικό Αγοραπωλησίας — Απαιτείται Υπογραφή",
+    "messagePlaceholder": "Προαιρετική σημείωση σε όλους τους υπογράφοντες…",
+    "stepIndicatorLabel": "Βήματα υπογραφής",
+    "dragSigner": "Σύρετε για αναδιάταξη {name}",
+    "removeSigner": "Αφαίρεση {name} από τους υπογράφοντες",
+    "dnd": {
+      "dragStart": "Πήρατε το {name}. Χρησιμοποιήστε τα βέλη για μετακίνηση.",
+      "dragOver": "Μετακίνηση του {dragged} πάνω από το {target}.",
+      "dragEnd": "Αποθέσατε το {dragged} σε νέα θέση μετά το {target}.",
+      "dragCancel": "Ακυρώθηκε η μετακίνηση. Το {name} επέστρεψε στην αρχική θέση."
+    }
   },
   "status": {
     "DRAFT": "Πρόχειρο",
@@ -1744,6 +1888,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1795,10 +1949,12 @@ function SortableSigner({
   signer,
   index,
   onRemove,
+  t,
 }: {
   signer: Signer;
   index: number;
   onRemove: (id: string) => void;
+  t: ReturnType<typeof useTranslations<"signing">>;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: signer.id });
@@ -1810,11 +1966,13 @@ function SortableSigner({
       className="flex items-center gap-2 rounded-md border bg-card px-3 py-2"
     >
       <span className="text-muted-foreground text-sm w-5 shrink-0">{index + 1}</span>
+      {/* type="button" prevents form submission if wrapped in a <form> */}
       <button
+        type="button"
         {...attributes}
         {...listeners}
         className="text-muted-foreground hover:text-foreground cursor-grab"
-        aria-label="Drag to reorder"
+        aria-label={t("modal.dragSigner", { name: signer.name })}
       >
         <GripVertical className="h-4 w-4" />
       </button>
@@ -1823,12 +1981,13 @@ function SortableSigner({
         <p className="text-xs text-muted-foreground truncate">{signer.email}</p>
       </div>
       <Badge variant="secondary" className="shrink-0 text-xs">
-        {signer.signerType === "INTERNAL" ? "Team" : "External"}
+        {signer.signerType === "INTERNAL" ? t("signerType.INTERNAL") : t("signerType.EXTERNAL")}
       </Badge>
       <button
+        type="button"
         onClick={() => onRemove(signer.id)}
         className="text-muted-foreground hover:text-destructive"
-        aria-label="Remove signer"
+        aria-label={t("modal.removeSigner", { name: signer.name })}
       >
         <X className="h-4 w-4" />
       </button>
@@ -1856,9 +2015,31 @@ export function SendForSigningModal({
   const [confirmClose, setConfirmClose] = useState(false);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    // activationConstraint prevents accidental drag on mobile scroll
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+
+  const dndAnnouncements = {
+    onDragStart: ({ active }: { active: { id: string | number } }) =>
+      t("modal.dnd.dragStart", { name: signers.find((s) => s.id === active.id)?.name ?? "" }),
+    onDragOver: ({ active, over }: { active: { id: string | number }; over: { id: string | number } | null }) =>
+      over
+        ? t("modal.dnd.dragOver", {
+            dragged: signers.find((s) => s.id === active.id)?.name ?? "",
+            target: signers.find((s) => s.id === over.id)?.name ?? "",
+          })
+        : undefined,
+    onDragEnd: ({ active, over }: { active: { id: string | number }; over: { id: string | number } | null }) =>
+      over
+        ? t("modal.dnd.dragEnd", {
+            dragged: signers.find((s) => s.id === active.id)?.name ?? "",
+            target: signers.find((s) => s.id === over.id)?.name ?? "",
+          })
+        : t("modal.dnd.dragCancel", { name: signers.find((s) => s.id === active.id)?.name ?? "" }),
+    onDragCancel: ({ active }: { active: { id: string | number } }) =>
+      t("modal.dnd.dragCancel", { name: signers.find((s) => s.id === active.id)?.name ?? "" }),
+  };
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -1891,7 +2072,8 @@ export function SendForSigningModal({
   }
 
   function handleClose() {
-    const hasContent = signers.length > 0 || message.trim();
+    const defaultSubject = `${documentName} — Signature Required`;
+    const hasContent = signers.length > 0 || message.trim() || subject !== defaultSubject;
     if (hasContent) {
       setConfirmClose(true);
     } else {
@@ -1951,11 +2133,12 @@ export function SendForSigningModal({
             <DialogTitle>{t("modal.title")}</DialogTitle>
           </DialogHeader>
 
-          {/* Step indicator */}
-          <div className="flex gap-2 mb-4">
+          {/* Step indicator — ol for semantics; aria-current="step" marks the active step */}
+          <ol className="flex gap-2 mb-4 list-none p-0 m-0" aria-label={t("modal.stepIndicatorLabel")}>
             {steps.map((label, i) => (
-              <div
+              <li
                 key={label}
+                aria-current={step === i + 1 ? "step" : undefined}
                 className={`flex-1 text-center text-xs py-1 rounded ${
                   step === i + 1
                     ? "bg-primary text-primary-foreground"
@@ -1963,9 +2146,9 @@ export function SendForSigningModal({
                 }`}
               >
                 {label}
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
 
           {/* Step 1: Signers */}
           {step === 1 && (
@@ -1974,6 +2157,7 @@ export function SendForSigningModal({
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
+                accessibility={{ announcements: dndAnnouncements }}
               >
                 <SortableContext
                   items={signers.map((s) => s.id)}
@@ -1986,6 +2170,7 @@ export function SendForSigningModal({
                         signer={s}
                         index={i}
                         onRemove={removeSigner}
+                        t={t}
                       />
                     ))}
                   </div>
@@ -2009,7 +2194,7 @@ export function SendForSigningModal({
                     <Input
                       value={externalName}
                       onChange={(e) => setExternalName(e.target.value)}
-                      placeholder="Full name"
+                      placeholder={t("modal.namePlaceholder")}
                       className="h-8 text-sm"
                     />
                   </div>
@@ -2019,12 +2204,13 @@ export function SendForSigningModal({
                       type="email"
                       value={externalEmail}
                       onChange={(e) => setExternalEmail(e.target.value)}
-                      placeholder="email@example.com"
+                      placeholder={t("modal.emailPlaceholder")}
                       className="h-8 text-sm"
                     />
                   </div>
                 </div>
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
                   onClick={addExternalSigner}
@@ -2036,8 +2222,8 @@ export function SendForSigningModal({
               </div>
 
               <div className="flex justify-end">
-                <Button onClick={() => setStep(2)} disabled={signers.length === 0}>
-                  Next
+                <Button type="button" onClick={() => setStep(2)} disabled={signers.length === 0}>
+                  {t("modal.next")}
                 </Button>
               </div>
             </div>
@@ -2048,7 +2234,11 @@ export function SendForSigningModal({
             <div className="space-y-4">
               <div>
                 <Label>{t("modal.subjectLabel")}</Label>
-                <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
+                <Input
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder={t("modal.subjectPlaceholder")}
+                />
               </div>
               <div>
                 <Label>{t("modal.messageLabel")}</Label>
@@ -2056,19 +2246,19 @@ export function SendForSigningModal({
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
-                  placeholder="Optional note to all signers…"
+                  placeholder={t("modal.messagePlaceholder")}
                 />
               </div>
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
-                <Button onClick={() => setStep(3)}>Next</Button>
+                <Button type="button" variant="outline" onClick={() => setStep(1)}>{t("modal.back")}</Button>
+                <Button type="button" onClick={() => setStep(3)}>{t("modal.next")}</Button>
               </div>
             </div>
           )}
 
           {/* Step 3: Review */}
           {step === 3 && (
-            <div className="space-y-4">
+            <div className="space-y-4" aria-busy={isSubmitting}>
               <p className="text-sm font-medium">{t("modal.reviewTitle")}</p>
               <ol className="space-y-2">
                 {signers.map((s, i) => (
@@ -2082,11 +2272,14 @@ export function SendForSigningModal({
                   </li>
                 ))}
               </ol>
-              {error && <p className="text-sm text-destructive">{error}</p>}
+              {/* aria-live region so screen readers announce errors and success without focus move */}
+              <div aria-live="polite" aria-atomic="true">
+                {error && <p className="text-sm text-destructive">{error}</p>}
+              </div>
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setStep(2)}>Back</Button>
-                <Button onClick={handleSend} disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Button type="button" variant="outline" onClick={() => setStep(2)}>{t("modal.back")}</Button>
+                <Button type="button" onClick={handleSend} disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="h-4 w-4 mr-2 motion-safe:animate-spin" aria-hidden="true" />}
                   {t("modal.sendButton")}
                 </Button>
               </div>
@@ -2095,19 +2288,31 @@ export function SendForSigningModal({
         </DialogContent>
       </Dialog>
 
-      {/* Unsaved-changes confirm dialog */}
-      <Dialog open={confirmClose} onOpenChange={setConfirmClose}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Discard changes?</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">{t("modal.unsavedChanges")}</p>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setConfirmClose(false)}>Keep editing</Button>
-            <Button variant="destructive" onClick={resetAndClose}>Discard</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/*
+        Unsaved-changes confirm — uses AlertDialog, NOT a second Dialog.
+        Two sibling <Dialog> components create an aria-hidden conflict: the first Dialog
+        marks everything else on the page as aria-hidden, which can trap the second Dialog's
+        focus inside the hidden tree depending on portal timing. AlertDialog is a separate
+        Radix primitive that manages its own aria tree correctly when layered alongside Dialog.
+      */}
+      <AlertDialog open={confirmClose} onOpenChange={setConfirmClose}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("modal.discardTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("modal.unsavedChanges")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("modal.keepEditing")}</AlertDialogCancel>
+            {/* AlertDialogAction doesn't accept variant prop — use className for destructive style */}
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={resetAndClose}
+            >
+              {t("modal.discard")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
@@ -2254,7 +2459,7 @@ export function SigningTab({ documentId, initialEnvelope }: SigningTabProps) {
             onClick={() => setConfirmCancel(true)}
             disabled={isCancelling}
           >
-            {isCancelling && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+            {isCancelling && <Loader2 className="h-3 w-3 mr-1 motion-safe:animate-spin" aria-hidden="true" />}
             {t("tab.cancelButton")}
           </Button>
         )}
@@ -2295,8 +2500,11 @@ export function SigningTab({ documentId, initialEnvelope }: SigningTabProps) {
             <AlertDialogDescription>{t("tab.cancelConfirm")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Back</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCancel}>
+            <AlertDialogCancel>{t("modal.back")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleCancel}
+            >
               {t("tab.cancelButton")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -2625,5 +2833,230 @@ git commit -m "feat(signing): add sign trigger to Contact and Property document 
 **Type consistency check:** All types defined in Task 2 (`CreateEnvelopeOpts`, `EnvelopeStatus`, `OpenSignWebhookPayload`, etc.) are consumed correctly in Tasks 4, 7, and 10. `SigningEnvelopeStatus`, `SignerStatus`, `SignerType` are Prisma-generated enums used in Tasks 8, 9, 13, and 16.
 
 **No placeholders:** The `friendlyId` generation in Task 10 is explicitly noted as a stub requiring a real helper — not silent.
+
+---
+
+## Task 17: Webhook Handler Tests (TDD)
+
+**Files:**
+- Create: `tests/api/webhooks/opensign/route.test.ts`
+
+This task covers the happy-path and all critical failure modes of the webhook route handler.
+Run these tests against the handler from Task 10.
+
+- [ ] **Step 1: Write failing tests**
+
+```typescript
+// tests/api/webhooks/opensign/route.test.ts
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { createHmac } from "crypto";
+import { NextRequest } from "next/server";
+
+const SECRET = "test-secret-abcdef1234567890";
+const ORG_ID = "org-test-123";
+const ENVELOPE_ID = "env-test-456";
+
+function makeOrgToken(orgId: string): string {
+  return createHmac("sha256", SECRET).update(orgId).digest("hex");
+}
+
+function makeSignature(body: string): string {
+  return createHmac("sha256", SECRET).update(body).digest("hex");
+}
+
+function makeTimestamp(offsetSeconds = 0): string {
+  return String(Math.floor(Date.now() / 1000) + offsetSeconds);
+}
+
+function makeRequest(
+  body: string,
+  opts: { sig?: string; ts?: string; orgToken?: string } = {},
+): NextRequest {
+  const ts = opts.ts ?? makeTimestamp();
+  const sig = opts.sig ?? makeSignature(body);
+  const orgToken = opts.orgToken ?? makeOrgToken(ORG_ID);
+  return new NextRequest(
+    `https://app.oikion.gr/api/webhooks/opensign?org=${orgToken}`,
+    {
+      method: "POST",
+      headers: {
+        "x-opensign-signature": sig,
+        "x-opensign-timestamp": ts,
+        "x-forwarded-for": "1.2.3.4",
+      },
+      body,
+    },
+  );
+}
+
+vi.mock("@/lib/prisma", () => ({
+  prismadb: {
+    signingEnvelope: {
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    signingEnvelopeSigner: {
+      updateMany: vi.fn(),
+    },
+    documents: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    },
+  },
+}));
+
+vi.mock("@/lib/opensign/client", () => ({
+  openSignClient: {
+    getSignedDocument: vi.fn().mockResolvedValue(Buffer.from("pdf-content")),
+  },
+}));
+
+vi.mock("@/lib/model-encryption", () => ({
+  encryptDocumentForOrg: vi.fn().mockImplementation(async (d) => d),
+  decryptDocumentForOrg: vi.fn().mockImplementation(async (d) => d),
+}));
+
+vi.mock("@vercel/blob", () => ({
+  put: vi.fn().mockResolvedValue({ url: "https://blob.vercel.com/signed.pdf" }),
+}));
+
+const { prismadb } = await import("@/lib/prisma");
+
+const mockEnvelope = {
+  id: "local-env-id",
+  organizationId: ORG_ID,
+  openSignEnvelopeId: ENVELOPE_ID,
+  sourceDocumentId: "doc-001",
+  sourceDocument: {
+    id: "doc-001",
+    organizationId: ORG_ID,
+    entityLinks: [],
+    document_name: "encrypted-name",
+  },
+  signers: [
+    { id: "signer-1", email: "encrypted-email", name: "encrypted-name", order: 1, openSignSignerId: "os-signer-1" },
+  ],
+};
+
+describe("POST /api/webhooks/opensign", () => {
+  beforeEach(() => {
+    vi.stubEnv("OPENSIGN_WEBHOOK_SECRET", SECRET);
+    vi.mocked(prismadb.signingEnvelope.findFirst).mockResolvedValue(mockEnvelope as never);
+    vi.mocked(prismadb.signingEnvelope.update).mockResolvedValue({} as never);
+    vi.mocked(prismadb.signingEnvelope.updateMany).mockResolvedValue({ count: 1 } as never);
+    vi.mocked(prismadb.signingEnvelopeSigner.updateMany).mockResolvedValue({ count: 1 } as never);
+    vi.mocked(prismadb.documents.create).mockResolvedValue({ id: "new-signed-doc" } as never);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("returns 400 for an invalid HMAC signature", async () => {
+    const { POST } = await import("@/app/api/webhooks/opensign/route");
+    const body = JSON.stringify({ envelopeId: ENVELOPE_ID, status: "completed" });
+    const req = makeRequest(body, { sig: "bad-signature" });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for a malformed JSON body (valid HMAC)", async () => {
+    const { POST } = await import("@/app/api/webhooks/opensign/route");
+    const body = "not-valid-json";
+    const req = makeRequest(body);
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 when org token does not match any org", async () => {
+    const { POST } = await import("@/app/api/webhooks/opensign/route");
+    // Use a token for a different org — envelope.organizationId won't match
+    const wrongToken = makeOrgToken("org-other-999");
+    const body = JSON.stringify({ envelopeId: ENVELOPE_ID, status: "completed" });
+    const req = makeRequest(body, { orgToken: wrongToken });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 200 and creates signed document on COMPLETED status", async () => {
+    const { POST } = await import("@/app/api/webhooks/opensign/route");
+    const body = JSON.stringify({
+      envelopeId: ENVELOPE_ID,
+      status: "completed",
+      signers: [{ signerId: "os-signer-1", status: "signed", signedAt: "2026-05-28T10:00:00Z" }],
+    });
+    const req = makeRequest(body);
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(prismadb.documents.create).toHaveBeenCalled();
+    expect(prismadb.signingEnvelope.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "COMPLETED" }),
+      }),
+    );
+  });
+
+  it("returns 200 and marks signer DECLINED on DECLINED status", async () => {
+    const { POST } = await import("@/app/api/webhooks/opensign/route");
+    const body = JSON.stringify({
+      envelopeId: ENVELOPE_ID,
+      status: "declined",
+      signers: [{ signerId: "os-signer-1", status: "declined" }],
+    });
+    const req = makeRequest(body);
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(prismadb.signingEnvelopeSigner.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ openSignSignerId: "os-signer-1" }),
+        data: expect.objectContaining({ status: "DECLINED" }),
+      }),
+    );
+  });
+
+  it("hydrates openSignSignerId from payload for signers with null ID", async () => {
+    const { POST } = await import("@/app/api/webhooks/opensign/route");
+    const body = JSON.stringify({
+      envelopeId: ENVELOPE_ID,
+      status: "completed",
+      signers: [{ signerId: "newly-assigned-signer-id", status: "signed", signedAt: "2026-05-28T10:00:00Z" }],
+    });
+    const req = makeRequest(body);
+    await POST(req);
+    // Step 0 hydration: updateMany with openSignSignerId: null should be called
+    expect(prismadb.signingEnvelopeSigner.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ openSignSignerId: null }),
+        data: expect.objectContaining({ openSignSignerId: expect.any(String) }),
+      }),
+    );
+  });
+});
+```
+
+- [ ] **Step 2: Run tests to confirm they fail**
+
+```bash
+pnpm vitest run tests/api/webhooks/opensign/route.test.ts
+```
+
+Expected: all fail with `Cannot find module '@/app/api/webhooks/opensign/route'`
+
+- [ ] **Step 3: Run tests to confirm they pass after Task 10 is implemented**
+
+```bash
+pnpm vitest run tests/api/webhooks/opensign/route.test.ts
+```
+
+Expected: `Tests 6 passed (6)`
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add tests/api/webhooks/opensign/route.test.ts
+git commit -m "test(signing): add webhook handler test suite (HMAC, JSON error, org mismatch, completed, declined, hydration)"
+```
 
 ---
