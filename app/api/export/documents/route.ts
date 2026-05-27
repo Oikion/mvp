@@ -1,11 +1,3 @@
-// @ts-nocheck
-/**
- * Documents Export API Route
- *
- * Exports documents data to XLS, XLSX, CSV, XML, or PDF format.
- * Includes rate limiting, authorization, audit logging, and descriptive filenames.
- */
-
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
@@ -27,6 +19,14 @@ import { requireCanExport } from "@/lib/permissions/guards";
 import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
 import { decryptDocumentForOrg } from "@/lib/model-encryption";
 import { logPiiAccess } from "@/lib/pii-access-log";
+
+type DocumentWithRelations = {
+  Users_Documents_created_by_userToUsers?: { name: string } | null;
+  Users_Documents_assigned_userToUsers?: { name: string } | null;
+  Clients?: { client_name: string }[];
+  Properties?: { property_name: string }[];
+  [key: string]: unknown;
+};
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -123,8 +123,8 @@ export async function GET(req: NextRequest) {
         expiresAt: true,
         created_by_user: true,
         assigned_user: true,
-        Clients: {
-          select: { id: true, client_name: true },
+        Contacts: {
+          select: { id: true, displayName: true },
         },
         Properties: {
           select: { id: true, property_name: true },
@@ -200,16 +200,13 @@ export async function GET(req: NextRequest) {
           fields: ["document_name", "description"],
           source: "GET /api/export/documents",
         }).catch(() => {});
+        const d = decrypted as DocumentWithRelations;
         return {
           ...decrypted,
-          created_by_name: (decrypted as any).Users_Documents_created_by_userToUsers?.name || "",
-          assigned_to_name: (decrypted as any).Users_Documents_assigned_userToUsers?.name || "",
-          linked_clients: ((decrypted as any).Clients || [])
-            .map((c: { client_name: string }) => c.client_name)
-            .join(", "),
-          linked_properties: ((decrypted as any).Properties || [])
-            .map((p: { property_name: string }) => p.property_name)
-            .join(", "),
+          created_by_name: d.Users_Documents_created_by_userToUsers?.name || "",
+          assigned_to_name: d.Users_Documents_assigned_userToUsers?.name || "",
+          linked_clients: (d.Clients || []).map((c) => c.client_name).join(", "),
+          linked_properties: (d.Properties || []).map((p) => p.property_name).join(", "),
         };
       })
     );

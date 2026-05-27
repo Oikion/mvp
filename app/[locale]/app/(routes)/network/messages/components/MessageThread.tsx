@@ -163,6 +163,13 @@ export function MessageThread({ channelId, conversationId, credentials, external
   const { isUnlocked, decryptDM, decryptGroup } = useE2EE();
   const [decryptedContent, setDecryptedContent] = useState<Record<string, string>>({});
 
+  // Keep a ref to the latest decryptedContent so the decrypt effect can read it
+  // without adding it as a dependency (which would cause an infinite loop).
+  const decryptedContentRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    decryptedContentRef.current = decryptedContent;
+  }, [decryptedContent]);
+
   // Decrypt E2EE messages when they arrive
   useEffect(() => {
     if (!isUnlocked || rawMessages.length === 0) return;
@@ -172,7 +179,7 @@ export function MessageThread({ channelId, conversationId, credentials, external
       const newDecrypted: Record<string, string> = {};
       for (const msg of rawMessages) {
         // Skip already-decrypted or non-E2EE messages
-        if (decryptedContent[msg.id] || !msg.sessionId) continue;
+        if (decryptedContentRef.current[msg.id] || !msg.sessionId) continue;
         try {
           if (msg.conversationId && msg.dhPublicKey != null) {
             // DM — Double Ratchet
@@ -200,7 +207,7 @@ export function MessageThread({ channelId, conversationId, credentials, external
 
     decryptMessages();
     return () => { cancelled = true; };
-  }, [rawMessages, isUnlocked, decryptDM, decryptGroup]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rawMessages, isUnlocked, decryptDM, decryptGroup]);
 
   // Merge decrypted content into messages
   const messages = useMemo(

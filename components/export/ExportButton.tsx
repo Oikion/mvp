@@ -2,7 +2,7 @@
 // TODO: Fix type errors
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -254,6 +254,13 @@ const PORTAL_TEMPLATES: PortalDefinition[] = [
 ];
 
 // ============================================
+// CONSTANTS
+// ============================================
+
+/** Modules that use the async POST → poll → download flow */
+const BULK_MODULES: ExportModule[] = ["crm", "mls"];
+
+// ============================================
 // COMPONENT
 // ============================================
 
@@ -289,12 +296,34 @@ export function ExportButton({
   const [selectedTemplate, setSelectedTemplate] = useState<ExportTemplate>(null);
   const [selectedPortal, setSelectedPortal] = useState<PortalId | null>(null);
   const [exportTab, setExportTab] = useState<"file" | "portal">("file");
-  
+  const [asyncJobId, setAsyncJobId] = useState<string | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Clean up polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
+
   const availableFormats = formats || DEFAULT_FORMATS[module];
   const hasScopeOptions = filteredRows !== undefined && totalRows !== undefined && filteredRows !== totalRows;
   const showTemplateSelection = enableTemplates && (selectedFormat === "xlsx" || selectedFormat === "xls");
   const showPortalOptions = enablePortals && module === "mls";
   
+  // Build POST body for async bulk exports
+  const buildExportBody = useCallback((format: ExportFormat, scope: ExportScope, template: ExportTemplate) => {
+    const body: Record<string, unknown> = { format, scope, locale };
+    if (template) body.template = template;
+    if (destination) body.destination = destination;
+    if (scope === "filtered" && filters) {
+      if (filters.status?.length) body.status = filters.status;
+      if (filters.type?.length) body.type = filters.type;
+      if (filters.search) body.search = filters.search;
+    }
+    return body;
+  }, [locale, filters, destination]);
+
   // Build export URL with filters
   const buildExportUrl = useCallback((format: ExportFormat, scope: ExportScope, template: ExportTemplate): string => {
     const params = new URLSearchParams();
@@ -345,89 +374,204 @@ export function ExportButton({
     return `/api/export/${module}?${params.toString()}`;
   }, [module, locale, filters, calendarViewType, destination]);
   
+  const resetExportState = useCallback(() => {
+    setIsExporting(false);
+    setShowExportDialog(false);
+    setSelectedFormat(null);
+    setSelectedTemplate(null);
+    setAsyncJobId(null);
+  }, []);
+
   // Handle export
   const handleExport = useCallback(async (format: ExportFormat, scope: ExportScope, template: ExportTemplate) => {
     setIsExporting(true);
-    
-    try {
-      const url = buildExportUrl(format, scope, template);
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Export failed with status ${response.status}`);
-      }
-      
-      // Get filename from Content-Disposition header
-      const contentDisposition = response.headers.get("Content-Disposition");
-      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
-      const filename = filenameMatch?.[1] || `export.${format}`;
-      
-      // Download the file
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-      
-      // Record export history if entityId is provided
-      if (entityId) {
-        try {
-          const entityType = module === "mls" ? "PROPERTY" : module === "crm" ? "CONTACT" : module.toUpperCase();
-          const isBulk = Array.isArray(entityData) && entityData.length > 1;
 
-          await recordExport({
-            entityType: isBulk ? (entityType === "CONTACT" ? "BULK_CONTACTS" : `BULK_${entityType}S`) : entityType,
-            entityId: isBulk ? `bulk-${Date.now()}` : entityId,
-            entityIds: isBulk && Array.isArray(entityData) 
-              ? entityData.map(e => (e as Record<string, unknown>).id as string).filter(Boolean) 
-              : [],
-            exportFormat: format,
-            exportTemplate: template || undefined,
-            destination,
-            filename,
-            rowCount: Array.isArray(entityData) ? entityData.length : 1,
-            entityData,
-          });
-        } catch (historyError) {
-          // Don't fail the export if history recording fails
-          console.error("[EXPORT_HISTORY_ERROR]", historyError);
+    const isBulkModule = BULK_MODULES.includes(module);
+
+    if (isBulkModule) {
+      // ── Async path: POST → 202 → poll → download ────────────────────────
+      try {
+        const body = buildExportBody(format, scope, template);
+        const response = await fetch(`/api/export/${module}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (response.status !== 202) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.message || `Export failed with status ${response.status}`);
         }
+
+        const { jobId } = await response.json();
+        setAsyncJobId(jobId);
+
+        // Poll until COMPLETED or FAILED (max 200 attempts = ~10 minutes)
+        let pollAttempts = 0;
+        const MAX_POLL_ATTEMPTS = 200;
+
+        const pollInterval = setInterval(async () => {
+          pollAttempts++;
+
+          if (pollAttempts > MAX_POLL_ATTEMPTS) {
+            clearInterval(pollInterval);
+            pollingRef.current = null;
+            toast.error(
+              locale === "el" ? "Η εξαγωγή απέτυχε" : "Export timed out",
+              {
+                description: locale === "el"
+                  ? "Η επεξεργασία διήρκεσε πολύ — δοκιμάστε ξανά"
+                  : "Processing took too long — please try again",
+                icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+              }
+            );
+            resetExportState();
+            return;
+          }
+
+          try {
+            const statusRes = await fetch(`/api/export/status/${jobId}`);
+            if (!statusRes.ok) return; // transient error — keep polling
+
+            const data = await statusRes.json();
+
+            if (data.status === "COMPLETED") {
+              clearInterval(pollInterval);
+              pollingRef.current = null;
+
+              // Trigger download via auth-gated proxy
+              const link = document.createElement("a");
+              link.href = `/api/export/download/${jobId}`;
+              link.download = data.filename || `export.${format}`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+
+              toast.success(
+                locale === "el" ? "Η εξαγωγή ολοκληρώθηκε" : "Export ready",
+                {
+                  description: locale === "el"
+                    ? `Το αρχείο ${data.filename || ""} κατέβηκε επιτυχώς`
+                    : `${data.filename || "File"} downloaded successfully`,
+                  icon: <CheckCircle2 className="h-4 w-4 text-success" />,
+                }
+              );
+
+              onExportComplete?.(data.filename || "");
+              resetExportState();
+            } else if (data.status === "FAILED") {
+              clearInterval(pollInterval);
+              pollingRef.current = null;
+
+              toast.error(
+                locale === "el" ? "Η εξαγωγή απέτυχε" : "Export failed",
+                {
+                  description: data.errorMessage || "Processing failed",
+                  icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+                }
+              );
+              resetExportState();
+            }
+            // PENDING | RUNNING → keep polling
+          } catch (pollError) {
+            clearInterval(pollInterval);
+            pollingRef.current = null;
+            console.error("[EXPORT_POLL_ERROR]", pollError);
+            toast.error(
+              locale === "el" ? "Η εξαγωγή απέτυχε" : "Export failed",
+              {
+                description: pollError instanceof Error ? pollError.message : "An unexpected error occurred",
+                icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+              }
+            );
+            resetExportState();
+          }
+        }, 3000);
+
+        pollingRef.current = pollInterval;
+      } catch (error) {
+        console.error("[EXPORT_ENQUEUE_ERROR]", error);
+        toast.error(
+          locale === "el" ? "Η εξαγωγή απέτυχε" : "Export failed",
+          {
+            description: error instanceof Error ? error.message : "An unexpected error occurred",
+            icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+          }
+        );
+        resetExportState();
       }
-      
-      toast.success(
-        locale === "el" ? "Η εξαγωγή ολοκληρώθηκε" : "Export completed",
-        {
-          description: locale === "el" 
-            ? `Το αρχείο ${filename} κατέβηκε επιτυχώς`
-            : `File ${filename} downloaded successfully`,
-          icon: <CheckCircle2 className="h-4 w-4 text-success" />,
+    } else {
+      // ── Sync path: GET → file blob ────────────────────────────────────────
+      try {
+        const url = buildExportUrl(format, scope, template);
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Export failed with status ${response.status}`);
         }
-      );
-      
-      // Call the callback if provided
-      onExportComplete?.(filename);
-      
-    } catch (error) {
-      console.error("[EXPORT_ERROR]", error);
-      toast.error(
-        locale === "el" ? "Η εξαγωγή απέτυχε" : "Export failed",
-        {
-          description: error instanceof Error ? error.message : "An unexpected error occurred",
-          icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+
+        const contentDisposition = response.headers.get("Content-Disposition");
+        const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+        const filename = filenameMatch?.[1] || `export.${format}`;
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+
+        if (entityId) {
+          try {
+            const entityType = module === "mls" ? "PROPERTY" : module === "crm" ? "CONTACT" : module.toUpperCase();
+            const isBulk = Array.isArray(entityData) && entityData.length > 1;
+            await recordExport({
+              entityType: isBulk ? (entityType === "CONTACT" ? "BULK_CONTACTS" : `BULK_${entityType}S`) : entityType,
+              entityId: isBulk ? `bulk-${Date.now()}` : entityId,
+              entityIds: isBulk && Array.isArray(entityData)
+                ? entityData.map(e => (e as Record<string, unknown>).id as string).filter(Boolean)
+                : [],
+              exportFormat: format,
+              exportTemplate: template || undefined,
+              destination,
+              filename,
+              rowCount: Array.isArray(entityData) ? entityData.length : 1,
+              entityData,
+            });
+          } catch (historyError) {
+            console.error("[EXPORT_HISTORY_ERROR]", historyError);
+          }
         }
-      );
-    } finally {
-      setIsExporting(false);
-      setShowExportDialog(false);
-      setSelectedFormat(null);
-      setSelectedTemplate(null);
+
+        toast.success(
+          locale === "el" ? "Η εξαγωγή ολοκληρώθηκε" : "Export completed",
+          {
+            description: locale === "el"
+              ? `Το αρχείο ${filename} κατέβηκε επιτυχώς`
+              : `File ${filename} downloaded successfully`,
+            icon: <CheckCircle2 className="h-4 w-4 text-success" />,
+          }
+        );
+
+        onExportComplete?.(filename);
+      } catch (error) {
+        console.error("[EXPORT_ERROR]", error);
+        toast.error(
+          locale === "el" ? "Η εξαγωγή απέτυχε" : "Export failed",
+          {
+            description: error instanceof Error ? error.message : "An unexpected error occurred",
+            icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+          }
+        );
+      } finally {
+        resetExportState();
+      }
     }
-  }, [buildExportUrl, locale, entityId, entityData, module, destination, recordExport, onExportComplete]);
+  }, [buildExportUrl, buildExportBody, module, locale, entityId, entityData, destination, recordExport, onExportComplete, resetExportState]);
   
   // Handle format selection
   const handleFormatSelect = useCallback((format: ExportFormat) => {
@@ -584,9 +728,11 @@ export function ExportButton({
             )}
             {showLabel && size !== "icon" && (
               <span className="ml-2">
-                {isExporting 
-                  ? (locale === "el" ? "Εξαγωγή..." : "Exporting...")
-                  : (locale === "el" ? "Εξαγωγή" : "Export")
+                {asyncJobId
+                  ? (locale === "el" ? "Επεξεργασία..." : "Processing...")
+                  : isExporting
+                    ? (locale === "el" ? "Εξαγωγή..." : "Exporting...")
+                    : (locale === "el" ? "Εξαγωγή" : "Export")
                 }
               </span>
             )}
@@ -1039,34 +1185,54 @@ export function ExportButton({
             </>
           )}
           
-          {totalRows && totalRows > 5000 && selectedScope === "all" && (
+          {totalRows && totalRows > 5000 && selectedScope === "all" && !asyncJobId && (
             <div className="flex items-center gap-2 text-sm text-warning bg-warning/10 dark:bg-amber-950/30 p-3 rounded-lg">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span>
-                {locale === "el" 
-                  ? "Η εξαγωγή μεγάλου αριθμού εγγραφών μπορεί να πάρει περισσότερο χρόνο"
-                  : "Exporting a large number of records may take longer"
+                {locale === "el"
+                  ? "Μεγάλη εξαγωγή — θα επεξεργαστεί στο παρασκήνιο, θα ειδοποιηθείτε όταν είναι έτοιμη"
+                  : "Large export — will process in the background, you'll be notified when ready"
                 }
               </span>
             </div>
           )}
-          
+
+          {asyncJobId && (
+            <div className="flex items-center gap-3 text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+              <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+              <span>
+                {locale === "el"
+                  ? "Επεξεργασία εξαγωγής — το αρχείο θα κατεβεί αυτόματα όταν είναι έτοιμο"
+                  : "Processing export — the file will download automatically when ready"}
+              </span>
+            </div>
+          )}
+
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
-                setShowExportDialog(false);
-                setSelectedFormat(null);
+                if (pollingRef.current) clearInterval(pollingRef.current);
+                pollingRef.current = null;
                 setSelectedPortal(null);
+                resetExportState(); // always resets isExporting, asyncJobId, dialog state
               }}
             >
-              {locale === "el" ? "Ακύρωση" : "Cancel"}
+              {asyncJobId
+                ? (locale === "el" ? "Κλείσιμο" : "Close")
+                : (locale === "el" ? "Ακύρωση" : "Cancel")
+              }
             </Button>
             <Button
               onClick={handleExportConfirm}
               disabled={isExporting || (exportTab === "file" ? !selectedFormat : !selectedPortal)}
             >
-              {isExporting ? (
+              {asyncJobId ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {locale === "el" ? "Επεξεργασία..." : "Processing..."}
+                </>
+              ) : isExporting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   {locale === "el" ? "Εξαγωγή..." : "Exporting..."}

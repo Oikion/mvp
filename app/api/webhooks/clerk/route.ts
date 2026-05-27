@@ -146,11 +146,13 @@ export async function POST(req: Request) {
     const data = evt.data as {
       organization?: { id: string; public_metadata?: Record<string, unknown> };
       public_user_data?: { user_id: string };
+      role?: string;
     };
 
     const orgMetadata = data.organization?.public_metadata;
     const clerkUserId = data.public_user_data?.user_id;
     const orgId = data.organization?.id;
+    const departingRole = data.role;
 
     if (clerkUserId && orgId) {
       // Block personal workspace removal — restore membership
@@ -169,26 +171,32 @@ export async function POST(req: Request) {
         }
         // Do NOT run departure for personal workspaces
       } else {
-        // Regular org membership removal — run departure
-        const dbUser = await prismadb.users.findFirst({
-          where: { clerkUserId },
-        });
-
-        if (dbUser) {
-          try {
-            const result = await handleUserDeparture(dbUser.id, orgId, "REMOVED_FROM_ORG");
-            console.log(`[WEBHOOK] Departure for user ${dbUser.id} from org ${orgId}:`, result);
-          } catch (err) {
-            console.error(`[WEBHOOK] Departure failed for user ${dbUser.id} from org ${orgId}:`, err);
-          }
+        // Guard: org owner departure must go through ownership transfer — never auto-depart
+        if (departingRole === "org:owner") {
+          console.error("[CLERK_WEBHOOK] Org owner departure — skipping handleUserDeparture for org", orgId);
+          // Intentional no-op: ownership transfer must be handled separately
         } else {
-          console.warn(`[WEBHOOK] No DB user found for clerk ID ${clerkUserId} during membership removal`);
-        }
+          // Regular org membership removal — run departure
+          const dbUser = await prismadb.users.findFirst({
+            where: { clerkUserId },
+          });
 
-        // Sync seat count after member removal (non-blocking)
-        syncSeatQuantity(orgId).catch((err) => {
-          console.error(`[WEBHOOK] Seat sync after departure failed for org ${orgId}:`, err);
-        });
+          if (dbUser) {
+            try {
+              const result = await handleUserDeparture(dbUser.id, orgId, "REMOVED_FROM_ORG");
+              console.log(`[WEBHOOK] Departure for user ${dbUser.id} from org ${orgId}:`, result);
+            } catch (err) {
+              console.error(`[WEBHOOK] Departure failed for user ${dbUser.id} from org ${orgId}:`, err);
+            }
+          } else {
+            console.warn(`[WEBHOOK] No DB user found for clerk ID ${clerkUserId} during membership removal`);
+          }
+
+          // Sync seat count after member removal (non-blocking)
+          syncSeatQuantity(orgId).catch((err) => {
+            console.error(`[WEBHOOK] Seat sync after departure failed for org ${orgId}:`, err);
+          });
+        }
       }
     }
   }

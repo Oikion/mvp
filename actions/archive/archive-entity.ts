@@ -1,8 +1,9 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { hasPermission } from "@/lib/permissions/service";
+import { requireAction } from "@/lib/permissions/action-guards";
+import { getCurrentOrgId } from "@/lib/get-current-user";
+import { auth } from "@clerk/nextjs/server";
 
 export type ArchivableEntityType =
   | "property"
@@ -17,11 +18,12 @@ export async function archiveEntity(
   id: string,
   cascade: boolean = false
 ): Promise<{ success: boolean; error?: string }> {
-  const { userId, orgId: organizationId } = await auth();
-  if (!userId || !organizationId) return { success: false, error: "Unauthorized" };
+  const guard = await requireAction("archive:create");
+  if (guard) return { success: false, error: guard.error };
 
-  const allowed = await hasPermission("canDelete");
-  if (!allowed) return { success: false, error: "Permission denied" };
+  const { userId } = await auth();
+  const organizationId = await getCurrentOrgId();
+  if (!userId || !organizationId) return { success: false, error: "Unauthorized" };
 
   const now = new Date();
 
@@ -49,7 +51,10 @@ export async function archiveEntity(
           if (cascade) {
             // updateMany doesn't support relation filters — find request IDs via join table first
             const linkedRequests = await tx.requestContact.findMany({
-              where: { contactId: id },
+              where: {
+                contactId: id,
+                request: { organizationId },
+              },
               select: { requestId: true },
             });
             if (linkedRequests.length > 0) {

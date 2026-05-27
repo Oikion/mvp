@@ -5,6 +5,7 @@ import { canPerformAction, requireActionOnEntity } from "@/lib/permissions";
 import { handleGuardError } from "@/lib/permissions/action-guards";
 import { isDemoOrg } from "@/lib/demo/demo-guard";
 import { updateContactSchema } from "@/lib/validations/contacts";
+import { isValidContactTransition, getContactTransitionError } from "@/lib/validations/status-transitions";
 import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { isFriendlyId } from "@/lib/friendly-id";
 import { logPiiAccess } from "@/lib/pii-access-log";
@@ -195,6 +196,17 @@ export async function PUT(
 
     const guard = await requireActionOnEntity("contact:update", "contact", contactId, existing.assignedAgentId);
     if (guard) return handleGuardError(guard);
+
+    // Only validate if status is changing
+    if (data.status && existing.status !== data.status) {
+      const transition = isValidContactTransition(existing.status, data.status);
+      if (!transition) {
+        return NextResponse.json(
+          { error: getContactTransitionError(existing.status, data.status) },
+          { status: 422 }
+        );
+      }
+    }
 
     const encrypted = await encryptContactForOrg(data, organizationId);
     const { addresses: encAddresses, communicationNotes: encCommNotes, ...encryptedRest } = encrypted as Record<string, unknown>;

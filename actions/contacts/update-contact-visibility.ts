@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
@@ -19,6 +20,12 @@ export async function updateContactVisibility(
   const guard = await requireAction("contact:update");
   if (guard) return guard;
 
+  const parsedVisibility = z.nativeEnum(ItemVisibility).safeParse(visibility);
+  if (!parsedVisibility.success) {
+    return actionError("Invalid visibility value", "VALIDATION_ERROR");
+  }
+  const safeVisibility = parsedVisibility.data;
+
   const organizationId = await getCurrentOrgId();
   if (!organizationId) return actionError("Unauthorized", "AUTH_ERROR");
 
@@ -32,7 +39,7 @@ export async function updateContactVisibility(
   try {
     await prismadb.contact.update({
       where: { id: contactId, organizationId },
-      data: { visibility },
+      data: { visibility: safeVisibility },
     });
 
     void createSystemActivity({
@@ -40,7 +47,7 @@ export async function updateContactVisibility(
       parentType: "CONTACT",
       parentId: contactId,
       kind: "OTHER",
-      body: `Visibility changed from ${existing.visibility} to ${visibility}`,
+      body: `Visibility changed from ${existing.visibility} to ${safeVisibility}`,
     });
 
     revalidatePath("/crm/contacts");

@@ -92,7 +92,11 @@
       "client": "Συνδεδεμένος Πελάτης",
       "clientPlaceholder": "Αναζήτηση πελατών...",
       "clientSearchPlaceholder": "Αναζήτηση πελατών...",
-      "noClientsFound": "Δεν βρέθηκαν πελάτες"
+      "noClientsFound": "Δεν βρέθηκαν πελάτες",
+      "timelinePlaceholder": "Επιλέξτε χρονοδιάγραμμα",
+      "conditionPlaceholder": "Επιλέξτε καταστάσεις",
+      "heatingTypePlaceholder": "Επιλέξτε τύπους θέρμανσης",
+      "amenitiesPlaceholder": "Επιλέξτε παροχές"
     },
     "status": {
       "DRAFT": "Πρόχειρο",

@@ -6,6 +6,7 @@ import { canPerformAction, requireActionOnEntity } from "@/lib/permissions";
 import { handleGuardError } from "@/lib/permissions/action-guards";
 import { isDemoOrg } from "@/lib/demo/demo-guard";
 import { updateRequestSchema } from "@/lib/validations/requests";
+import { isValidRequestTransition, getRequestTransitionError } from "@/lib/validations/status-transitions";
 import { encryptRequestForOrg, decryptRequestForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { logEntityCreated, logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
 import { logPiiAccess } from "@/lib/pii-access-log";
@@ -240,6 +241,17 @@ export async function PUT(
 
     const guard = await requireActionOnEntity("request:update", "request", existing.id, existing.assignedAgentId);
     if (guard) return handleGuardError(guard);
+
+    // Only validate if status is changing
+    if (data.status && existing.status !== data.status) {
+      const transition = isValidRequestTransition(existing.status, data.status);
+      if (!transition) {
+        return NextResponse.json(
+          { error: getRequestTransitionError(existing.status, data.status) },
+          { status: 422 }
+        );
+      }
+    }
 
     const updated = await prismadb.request.update({
       where: { id: existing.id, organizationId },

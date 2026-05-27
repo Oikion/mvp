@@ -122,9 +122,20 @@ export async function DELETE(
       return apiBadRequest("Request body must be valid JSON");
     }
 
-    const { deletedCounts } = await deleteImportBatch(id, orgId, userId, entities);
+    const dryRun = new URL(req.url).searchParams.get("dryRun") === "true";
+    const { deletedCounts, affectedDealCount } = await deleteImportBatch(
+      id,
+      orgId,
+      userId,
+      entities,
+      dryRun,
+    );
 
-    return NextResponse.json({ deletedCounts });
+    if (dryRun) {
+      return NextResponse.json({ dryRun: true, affectedDealCount });
+    }
+
+    return NextResponse.json({ deletedCounts, affectedDealCount });
   } catch (error) {
     console.error("[IMPORT_HISTORY_DETAIL_DELETE]", error);
     return apiInternalError("Failed to delete import batch", error as Error);

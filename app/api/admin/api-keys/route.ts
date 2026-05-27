@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCurrentUserSafe, getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import {
   createApiKey,
   listApiKeys,
@@ -10,30 +10,7 @@ import {
   ApiScope,
 } from "@/lib/api-auth";
 import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
-
-/**
- * Check if user has admin access via Clerk metadata or DB flags
- */
-async function hasAdminAccess(userId: string, dbUser: { is_admin: boolean; is_account_admin: boolean } | null): Promise<boolean> {
-  // Check DB flags first
-  if (dbUser?.is_admin || dbUser?.is_account_admin) {
-    return true;
-  }
-  
-  // Check Clerk private metadata for isPlatformAdmin
-  try {
-    const client = await clerkClient();
-    const clerkUser = await client.users.getUser(userId);
-    const privateMetadata = clerkUser.privateMetadata as { isPlatformAdmin?: boolean };
-    if (privateMetadata?.isPlatformAdmin === true) {
-      return true;
-    }
-  } catch (error) {
-    console.error("[ADMIN_CHECK] Error checking Clerk metadata:", error);
-  }
-  
-  return false;
-}
+import { apiUnauthorized } from "@/lib/api-response";
 
 /**
  * GET /api/admin/api-keys
@@ -42,26 +19,9 @@ async function hasAdminAccess(userId: string, dbUser: { is_admin: boolean; is_ac
 export async function GET(req: Request) {
   try {
     const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
-    }
+    if (!userId) return apiUnauthorized();
 
-    const user = await getCurrentUserSafe();
     const organizationId = await getCurrentOrgIdSafe();
-
-    // Check if user has admin access (via DB or Clerk metadata)
-    const isAdmin = await hasAdminAccess(userId, user);
-    
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403 }
-      );
-    }
 
     // Check action-level permission for viewing API keys
     const guard = await requireAction("admin:manage_webhooks");
@@ -126,33 +86,9 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
-    }
+    if (!userId) return apiUnauthorized();
 
-    const user = await getCurrentUserSafe();
     const organizationId = await getCurrentOrgIdSafe();
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found in database" },
-        { status: 400 }
-      );
-    }
-
-    // Check if user has admin access (via DB or Clerk metadata)
-    const isAdmin = await hasAdminAccess(userId, user);
-    
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403 }
-      );
-    }
 
     // Check action-level permission for creating API keys
     const guard = await requireAction("admin:manage_webhooks");
@@ -200,13 +136,33 @@ export async function POST(req: Request) {
       expiresAt.setDate(expiresAt.getDate() + expiresInDays);
     }
 
+    // createdById requires the DB user id — look up by clerkUserId
+    const { prismadb } = await import("@/lib/prisma");
+    const dbUser = await prismadb.users.findFirst({ where: { clerkUserId: userId } });
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: "User not found in database" },
+        { status: 400 }
+      );
+    }
+
     // Create API key
     const { key, id, keyPrefix } = await createApiKey({
       organizationId,
       name: name.trim(),
       scopes: scopes as ApiScope[],
-      createdById: user.id,
+      createdById: dbUser.id,
       expiresAt,
+    });
+
+    await prismadb.organizationSettingsAudit.create({
+      data: {
+        organizationId,
+        settingKey: "apiKey.created",
+        oldValue: null,
+        newValue: name.trim(),
+        changedBy: userId,
+      },
     });
 
     return NextResponse.json(

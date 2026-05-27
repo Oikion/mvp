@@ -126,7 +126,11 @@ export async function ingestEmailMessage(
   }
 
   // Create the message
-  const textContent = parsedEmail.textBody || parsedEmail.subject;
+  const MAX_EMAIL_BODY_LENGTH = 10_000;
+  let textContent = parsedEmail.textBody || parsedEmail.subject;
+  if (textContent && textContent.length > MAX_EMAIL_BODY_LENGTH) {
+    textContent = textContent.slice(0, MAX_EMAIL_BODY_LENGTH) + "\n\n[Email truncated — content exceeded 10,000 characters]";
+  }
   const { content: encryptedContent } = await encryptMessageForOrg(
     { content: textContent },
     organizationId

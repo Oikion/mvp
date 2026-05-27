@@ -61,6 +61,8 @@
     "confirmChangeTitle": "Confirm Policy Change",
     "confirmChangeDescription": "You are changing the data ownership policy to {mode}.",
     "confirmChangeNote": "All members will need to re-consent. Existing data follows the policy active when it was created.",
+    "confirmChangeSessionNote": "Active member sessions are not invalidated. Members will be prompted to re-consent on their next session.",
+    "confirmChangeNextLoginNote": "This change takes effect for each team member at their next login.",
     "policyUpdated": "Data ownership policy updated",
     "policySet": "Data ownership policy set",
     "policyUpdateFailed": "Failed to update policy",

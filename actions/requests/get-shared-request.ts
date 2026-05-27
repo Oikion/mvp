@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
 import { decryptRequestForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { serializePrisma } from "@/lib/prisma-serialize";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 /**
  * Fetches a request that has been explicitly shared with the current user.
@@ -11,6 +12,9 @@ import { serializePrisma } from "@/lib/prisma-serialize";
  * Comments are excluded from shared views.
  */
 export async function getSharedRequest(requestId: string) {
+  const guard = await requireAction("request:read");
+  if (guard) return null;
+
   const currentUser = await getCurrentUserSafe();
   if (!currentUser) return null;
 

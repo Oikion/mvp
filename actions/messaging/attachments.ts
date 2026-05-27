@@ -1,8 +1,10 @@
 "use server";
 
 import { del } from "@vercel/blob";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { auth } from "@clerk/nextjs/server";
+import { getCurrentUserId, getCurrentOrgId } from "@/lib/get-current-user";
 import { uploadMessagingAttachment } from "@/actions/upload";
+import { prismadb } from "@/lib/prisma";
 
 // Maximum file size (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -46,8 +48,10 @@ export async function uploadMessageAttachment(formData: FormData): Promise<{
   error?: string;
 }> {
   try {
-    await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const [userId, organizationId] = await Promise.all([
+      getCurrentUserId(),
+      getCurrentOrgId(),
+    ]);
 
     const file = formData.get("file") as File;
     if (!file) {
@@ -64,12 +68,15 @@ export async function uploadMessageAttachment(formData: FormData): Promise<{
       return { success: false, error: "File type not allowed" };
     }
 
-    // Upload with automatic compression via unified action
+    // Upload with automatic compression via unified action.
+    // userId is included in the blob path so orphaned files (message never sent)
+    // can be identified and cleaned up per-org per-user.
     const result = await uploadMessagingAttachment(
       file,
       file.name,
       file.type,
-      organizationId
+      organizationId,
+      userId
     );
 
     const timestamp = Date.now();
@@ -95,12 +102,47 @@ export async function uploadMessageAttachment(formData: FormData): Promise<{
 
 /**
  * Delete a message attachment
+ * Verifies the caller is the original sender before removing the blob.
  */
 export async function deleteMessageAttachment(url: string): Promise<{
   success: boolean;
   error?: string;
 }> {
   try {
+    // 1. Resolve the Clerk identity to an internal Users row
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const internalUser = await prismadb.users.findUnique({
+      where: { clerkUserId },
+      select: { id: true },
+    });
+
+    if (!internalUser) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    // 2. Look up the attachment and its parent message's sender
+    const attachment = await prismadb.messageAttachment.findFirst({
+      where: { url },
+      include: { message: { select: { senderId: true } } },
+    });
+
+    if (!attachment) {
+      return { success: false, error: "Attachment not found" };
+    }
+
+    // 3. Ownership check — only the original sender may delete
+    if (attachment.message.senderId !== internalUser.id) {
+      return {
+        success: false,
+        error: "You do not have permission to delete this attachment",
+      };
+    }
+
+    // 4. Safe to delete
     await del(url);
     return { success: true };
   } catch (error) {

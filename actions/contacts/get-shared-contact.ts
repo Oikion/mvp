@@ -3,12 +3,16 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
 import { decryptContactForOrg } from "@/lib/model-encryption";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 /**
  * Fetches a contact that has been explicitly shared with the current user.
  * Allows cross-org read access; decrypts using the owning org's DEK.
  */
 export async function getSharedContact(contactId: string) {
+  const guard = await requireAction("contact:read");
+  if (guard) return null;
+
   const currentUser = await getCurrentUserSafe();
   if (!currentUser) return null;
 

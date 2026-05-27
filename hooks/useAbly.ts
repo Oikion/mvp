@@ -19,8 +19,8 @@ interface AblyRealtimeChannel {
 interface AblyRealtime {
   connection: {
     state: string;
-    on: (handler: (stateChange: { current: string; reason?: { message: string } }) => void) => void;
-    off: (handler: (stateChange: { current: string; reason?: { message: string } }) => void) => void;
+    on: (handler: (stateChange: { current: string; previous?: string; reason?: { message: string } }) => void) => void;
+    off: (handler: (stateChange: { current: string; previous?: string; reason?: { message: string } }) => void) => void;
   };
   channels: {
     get: (name: string) => AblyRealtimeChannel;
@@ -152,6 +152,7 @@ export function useAblyConnection(credentials?: MessagingCredentials) {
   const clientRef = useRef<AblyRealtime | null>(null);
   const credentialsRef = useRef(credentials);
   credentialsRef.current = credentials;
+  const { mutate } = useSWRConfig();
 
   // Only retrigger on user identity change — token refresh is handled by authCallback.
   const credUserId = credentials?.userId;
@@ -173,7 +174,7 @@ export function useAblyConnection(credentials?: MessagingCredentials) {
 
         clientRef.current = client;
 
-        const handleStateChange = (stateChange: { current: string; reason?: { message: string } }) => {
+        const handleStateChange = (stateChange: { current: string; previous?: string; reason?: { message: string } }) => {
           if (!mounted) return;
           if (process.env.NODE_ENV === "development") {
             console.log(`[ABLY] connection → ${stateChange.current}`, stateChange.reason?.message ?? "");
@@ -183,6 +184,18 @@ export function useAblyConnection(credentials?: MessagingCredentials) {
             setError(new Error(stateChange.reason.message));
           } else {
             setError(null);
+          }
+          // Reconnected after a drop — revalidate all open message caches to
+          // close the gap from messages sent while disconnected.
+          if (
+            stateChange.current === "connected" &&
+            stateChange.previous !== "connecting"
+          ) {
+            mutate(
+              (key) => typeof key === "string" && key.includes("/api/messaging/messages"),
+              undefined,
+              { revalidate: true }
+            );
           }
         };
 
@@ -311,19 +324,21 @@ export function useAblyChannel(
     };
   }, [channelName, credUserId]);
 
-  const publish = useCallback(async (eventName: string, data: unknown) => {
+  const publish = useCallback(async (eventName: string, data: unknown): Promise<boolean> => {
     if (channelRef.current && isSubscribed) {
       try {
         await channelRef.current.publish(eventName, data);
+        return true;
       } catch (err) {
-        // Handle "Channel detached" errors gracefully
+        // Return false instead of swallowing so callers can surface feedback.
         if (err instanceof Error && err.message.includes("detached")) {
           console.warn("[ABLY] Channel detached, cannot publish:", err.message);
-          return;
+          return false;
         }
         throw err;
       }
     }
+    return false;
   }, [isSubscribed]);
 
   return {

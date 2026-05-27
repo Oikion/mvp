@@ -17,8 +17,14 @@
     "purge": "Delete Permanently",
     "restoreConfirm": "Restore this item?",
     "purgeConfirm": "This action cannot be undone. Permanently delete this item?",
+    "purgeConfirmLinked": "This action cannot be undone. The following linked records will also be permanently deleted:",
     "purgeButton": "Delete permanently",
-    "cancelButton": "Cancel"
+    "cancelButton": "Cancel",
+    "linkedCounts": {
+      "deals": "{count, plural, one {# active deal} other {# active deals}}",
+      "showings": "{count, plural, one {# showing} other {# showings}}",
+      "requests": "{count, plural, one {# active request} other {# active requests}}"
+    }
   },
   "cascade": {
     "title": "Archive linked records?",

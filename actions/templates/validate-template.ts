@@ -2,6 +2,7 @@
 
 import { TemplateType } from "@prisma/client";
 import { getTemplateDefinition, validatePlaceholders } from "@/lib/templates";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface ValidationInput {
   templateType: TemplateType;
@@ -20,6 +21,9 @@ export async function validateTemplateData(
   input: ValidationInput,
   locale: "en" | "el" = "el"
 ): Promise<ValidationResult> {
+  const guard = await requireAction("template:use");
+  if (guard) throw new Error("Permission denied");
+
   const definition = getTemplateDefinition(input.templateType);
   
   if (!definition) {

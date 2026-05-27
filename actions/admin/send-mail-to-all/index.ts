@@ -7,23 +7,15 @@ import { InputType, ReturnType } from "./types";
 
 import { prismadb } from "@/lib/prisma";
 import resendHelper from "@/lib/resend";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { isPlatformAdmin } from "@/lib/platform-admin";
 import { createSafeAction } from "@/lib/create-safe-action";
 import MessageToAllUsers from "@/emails/admin/MessageToAllUser";
 import sendEmail from "@/lib/sendmail";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return {
-      error: "You must be authenticated.",
-    };
-  }
-
-  //Only admin can send mail to all users
-  if (!user.is_admin) {
+  // Only platform admins can send mail to all users
+  if (!(await isPlatformAdmin())) {
     return {
       error: "You are not authorized to perform this action.",
     };

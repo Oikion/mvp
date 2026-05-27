@@ -185,6 +185,7 @@ export function getRateLimitTier(pathname: string): RateLimitTier {
     '/api/staging-access/verify',
     '/api/app-access/verify',
     '/api/e2ee/recovery/verify',
+    '/api/messaging/messages',
   ];
 
   if (strictPaths.some(p => pathname.startsWith(p))) {

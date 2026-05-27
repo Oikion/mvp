@@ -4,12 +4,14 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { isDemoOrg } from "@/lib/demo/demo-guard";
+import { canPerformAction } from "@/lib/permissions";
 import {
   apiSuccess,
   apiUnauthorized,
   apiNotFound,
   apiInternalError,
   apiBadRequest,
+  apiForbidden,
 } from "@/lib/api-response";
 import { updateDealSchema, advanceDealStageSchema } from "@/lib/validations/deals";
 import {
@@ -69,6 +71,11 @@ export async function GET(
   try {
     const { userId, orgId: organizationId } = await auth();
     if (!userId || !organizationId) return apiUnauthorized();
+
+    const readCheck = await canPerformAction("deal:read");
+    if (!readCheck.allowed) {
+      return apiForbidden(readCheck.reason);
+    }
 
     const { dealId } = await props.params;
 
@@ -161,6 +168,12 @@ export async function PUT(
     const { dealId } = await props.params;
     const body = await req.json();
 
+    const requiredAction = body.toStage ? "deal:advance_stage" : "deal:update";
+    const putCheck = await canPerformAction(requiredAction);
+    if (!putCheck.allowed) {
+      return apiForbidden(putCheck.reason);
+    }
+
     // Resolve internal Users.id from Clerk userId once for activity logging.
     // Deal FK columns reference Users.id (CUID); the Clerk userId would
     // otherwise produce dangling actor references in Activity rows.
@@ -208,7 +221,7 @@ export async function PUT(
             dealId,
             fromStage: deal.stage,
             toStage: validation.data.toStage,
-            changedBy: userId,
+            changedBy: actorUserId ?? userId,
             notes: validation.data.notes ?? null,
           },
         }),
@@ -299,6 +312,11 @@ export async function DELETE(
   try {
     const { userId, orgId: organizationId } = await auth();
     if (!userId || !organizationId) return apiUnauthorized();
+
+    const deleteCheck = await canPerformAction("deal:delete");
+    if (!deleteCheck.allowed) {
+      return apiForbidden(deleteCheck.reason);
+    }
 
     const { dealId } = await props.params;
 

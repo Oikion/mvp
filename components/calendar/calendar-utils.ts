@@ -1,10 +1,29 @@
 import { setHours, setMinutes, startOfDay, format } from "date-fns";
 
+export const DEFAULT_TIMEZONE = "Europe/Athens";
+
 export const HOUR_HEIGHT = 60; // pixels per hour
 export const MINUTE_HEIGHT = HOUR_HEIGHT / 60; // pixels per minute
 export const SNAP_INTERVAL = 15; // minutes
 export const DEFAULT_START_HOUR = 0; // 12:00 AM (midnight)
 export const DEFAULT_END_HOUR = 24; // 12:00 AM next day (full 24-hour view)
+
+export function getLocalHour(date: Date, timezone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hour: "numeric",
+    hour12: false,
+  }).formatToParts(date);
+  return parseInt(parts.find((p) => p.type === "hour")!.value, 10);
+}
+
+export function getLocalMinute(date: Date, timezone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    minute: "numeric",
+  }).formatToParts(date);
+  return parseInt(parts.find((p) => p.type === "minute")!.value, 10);
+}
 
 /**
  * Convert a time (hours + minutes) to pixel position
@@ -79,12 +98,13 @@ export function getEventPosition(
   startTime: Date,
   endTime: Date,
   startHour: number = DEFAULT_START_HOUR,
-  endHour: number = DEFAULT_END_HOUR
+  endHour: number = DEFAULT_END_HOUR,
+  timezone: string = DEFAULT_TIMEZONE
 ): { top: number; height: number } | null {
-  const startHours = startTime.getHours();
-  const startMinutes = startTime.getMinutes();
-  const endHours = endTime.getHours();
-  const endMinutes = endTime.getMinutes();
+  const startHours = getLocalHour(startTime, timezone);
+  const startMinutes = getLocalMinute(startTime, timezone);
+  const endHours = getLocalHour(endTime, timezone);
+  const endMinutes = getLocalMinute(endTime, timezone);
 
   // Handle midnight (hour 0) events - if end is 0:00 and start is before, treat end as 24:00
   let effectiveEndHours = endHours;
@@ -210,13 +230,13 @@ export function calculateOverlappingLayout<T extends { startTime: Date; endTime:
  */
 export function getCurrentTimePosition(
   startHour: number = DEFAULT_START_HOUR,
-  endHour: number = DEFAULT_END_HOUR
+  endHour: number = DEFAULT_END_HOUR,
+  timezone: string = DEFAULT_TIMEZONE
 ): number | null {
   const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
+  const currentHour = getLocalHour(now, timezone);
+  const currentMinute = getLocalMinute(now, timezone);
 
-  // Only show if within visible range
   if (currentHour < startHour || currentHour >= endHour) {
     return null;
   }

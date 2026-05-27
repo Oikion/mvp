@@ -1,10 +1,16 @@
-// @ts-nocheck
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { TemplateType } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getTemplateDefinition, autoFillPlaceholders } from "@/lib/templates";
 import { canPerformAction } from "@/lib/permissions/action-service";
+
+const AutoFillBodySchema = z.object({
+  templateType: z.string(),
+  propertyId: z.string().optional(),
+  clientId: z.string().optional(),
+}).strict();
 
 export async function POST(req: Request) {
   try {
@@ -25,11 +31,13 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { templateType, propertyId, clientId } = body as {
-      templateType: TemplateType;
-      propertyId?: string;
-      clientId?: string;
-    };
+    const parsed = AutoFillBodySchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
+    const { templateType: templateTypeRaw, propertyId, clientId } = parsed.data;
+
+    const templateType = templateTypeRaw as TemplateType;
 
     if (!templateType) {
       return NextResponse.json(
@@ -60,7 +68,7 @@ export async function POST(req: Request) {
     // Fetch client if provided
     let client = null;
     if (clientId) {
-      client = await prismadb.clients.findFirst({
+      client = await prismadb.contact.findFirst({
         where: {
           id: clientId,
           organizationId,
@@ -86,7 +94,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       values,
       propertyName: property?.property_name,
-      clientName: client?.client_name,
+      clientName: client?.displayName,
     });
   } catch (error: unknown) {
     console.error("[TEMPLATE_AUTOFILL]", error);

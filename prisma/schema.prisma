@@ -102,6 +102,7 @@ model CalendarEvent {
   recurrenceRule     String?
   reminderMinutes    Int[]
   remindersSent      Json?
+  timezone           String               @default("Europe/Athens")
   eventType          CalendarEventType?
   googleEventId      String?              @unique
   Users              Users?               @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
@@ -324,6 +325,7 @@ model Documents {
   linkedMandatesIds                              String[]
   mentions                                       Json?
   passwordHash                                   String?
+  content                                        String?
   passwordProtected                              Boolean              @default(false)
   shareableLink                                  String?              @unique
   viewsCount                                     Int                  @default(0)
@@ -2647,14 +2649,16 @@ model TypingIndicator {
 
 /// User presence status
 model UserPresence {
-  id            String         @id @default(uuid())
-  userId        String         @unique
-  status        PresenceStatus @default(OFFLINE)
-  lastSeenAt    DateTime       @default(now())
-  statusMessage String? // Custom status message
+  id             String         @id @default(uuid())
+  userId         String         @unique
+  organizationId String?
+  status         PresenceStatus @default(OFFLINE)
+  lastSeenAt     DateTime       @default(now())
+  statusMessage  String?
 
   @@index([status])
   @@index([lastSeenAt])
+  @@index([organizationId, status])
 }
 
 enum PresenceStatus {
@@ -4432,6 +4436,15 @@ model OrgSubscription {
   @@map("org_subscriptions")
 }
 
+model StripeWebhookEvent {
+  id            String   @id @default(cuid())
+  stripeEventId String   @unique
+  type          String
+  processedAt   DateTime @default(now())
+
+  @@map("stripe_webhook_events")
+}
+
 // ============================================
 // NOTIFICATION DELIVERY LOG
 // ============================================
@@ -4496,9 +4509,10 @@ model UserGoogleCalendarConnection {
   accessToken      String
   refreshToken     String
   tokenExpiresAt   DateTime
-  watchChannelId   String?
-  watchExpiry      DateTime?
-  watchResourceId  String?
+  watchChannelId    String?
+  watchChannelToken String?
+  watchExpiry       DateTime?
+  watchResourceId   String?
   syncEnabled      Boolean         @default(true)
   status           GoogleSyncStatus @default(ACTIVE)
   lastSyncedAt     DateTime?

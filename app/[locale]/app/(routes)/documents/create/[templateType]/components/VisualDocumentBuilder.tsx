@@ -20,9 +20,9 @@ type PropertyOption = {
 
 type ClientOption = {
   id: string;
-  client_name: string;
-  primary_email: string | null;
-  primary_phone: string | null;
+  displayName: string;
+  email: string | null;
+  primaryPhone: string | null;
 };
 
 interface VisualDocumentBuilderProps {

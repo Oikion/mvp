@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentOrgId } from "@/lib/get-current-user";
 import { revokeApiKey, getApiUsageStats } from "@/lib/api-auth";
 import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
+import { apiUnauthorized } from "@/lib/api-response";
 
 interface RouteParams {
   params: Promise<{ keyId: string }>;
@@ -14,17 +16,11 @@ interface RouteParams {
  */
 export async function GET(req: Request, { params }: RouteParams) {
   try {
-    const user = await getCurrentUser();
+    const { userId } = await auth();
+    if (!userId) return apiUnauthorized();
+
     const organizationId = await getCurrentOrgId();
     const { keyId } = await params;
-
-    // Check if user is admin
-    if (!user.is_admin && !user.is_account_admin) {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403 }
-      );
-    }
 
     // Check action-level permission for viewing API keys
     const guard = await requireAction("admin:manage_webhooks");
@@ -99,17 +95,11 @@ export async function GET(req: Request, { params }: RouteParams) {
  */
 export async function PATCH(req: Request, { params }: RouteParams) {
   try {
-    const user = await getCurrentUser();
+    const { userId } = await auth();
+    if (!userId) return apiUnauthorized();
+
     const organizationId = await getCurrentOrgId();
     const { keyId } = await params;
-
-    // Check if user is admin
-    if (!user.is_admin && !user.is_account_admin) {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403 }
-      );
-    }
 
     // Check action-level permission for updating API keys
     const guard = await requireAction("admin:manage_webhooks");
@@ -143,6 +133,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       );
     }
 
+    await prismadb.organizationSettingsAudit.create({
+      data: {
+        organizationId,
+        settingKey: "apiKey.updated",
+        oldValue: null,
+        newValue: name.trim(),
+        changedBy: userId,
+      },
+    });
+
     return NextResponse.json({
       message: "API key updated successfully",
     });
@@ -161,17 +161,11 @@ export async function PATCH(req: Request, { params }: RouteParams) {
  */
 export async function DELETE(req: Request, { params }: RouteParams) {
   try {
-    const user = await getCurrentUser();
+    const { userId } = await auth();
+    if (!userId) return apiUnauthorized();
+
     const organizationId = await getCurrentOrgId();
     const { keyId } = await params;
-
-    // Check if user is admin
-    if (!user.is_admin && !user.is_account_admin) {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403 }
-      );
-    }
 
     // Check action-level permission for revoking API keys
     const guard = await requireAction("admin:manage_webhooks");
@@ -186,6 +180,16 @@ export async function DELETE(req: Request, { params }: RouteParams) {
         { status: 404 }
       );
     }
+
+    await prismadb.organizationSettingsAudit.create({
+      data: {
+        organizationId,
+        settingKey: "apiKey.revoked",
+        oldValue: keyId,
+        newValue: null,
+        changedBy: userId,
+      },
+    });
 
     return NextResponse.json({
       message: "API key revoked successfully",

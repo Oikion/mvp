@@ -1,11 +1,3 @@
-// @ts-nocheck
-/**
- * Reports Export API Route
- * 
- * Exports reports statistics to XLS, XLSX, CSV, XML, or PDF format.
- * Includes rate limiting, authorization, and audit logging.
- */
-
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
@@ -78,15 +70,15 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    // Fetch clients statistics
-    const clients = await prismadb.clients.findMany({
+    // Fetch contacts statistics (v2.0 Contact model — replaces legacy Clients)
+    const clients = await prismadb.contact.findMany({
       where: { organizationId: orgId },
-      select: { client_status: true },
+      select: { status: true },
     });
-    
+
     const clientsCount = clients.length;
     const clientsByStatus = clients.reduce((acc: Record<string, number>, client) => {
-      const status = client.client_status || "LEAD";
+      const status = client.status || "LEAD";
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {});
@@ -107,8 +99,8 @@ export async function GET(req: NextRequest) {
     });
     
     const propertiesCount = properties.length;
-    const statusCounts = properties.reduce((acc: Record<string, number>, property: { property_status?: string | null }) => {
-      const status = property.property_status || "ACTIVE";
+    const statusCounts = properties.reduce((acc: Record<string, number>, property) => {
+      const status = (property.property_status as string | null) || "ACTIVE";
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);

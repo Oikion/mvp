@@ -4,9 +4,13 @@ import { getCurrentUser } from "@/lib/get-current-user";
 
 export async function POST(req: Request, props: { params: Promise<{ moduleId: string }> }) {
   const params = await props.params;
-  
+
   try {
-    await getCurrentUser();
+    const user = await getCurrentUser();
+
+    if (!user?.is_admin) {
+      return new NextResponse("Unauthorized", { status: 403 });
+    }
 
     const module = await prismadb.system_Modules_Enabled.update({
       where: {
@@ -19,7 +23,7 @@ export async function POST(req: Request, props: { params: Promise<{ moduleId: st
 
     return NextResponse.json(module);
   } catch (error) {
-    console.log("[MODULE_ACTIVATE_POST]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("[MODULE_ACTIVATE_POST]", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }

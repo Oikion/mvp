@@ -731,7 +731,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
             <FormField control={form.control} name="assigned_to" render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("PropertyForm.fields.agentOwner")}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Επιλέξτε πράκτορα" /></SelectTrigger></FormControl>
                   <SelectContent className="overflow-y-auto h-56">
                     {users.map((user) => (

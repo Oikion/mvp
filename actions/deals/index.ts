@@ -860,6 +860,7 @@ export async function getDeal(
     where: {
       ...(isFriendlyId ? { friendlyId: dealId } : { id: dealId }),
       organizationId,
+      deletedAt: null,
     },
     include: {
       property: {
@@ -983,6 +984,7 @@ export async function getDealStageLogs(
   const logs = await prismadb.dealStageLog.findMany({
     where: { dealId },
     orderBy: { changedAt: "desc" },
+    take: 50,
   });
 
   return actionSuccess(logs);
@@ -1017,6 +1019,7 @@ export async function getDealParties(
           primaryPhone: true,
           category: true,
           isCompany: true,
+          deletedAt: true,
         },
       },
     },

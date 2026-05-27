@@ -5,6 +5,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { requireAction } from "@/lib/permissions";
 import { decryptMessageForOrg } from "@/lib/model-encryption";
+import { getOrgMembersFromDb } from "@/lib/org-members";
 
 /**
  * Start or get a direct message conversation with another user
@@ -24,6 +25,15 @@ export async function startDirectMessage(targetUserId: string): Promise<{
 
     if (targetUserId === currentUser.id) {
       return { success: false, error: "Cannot start a conversation with yourself" };
+    }
+
+    // SECURITY: Verify that the target user is a member of the caller's org.
+    // Users have no organizationId column — membership is determined via Clerk.
+    // We reuse the same helper used by createGroupConversation for consistency.
+    const { users: orgUsers } = await getOrgMembersFromDb({ organizationId });
+    const isMember = orgUsers.some((u: { id: string }) => u.id === targetUserId);
+    if (!isMember) {
+      return { success: false, error: "User is not a member of your organization" };
     }
 
     // Check for existing 1:1 conversation between these two users
@@ -279,6 +289,20 @@ export async function createGroupConversation(params: {
 
     if (params.participantIds.length < 1) {
       return { success: false, error: "Group must have at least one other participant" };
+    }
+
+    // SECURITY: Validate that all supplied participantIds belong to the current org.
+    // Users are linked to orgs via Clerk only (no organizationId on the Users model),
+    // so we fetch the org's member list via Clerk and cross-check against it.
+    const { users: orgUsers } = await getOrgMembersFromDb({ organizationId });
+    const validUserIds = new Set(orgUsers.map((u: { id: string }) => u.id));
+
+    const invalidIds = params.participantIds.filter((id) => !validUserIds.has(id));
+    if (invalidIds.length > 0) {
+      return {
+        success: false,
+        error: "One or more participants are not members of this organization",
+      };
     }
 
     // Ensure current user is included

@@ -45,6 +45,17 @@ export const priceTypeSchema = z.nativeEnum(PriceType);
 // Property types that require plot_size_sqm
 const LAND_PROPERTY_TYPES = ["LAND", "PLOT", "FARM"] as const;
 
+// =============================================================================
+// Form Helpers
+// =============================================================================
+
+/**
+ * Nullable coerced number for form fields.
+ * Prevents z.coerce.number() from silently turning an empty string ("") into 0,
+ * which is indistinguishable from a legitimately entered zero.
+ */
+const formNum = () => z.union([z.literal(""), z.coerce.number()]).optional();
+
 
 // Current year for date validation
 const CURRENT_YEAR = new Date().getFullYear();
@@ -437,40 +448,40 @@ export const propertyFormSchema = z.object({
   region: z.string().max(100).optional(),
   regional_unit: z.string().max(100).optional(),
   objective_zone: z.string().max(20).optional(),
-  size_net_sqm: z.coerce.number().optional(),
-  size_gross_sqm: z.coerce.number().optional(),
+  size_net_sqm: formNum(),
+  size_gross_sqm: formNum(),
   floor: z.string().optional(),
-  floors_total: z.coerce.number().optional(),
-  plot_size_sqm: z.coerce.number().optional(),
+  floors_total: formNum(),
+  plot_size_sqm: formNum(),
   inside_city_plan: z.boolean().optional(),
-  build_coefficient: z.coerce.number().optional(),
-  frontage_m: z.coerce.number().optional(),
+  build_coefficient: formNum(),
+  frontage_m: formNum(),
   frontage_type: frontageTypeSchema.optional(),
-  bedrooms: z.coerce.number().optional(),
-  bathrooms: z.coerce.number().optional(),
+  bedrooms: formNum(),
+  bathrooms: formNum(),
   heating_type: heatingTypeSchema.optional(),
   energy_cert_class: energyCertClassSchema.optional(),
-  year_built: z.coerce.number().optional(),
-  renovated_year: z.coerce.number().optional(),
+  year_built: formNum(),
+  renovated_year: formNum(),
   condition: propertyConditionSchema.optional(),
   elevator: z.boolean().optional(),
   building_permit_no: z.string().optional().or(z.literal("")),
-  building_permit_year: z.coerce.number().optional(),
+  building_permit_year: formNum(),
   land_registry_kaek: z.string().optional().or(z.literal("")),
   land_registry_office: z.string().max(200).optional(),
   building_block_ot: z.string().max(50).optional(),
   legalization_status: z.enum(["LEGALIZED", "IN_PROGRESS", "UNDECLARED"]).optional(),
   etaireia_diaxeirisis: z.string().optional().or(z.literal("")),
-  monthly_common_charges: z.coerce.number().optional(),
+  monthly_common_charges: formNum(),
   amenities: z.array(z.string()).optional().default([]),
   orientation: z.array(z.string()).optional().default([]),
   furnished: furnishedStatusSchema.optional(),
   accessibility: z.string().optional().or(z.literal("")),
-  price: z.coerce.number().optional(),
+  price: formNum(),
   price_type: priceTypeSchema.optional(),
   available_from: z.string().optional(),
   accepts_pets: z.boolean().optional(),
-  min_lease_months: z.coerce.number().optional(),
+  min_lease_months: formNum(),
   virtual_tour_url: z.string().url().optional().or(z.literal("")),
   visibility: itemVisibilitySchema.optional(),
   assigned_to: z.string().optional().nullable(),

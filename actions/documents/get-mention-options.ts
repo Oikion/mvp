@@ -58,6 +58,7 @@ export async function getMentionOptions(): Promise<{
 
     // Tasks
     prismadb.crm_Accounts_Tasks.findMany({
+      where: { organizationId },
       select: {
         id: true,
         title: true,

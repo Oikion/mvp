@@ -62,6 +62,39 @@ export async function POST(req: Request) {
       );
     }
 
+    // SECURITY: Verify user has access to the channel or conversation
+    if (message.channelId) {
+      const membership = await prismadb.channelMember.findFirst({
+        where: {
+          channelId: message.channelId,
+          userId: user.id,
+          channel: { organizationId: message.organizationId },
+        },
+      });
+
+      if (!membership) {
+        return NextResponse.json(
+          { error: "Channel not found or access denied" },
+          { status: 403 }
+        );
+      }
+    } else if (message.conversationId) {
+      const participant = await prismadb.conversationParticipant.findFirst({
+        where: {
+          conversationId: message.conversationId,
+          userId: user.id,
+          leftAt: null,
+        },
+      });
+
+      if (!participant) {
+        return NextResponse.json(
+          { error: "Conversation not found or access denied" },
+          { status: 403 }
+        );
+      }
+    }
+
     // Check if reaction already exists (for toggle behavior)
     const existingReaction = await prismadb.messageReaction.findUnique({
       where: {
@@ -162,6 +195,63 @@ export async function GET(req: Request) {
       );
     }
 
+    // Get current user (needed for membership check)
+    const currentUser = await prismadb.users.findUnique({
+      where: { clerkUserId: userId },
+      select: { id: true },
+    });
+
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // SECURITY: Verify message belongs to the current org before returning reactions
+    const organizationId = await getCurrentOrgId();
+    const message = await prismadb.message.findFirst({
+      where: { id: messageId, organizationId },
+      select: { id: true, channelId: true, conversationId: true },
+    });
+
+    if (!message) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    // SECURITY: Verify user has access to the channel or conversation
+    if (message.channelId) {
+      const membership = await prismadb.channelMember.findFirst({
+        where: {
+          channelId: message.channelId,
+          userId: currentUser.id,
+          channel: { organizationId },
+        },
+      });
+
+      if (!membership) {
+        return NextResponse.json(
+          { error: "Channel not found or access denied" },
+          { status: 403 }
+        );
+      }
+    } else if (message.conversationId) {
+      const participant = await prismadb.conversationParticipant.findFirst({
+        where: {
+          conversationId: message.conversationId,
+          userId: currentUser.id,
+          leftAt: null,
+        },
+      });
+
+      if (!participant) {
+        return NextResponse.json(
+          { error: "Conversation not found or access denied" },
+          { status: 403 }
+        );
+      }
+    }
+
     const reactions = await prismadb.messageReaction.findMany({
       where: { messageId },
       select: {
@@ -220,6 +310,17 @@ export async function DELETE(req: Request) {
         { error: "User not found" },
         { status: 404 }
       );
+    }
+
+    // SECURITY: Verify message belongs to the current org before deleting reaction
+    const organizationId = await getCurrentOrgId();
+    const messageCheck = await prismadb.message.findFirst({
+      where: { id: messageId, organizationId },
+      select: { id: true, channelId: true, conversationId: true },
+    });
+
+    if (!messageCheck) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
     // Delete the reaction

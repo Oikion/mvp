@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getOrgMembersFromDb } from "@/lib/org-members";
 import { z } from "zod";
@@ -84,39 +85,62 @@ export async function POST(req: Request) {
     });
     const sessionIndex = (lastSession?.sessionIndex ?? -1) + 1;
 
-    const session = await prismadb.$transaction(async (tx) => {
-      // Deactivate previous sessions
-      await tx.groupSession.updateMany({
-        where: conversationId
-          ? { conversationId, isActive: true }
-          : { channelId, isActive: true },
-        data: { isActive: false, rotatedAt: new Date() },
-      });
+    let session;
+    try {
+      session = await prismadb.$transaction(async (tx) => {
+        // Deactivate previous sessions
+        await tx.groupSession.updateMany({
+          where: conversationId
+            ? { conversationId, isActive: true }
+            : { channelId, isActive: true },
+          data: { isActive: false, rotatedAt: new Date() },
+        });
 
-      // Create new session
-      const newSession = await tx.groupSession.create({
-        data: {
-          conversationId,
-          channelId,
-          creatorUserId: userId,
-          sessionIndex,
-        },
-      });
+        // Create new session
+        const newSession = await tx.groupSession.create({
+          data: {
+            conversationId,
+            channelId,
+            creatorUserId: userId,
+            sessionIndex,
+          },
+        });
 
-      // Create shares (types guaranteed by Zod schema)
-      await tx.groupSessionShare.createMany({
-        data: shares.map((s) => ({
-          groupSessionId: newSession.id,
-          userId: s.userId,
-          encryptedSession: s.encryptedSessionExport,
-          ephemeralPublicKey: s.ephemeralPublicKey,
-          iv: s.iv,
-          startingIndex: s.startingIndex,
-        })),
-      });
+        // Create shares (types guaranteed by Zod schema)
+        await tx.groupSessionShare.createMany({
+          data: shares.map((s) => ({
+            groupSessionId: newSession.id,
+            userId: s.userId,
+            encryptedSession: s.encryptedSessionExport,
+            ephemeralPublicKey: s.ephemeralPublicKey,
+            iv: s.iv,
+            startingIndex: s.startingIndex,
+          })),
+        });
 
-      return newSession;
-    });
+        return newSession;
+      });
+    } catch (txError) {
+      // P2002 = unique constraint violation — concurrent request already created this session index
+      if (
+        txError instanceof Prisma.PrismaClientKnownRequestError &&
+        txError.code === "P2002"
+      ) {
+        const existingSession = await prismadb.groupSession.findFirst({
+          where: conversationId
+            ? { conversationId, isActive: true }
+            : { channelId, isActive: true },
+          orderBy: { createdAt: "desc" },
+        });
+        if (existingSession) {
+          return NextResponse.json({
+            id: existingSession.id,
+            sessionIndex: existingSession.sessionIndex,
+          });
+        }
+      }
+      throw txError;
+    }
 
     return NextResponse.json({ id: session.id, sessionIndex });
   } catch (error) {

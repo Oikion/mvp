@@ -1,14 +1,8 @@
-// @ts-nocheck
-/**
- * CRM Export API Route
- * 
- * Exports CRM clients data to XLS, XLSX, CSV, XML, or PDF format.
- * Includes rate limiting, authorization, audit logging, and descriptive filenames.
- */
-
+import { after } from "next/server";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
+import type { ExportEntityType } from "@prisma/client";
 import {
   type ExportFormat,
   checkExportRateLimit,
@@ -27,6 +21,7 @@ import { requireCanExport } from "@/lib/permissions/guards";
 import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
 import { decryptContactForOrg } from "@/lib/model-encryption";
 import { logPiiAccess } from "@/lib/pii-access-log";
+import { processBulkExportJob, type BulkExportPayload } from "@/lib/export/async-processor";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -173,6 +168,20 @@ export async function GET(req: NextRequest) {
           success: true,
         }));
 
+        prismadb.exportHistory.create({
+          data: {
+            organizationId: orgId,
+            userId: user.id,
+            entityType: "BULK_CONTACTS" as ExportEntityType,
+            entityId: `bulk-${Date.now()}`,
+            entityIds: clients.map((c) => c.id),
+            exportFormat: format,
+            filename: `crm-export-${Date.now()}.${format}`,
+            rowCount: clients.length,
+            changeFields: [],
+          },
+        }).catch((err: unknown) => console.error("[EXPORT_HISTORY_WRITE]", err));
+
         return NextResponse.json({
           success: true,
           useK8s: true,
@@ -231,7 +240,21 @@ export async function GET(req: NextRequest) {
       exportData,
       { format, destination: destination || undefined }
     );
-    
+
+    prismadb.exportHistory.create({
+      data: {
+        organizationId: orgId,
+        userId: user.id,
+        entityType: "BULK_CONTACTS" as ExportEntityType,
+        entityId: `bulk-${Date.now()}`,
+        entityIds: clients.map((c) => c.id),
+        exportFormat: format,
+        filename: descriptiveFilename,
+        rowCount: exportData.length,
+        changeFields: [],
+      },
+    }).catch((err: unknown) => console.error("[EXPORT_HISTORY_WRITE]", err));
+
     // Generate export file based on format
     let fileBuffer: Buffer | Blob;
     let filename: string;
@@ -273,13 +296,100 @@ export async function GET(req: NextRequest) {
     
   } catch (error) {
     console.error("[CRM_EXPORT_ERROR]", error);
-    
+
     return NextResponse.json(
-      { 
-        error: "Export failed", 
-        message: error instanceof Error ? error.message : "An unexpected error occurred" 
+      {
+        error: "Export failed",
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
       },
       { status: 500 }
     );
+  }
+}
+
+// ─── Async bulk export ────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest) {
+  try {
+    const permissionError = await requireCanExport();
+    if (permissionError) return permissionError;
+
+    const { userId: clerkUserId, orgId } = await auth();
+
+    if (!clerkUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!orgId) {
+      return NextResponse.json({ error: "No organization" }, { status: 403 });
+    }
+
+    const user = await prismadb.users.findFirst({
+      where: { clerkUserId },
+      select: { id: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const rateLimitResult = await checkExportRateLimit(req);
+    if (!rateLimitResult.success) {
+      return createRateLimitResponse(rateLimitResult.reset);
+    }
+
+    // Accept parameters from JSON body or query string (backward compat)
+    let body: Record<string, unknown> = {};
+    const contentType = req.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      body = await req.json().catch(() => ({}));
+    }
+    const sp = req.nextUrl.searchParams;
+
+    const format = ((body.format ?? sp.get("format")) || "xlsx") as ExportFormat;
+    const locale = ((body.locale ?? sp.get("locale")) || "en") as "en" | "el";
+    const scope = String(body.scope ?? sp.get("scope") ?? "all");
+    const destination = String(body.destination ?? sp.get("destination") ?? "");
+    const statusFilter = (body.status as string[] | undefined)
+      ?? sp.get("status")?.split(",").filter(Boolean)
+      ?? [];
+    const searchQuery = String(body.search ?? sp.get("search") ?? "");
+
+    const VALID_FORMATS: ExportFormat[] = ["xlsx", "xls", "csv", "pdf", "xml"];
+    if (!VALID_FORMATS.includes(format)) {
+      return NextResponse.json({ error: "Invalid format" }, { status: 400 });
+    }
+
+    const payload: BulkExportPayload = {
+      exportType: "crm",
+      format,
+      locale,
+      organizationId: orgId,
+      userId: user.id,
+      filters: { status: statusFilter, search: searchQuery },
+      destination: destination || null,
+      scope,
+    };
+
+    const job = await prismadb.backgroundJob.create({
+      data: {
+        type: "BULK_EXPORT",
+        organizationId: orgId,
+        status: "PENDING",
+        payload: payload as unknown as object,
+        createdBy: user.id,
+      },
+      select: { id: true },
+    });
+
+    after(async () => {
+      await processBulkExportJob(job.id, orgId);
+    });
+
+    return NextResponse.json(
+      { jobId: job.id, status: "PROCESSING" },
+      { status: 202 }
+    );
+  } catch (error) {
+    console.error("[CRM_EXPORT_ENQUEUE_ERROR]", error);
+    return NextResponse.json({ error: "Failed to enqueue export" }, { status: 500 });
   }
 }

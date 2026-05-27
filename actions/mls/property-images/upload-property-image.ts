@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { uploadDocument } from "@/actions/upload/upload-document";
+import { requireAction } from "@/lib/permissions/action-guards";
 import sharp from "sharp";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -34,6 +35,9 @@ interface UploadPropertyImageResult {
 export async function uploadPropertyImage(
   input: UploadPropertyImageInput
 ): Promise<UploadPropertyImageResult> {
+  const guard = await requireAction("property:create");
+  if (guard) throw new Error(guard.error);
+
   const { orgId, userId } = await auth();
   if (!orgId || !userId) {
     throw new Error("Unauthorized");

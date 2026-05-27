@@ -27,7 +27,6 @@
   "organizationSettingsDescription": "Update organization details and preferences",
   "teamManagement": "Team Management",
   "teamManagementDescription": "Invite members, manage roles and permissions",
-
   "emailAddress": "Email Address",
   "emailPlaceholder": "colleague@agency.com",
   "role": "Role",
@@ -48,7 +47,6 @@
   "noOrgContext": "No organization context available",
   "error": "Error",
   "success": "Success",
-
   "actions": "Actions",
   "openMenu": "Open menu",
   "copyId": "Copy ID",
@@ -64,11 +62,9 @@
   "memberPromoted": "Member has been promoted to admin.",
   "memberDemoted": "Member role has been changed to member.",
   "somethingWentWrong": "Something went wrong. Please try again.",
-
   "pageEmployees": "Team Members",
   "pageEmployeesDescription": "Manage your organization's team members and roles",
   "inviteButton": "Invite",
-
   "pendingInvitations": "Pending Invitations",
   "pendingInvitationsDescription": "These people have been invited but haven't joined yet",
   "noPendingInvitations": "No pending invitations",
@@ -80,7 +76,6 @@
   "revokeSuccess": "Invitation revoked",
   "revokeSuccessDescription": "The invitation for {email} has been revoked.",
   "revokeError": "Failed to revoke invitation",
-
   "dateCreated": "Date created",
   "lastLogin": "Last login",
   "name": "Name",
@@ -93,12 +88,12 @@
   "columns": "Columns",
   "previous": "Previous",
   "next": "Next",
-
   "activate": "Activate",
   "deactivate": "Deactivate",
   "delete": "Delete",
   "cancel": "Cancel",
   "areYouSure": "Are you sure?",
+  "deactivateModuleWarning": "This will deactivate the {name} module. Users will lose access until it is reactivated.",
   "deleteModuleWarning": "This action cannot be undone. This will permanently delete the {name} module.",
   "moduleActivated": "Module has been activated.",
   "moduleDeactivated": "Module has been deactivated.",
@@ -106,7 +101,6 @@
   "moduleActivateError": "Something went wrong while activating module. Please try again.",
   "moduleDeactivateError": "Something went wrong while deactivating module. Please try again.",
   "moduleDeleteError": "Something went wrong while deleting module. Please try again.",
-
   "rolesManagement": "Roles & Permissions",
   "rolesManagementDescription": "Configure permissions for each role in your organization",
   "ownerOnlyAccess": "Only organization owners can manage roles and permissions.",
@@ -124,7 +118,6 @@
   "saving": "Saving...",
   "locked": "Locked",
   "loadError": "Failed to load data",
-
   "ownershipSettings": "Ownership Settings",
   "ownershipSettingsDescription": "Transfer organization ownership to another member",
   "transferOwnership": "Transfer Ownership",
@@ -141,7 +134,6 @@
   "transferring": "Transferring...",
   "continue": "Continue",
   "back": "Back",
-
   "integrations": "Integrations",
   "n8nIntegration": "n8n Automation",
   "n8nIntegrationDescription": "Connect and automate workflows with n8n",
@@ -149,7 +141,6 @@
   "xeIntegrationDescription": "Configure currency conversion settings",
   "aiSettings": "AI Settings",
   "aiSettingsDescription": "Configure AI assistant behavior and capabilities for your organization",
-
   "modules": {
     "dashboard": "Dashboard",
     "feed": "Activity Feed (Oikosync)",
@@ -165,5 +156,11 @@
     "messages": "Messages",
     "matchmaking": "Matchmaking",
     "projects": "Projects"
-  }
+  },
+  "idCopied": "ID copied",
+  "removeMemberError": "Failed to remove member",
+  "promotedToAdmin": "Promoted to admin",
+  "promoteError": "Failed to promote",
+  "demotedFromAdmin": "Demoted from admin",
+  "demoteError": "Failed to demote"
 }

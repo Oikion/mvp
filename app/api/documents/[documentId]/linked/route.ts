@@ -35,6 +35,7 @@ export async function GET(
         friendlyId: true,
         document_name: true,
         Contacts: {
+          where: { archivedAt: null },
           select: {
             id: true,
             friendlyId: true,
@@ -52,6 +53,7 @@ export async function GET(
           },
         },
         Properties: {
+          where: { archivedAt: null },
           select: {
             id: true,
             friendlyId: true,
@@ -73,6 +75,7 @@ export async function GET(
           },
         },
         Requests: {
+          where: { archivedAt: null },
           select: {
             id: true,
             friendlyId: true,

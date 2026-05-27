@@ -27,7 +27,6 @@
   "organizationSettingsDescription": "Ενημέρωση στοιχείων και προτιμήσεων οργανισμού",
   "teamManagement": "Διαχείριση Ομάδας",
   "teamManagementDescription": "Πρόσκληση μελών, διαχείριση ρόλων και δικαιωμάτων",
-
   "emailAddress": "Διεύθυνση Email",
   "emailPlaceholder": "synergatis@agency.gr",
   "role": "Ρόλος",
@@ -48,7 +47,6 @@
   "noOrgContext": "Δεν υπάρχει διαθέσιμο πλαίσιο οργανισμού",
   "error": "Σφάλμα",
   "success": "Επιτυχία",
-
   "actions": "Ενέργειες",
   "openMenu": "Άνοιγμα μενού",
   "copyId": "Αντιγραφή ID",
@@ -64,11 +62,9 @@
   "memberPromoted": "Το μέλος προήχθη σε διαχειριστή.",
   "memberDemoted": "Ο ρόλος του μέλους άλλαξε σε μέλος.",
   "somethingWentWrong": "Κάτι πήγε στραβά. Παρακαλούμε δοκιμάστε ξανά.",
-
   "pageEmployees": "Μέλη Ομάδας",
   "pageEmployeesDescription": "Διαχειριστείτε τα μέλη και τους ρόλους της ομάδας σας",
   "inviteButton": "Πρόσκληση",
-
   "pendingInvitations": "Εκκρεμείς Προσκλήσεις",
   "pendingInvitationsDescription": "Αυτά τα άτομα έχουν προσκληθεί αλλά δεν έχουν εγγραφεί ακόμα",
   "noPendingInvitations": "Δεν υπάρχουν εκκρεμείς προσκλήσεις",
@@ -80,7 +76,6 @@
   "revokeSuccess": "Η πρόσκληση ανακλήθηκε",
   "revokeSuccessDescription": "Η πρόσκληση για {email} ανακλήθηκε.",
   "revokeError": "Αποτυχία ανάκλησης πρόσκλησης",
-
   "dateCreated": "Ημ/νία δημιουργίας",
   "lastLogin": "Τελευταία σύνδεση",
   "name": "Όνομα",
@@ -93,12 +88,12 @@
   "columns": "Στήλες",
   "previous": "Προηγούμενο",
   "next": "Επόμενο",
-
   "activate": "Ενεργοποίηση",
   "deactivate": "Απενεργοποίηση",
   "delete": "Διαγραφή",
   "cancel": "Ακύρωση",
   "areYouSure": "Είστε σίγουροι;",
+  "deactivateModuleWarning": "Αυτή η ενέργεια θα απενεργοποιήσει το module {name}. Οι χρήστες θα χάσουν την πρόσβαση μέχρι να επανενεργοποιηθεί.",
   "deleteModuleWarning": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Θα διαγραφεί οριστικά το module {name}.",
   "moduleActivated": "Το module ενεργοποιήθηκε.",
   "moduleDeactivated": "Το module απενεργοποιήθηκε.",
@@ -106,7 +101,6 @@
   "moduleActivateError": "Κάτι πήγε στραβά κατά την ενεργοποίηση του module. Παρακαλούμε δοκιμάστε ξανά.",
   "moduleDeactivateError": "Κάτι πήγε στραβά κατά την απενεργοποίηση του module. Παρακαλούμε δοκιμάστε ξανά.",
   "moduleDeleteError": "Κάτι πήγε στραβά κατά τη διαγραφή του module. Παρακαλούμε δοκιμάστε ξανά.",
-
   "rolesManagement": "Ρόλοι & Δικαιώματα",
   "rolesManagementDescription": "Ρυθμίστε τα δικαιώματα για κάθε ρόλο στον οργανισμό σας",
   "ownerOnlyAccess": "Μόνο οι ιδιοκτήτες του οργανισμού μπορούν να διαχειριστούν ρόλους και δικαιώματα.",
@@ -124,7 +118,6 @@
   "saving": "Αποθήκευση...",
   "locked": "Κλειδωμένο",
   "loadError": "Αποτυχία φόρτωσης δεδομένων",
-
   "ownershipSettings": "Ρυθμίσεις Ιδιοκτησίας",
   "ownershipSettingsDescription": "Μεταφορά ιδιοκτησίας οργανισμού σε άλλο μέλος",
   "transferOwnership": "Μεταφορά Ιδιοκτησίας",
@@ -141,7 +134,6 @@
   "transferring": "Μεταφορά...",
   "continue": "Συνέχεια",
   "back": "Πίσω",
-
   "integrations": "Ενσωματώσεις",
   "n8nIntegration": "Αυτοματισμοί n8n",
   "n8nIntegrationDescription": "Συνδέστε και αυτοματοποιήστε ροές εργασίας με n8n",
@@ -149,7 +141,6 @@
   "xeIntegrationDescription": "Ρύθμιση μετατροπής νομισμάτων",
   "aiSettings": "Ρυθμίσεις AI",
   "aiSettingsDescription": "Ρυθμίστε τη συμπεριφορά και τις δυνατότητες του βοηθού AI για τον οργανισμό σας",
-
   "modules": {
     "dashboard": "Πίνακας Ελέγχου",
     "feed": "Ροή Δραστηριότητας (Oikosync)",
@@ -165,5 +156,11 @@
     "messages": "Μηνύματα",
     "matchmaking": "Αντιστοίχιση",
     "projects": "Έργα"
-  }
+  },
+  "idCopied": "Αντιγράφηκε το ID",
+  "removeMemberError": "Αποτυχία αφαίρεσης μέλους",
+  "promotedToAdmin": "Προωθήθηκε σε διαχειριστή",
+  "promoteError": "Αποτυχία προώθησης",
+  "demotedFromAdmin": "Υποβιβάστηκε από διαχειριστή",
+  "demoteError": "Αποτυχία υποβιβασμού"
 }

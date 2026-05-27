@@ -3,6 +3,7 @@ import { prismadb } from "@/lib/prisma";
 import { getAuthenticatedClient } from "./client";
 import { encryptCalendarEventForOrg } from "@/lib/model-encryption";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { withGoogleRetry } from "./retry";
 import type { calendar_v3 } from "googleapis";
 
 function parseGoogleEvent(gEvent: calendar_v3.Schema$Event) {
@@ -39,10 +40,12 @@ export async function pullEventFromGoogle(
 
   let gEvent: calendar_v3.Schema$Event;
   try {
-    const res = await cal.events.get({
-      calendarId: "primary",
-      eventId: googleEventId,
-    });
+    const res = await withGoogleRetry(() =>
+      cal.events.get({
+        calendarId: "primary",
+        eventId: googleEventId,
+      })
+    );
     gEvent = res.data;
   } catch (err: unknown) {
     // 404 = event deleted on Google — archive our copy
@@ -60,8 +63,12 @@ export async function pullEventFromGoogle(
 
   const existing = await prismadb.calendarEvent.findUnique({
     where: { googleEventId },
-    select: { id: true, updatedAt: true },
+    select: { id: true, updatedAt: true, archivedAt: true },
   });
+
+  if (existing?.archivedAt) {
+    return; // Never resurrect a deliberately archived event
+  }
 
   // Oikion wins if our record is newer than Google's
   if (
@@ -84,38 +91,37 @@ export async function pullEventFromGoogle(
     organizationId
   );
 
-  if (existing) {
-    await prismadb.calendarEvent.update({
-      where: { googleEventId },
-      data: {
-        ...encrypted,
-        startTime: parsed.startTime,
-        endTime: parsed.endTime,
-        recurrenceRule: parsed.recurrenceRule,
-        updatedAt: new Date(),
-      },
-    });
-  } else {
-    // New event created in Google — create it in Oikion using the same ID patterns as the events API
-    const friendlyId = await generateFriendlyId(prismadb, "CalendarEvent", organizationId);
-    const calendarEventId = Math.abs(Math.floor(Date.now() / 1000));
-    await prismadb.calendarEvent.create({
-      data: {
-        id: crypto.randomUUID(),
-        friendlyId,
-        calendarEventId,
-        calendarUserId: 0,
-        organizationId,
-        assignedUserId: userId,
-        googleEventId,
-        ...encrypted,
-        startTime: parsed.startTime,
-        endTime: parsed.endTime,
-        recurrenceRule: parsed.recurrenceRule,
-        updatedAt: new Date(),
-      },
-    });
-  }
+  const friendlyId = existing
+    ? undefined
+    : await generateFriendlyId(prismadb, "CalendarEvent", organizationId);
+  const calendarEventId = existing
+    ? undefined
+    : Math.abs(Math.floor(Date.now() / 1000));
+
+  await prismadb.calendarEvent.upsert({
+    where: { googleEventId },
+    create: {
+      id: crypto.randomUUID(),
+      friendlyId: friendlyId!,
+      calendarEventId: calendarEventId!,
+      calendarUserId: 0,
+      organizationId,
+      assignedUserId: userId,
+      googleEventId,
+      ...encrypted,
+      startTime: parsed.startTime,
+      endTime: parsed.endTime,
+      recurrenceRule: parsed.recurrenceRule,
+      updatedAt: new Date(),
+    },
+    update: {
+      ...encrypted,
+      startTime: parsed.startTime,
+      endTime: parsed.endTime,
+      recurrenceRule: parsed.recurrenceRule,
+      updatedAt: new Date(),
+    },
+  });
 
   await prismadb.userGoogleCalendarConnection.updateMany({
     where: { userId },
@@ -153,15 +159,17 @@ export async function syncAllEventsFromGoogle(
   let pageToken: string | undefined;
 
   do {
-    const res = await cal.events.list({
-      calendarId: "primary",
-      timeMin,
-      timeMax,
-      maxResults: 250,
-      singleEvents: true,
-      orderBy: "startTime",
-      pageToken,
-    });
+    const res = await withGoogleRetry(() =>
+      cal.events.list({
+        calendarId: "primary",
+        timeMin,
+        timeMax,
+        maxResults: 250,
+        singleEvents: true,
+        orderBy: "startTime",
+        pageToken,
+      })
+    );
 
     const items = res.data.items ?? [];
     pageToken = res.data.nextPageToken ?? undefined;
@@ -186,8 +194,12 @@ export async function syncAllEventsFromGoogle(
 
       const existing = await prismadb.calendarEvent.findUnique({
         where: { googleEventId: item.id },
-        select: { id: true, updatedAt: true },
+        select: { id: true, updatedAt: true, archivedAt: true },
       });
+
+      if (existing?.archivedAt) {
+        continue; // Never resurrect a deliberately archived event
+      }
 
       // Oikion wins if our record was touched after Google's last update
       if (existing && parsed.googleUpdatedAt && existing.updatedAt >= parsed.googleUpdatedAt) {
@@ -199,37 +211,37 @@ export async function syncAllEventsFromGoogle(
         organizationId
       );
 
-      if (existing) {
-        await prismadb.calendarEvent.update({
-          where: { googleEventId: item.id },
-          data: {
-            ...encrypted,
-            startTime: parsed.startTime,
-            endTime: parsed.endTime,
-            recurrenceRule: parsed.recurrenceRule,
-            updatedAt: new Date(),
-          },
-        });
-      } else {
-        const friendlyId = await generateFriendlyId(prismadb, "CalendarEvent", organizationId);
-        const calendarEventId = Math.abs(Math.floor(Date.now() / 1000));
-        await prismadb.calendarEvent.create({
-          data: {
-            id: crypto.randomUUID(),
-            friendlyId,
-            calendarEventId,
-            calendarUserId: 0,
-            organizationId,
-            assignedUserId: userId,
-            googleEventId: item.id,
-            ...encrypted,
-            startTime: parsed.startTime,
-            endTime: parsed.endTime,
-            recurrenceRule: parsed.recurrenceRule,
-            updatedAt: new Date(),
-          },
-        });
-      }
+      const itemFriendlyId = existing
+        ? undefined
+        : await generateFriendlyId(prismadb, "CalendarEvent", organizationId);
+      const itemCalendarEventId = existing
+        ? undefined
+        : Math.abs(Math.floor(Date.now() / 1000));
+
+      await prismadb.calendarEvent.upsert({
+        where: { googleEventId: item.id },
+        create: {
+          id: crypto.randomUUID(),
+          friendlyId: itemFriendlyId!,
+          calendarEventId: itemCalendarEventId!,
+          calendarUserId: 0,
+          organizationId,
+          assignedUserId: userId,
+          googleEventId: item.id,
+          ...encrypted,
+          startTime: parsed.startTime,
+          endTime: parsed.endTime,
+          recurrenceRule: parsed.recurrenceRule,
+          updatedAt: new Date(),
+        },
+        update: {
+          ...encrypted,
+          startTime: parsed.startTime,
+          endTime: parsed.endTime,
+          recurrenceRule: parsed.recurrenceRule,
+          updatedAt: new Date(),
+        },
+      });
       synced++;
     }
   } while (pageToken);

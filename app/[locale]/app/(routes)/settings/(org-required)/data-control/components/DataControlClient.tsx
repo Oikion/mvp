@@ -329,6 +329,12 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
                 <p className="text-xs text-muted-foreground">
                   {t("settings.confirmChangeNote")}
                 </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("settings.confirmChangeSessionNote")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("settings.confirmChangeNextLoginNote")}
+                </p>
               </div>
             </DialogDescription>
           </DialogHeader>

@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Globe,
 } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 import { ItemVisibilitySelector } from "@/components/ItemVisibilitySelector";
 import { ItemVisibility } from "@prisma/client";
 import { updateContactVisibility } from "@/actions/contacts";
@@ -31,6 +32,7 @@ import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
 import { GenerateRequestSuggestion } from "./GenerateRequestSuggestion";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
+import { ContactComments } from "./ContactComments";
 import { useContactLinked } from "@/hooks/swr/useContactLinked";
 import {
   useLinkRequestsToContact,
@@ -86,7 +88,9 @@ interface ContactViewProps {
 
 export default function ContactView({ contact, isReadOnly = false, sharePermission = null }: ContactViewProps) {
   const t = useTranslations("crm");
+  const tComments = useTranslations("comments");
   const tActivities = useTranslations("activities");
+  const { userId } = useAuth();
   const { toast } = useAppToast();
 
   const addresses = contact.addresses || [];
@@ -440,18 +444,24 @@ export default function ContactView({ contact, isReadOnly = false, sharePermissi
             </Card>
           )}
 
-          {/* Activity */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Clock className="h-4 w-4" aria-hidden="true" />
-                {tActivities("title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EntityActivityPanel parentType="CONTACT" parentId={contact.id} />
-            </CardContent>
-          </Card>
+          {/* Comments */}
+          {userId && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                  {tComments("title")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ContactComments
+                  contactId={contact.id}
+                  canComment={!isReadOnly || sharePermission === "VIEW_COMMENT"}
+                  currentUserId={userId}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Relationships Card */}
           {contact.relationships?.length > 0 && (
@@ -700,6 +710,19 @@ export default function ContactView({ contact, isReadOnly = false, sharePermissi
             isLoading={isLoadingLinked}
             showAddButton={false}
           />
+
+          {/* Activity Log */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="h-4 w-4" aria-hidden="true" />
+                {tActivities("title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EntityActivityPanel parentType="CONTACT" parentId={contact.id} />
+            </CardContent>
+          </Card>
         </div>
       </div>
 

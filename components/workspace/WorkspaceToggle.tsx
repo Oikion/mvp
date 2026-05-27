@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useOrganization, useOrganizationList } from "@clerk/nextjs";
+import { useSWRConfig } from "swr";
 import { useTranslations } from "next-intl";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ export function WorkspaceToggle() {
   const { isPersonalWorkspace, personalOrgId } = useWorkspaceContext();
   const { toast } = useAppToast();
   const [isSwitching, setIsSwitching] = useState(false);
+  const { mutate: swrMutate } = useSWRConfig();
 
   // Find the first agency org (non-personal)
   const agencyOrg = userMemberships?.data?.find(
@@ -46,7 +48,6 @@ export function WorkspaceToggle() {
           return;
         }
         await setActive({ organization: personalOrgId });
-        router.refresh();
       } else {
         // Switching to Agency
         if (!agencyOrg?.organization.id) {
@@ -54,8 +55,15 @@ export function WorkspaceToggle() {
           return;
         }
         await setActive({ organization: agencyOrg.organization.id });
-        router.refresh();
       }
+      // Flush the entire SWR cache so org-scoped data (messages, unread counts,
+      // etc.) from the previous org is not shown after the switch.
+      swrMutate(
+        (key) => typeof key === "string",
+        undefined,
+        { revalidate: false }
+      );
+      router.refresh();
     } catch (error) {
       console.error("Error switching workspace:", error);
       toast.error(t, { description: t, isTranslationKey: false });

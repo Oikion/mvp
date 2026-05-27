@@ -2,10 +2,14 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export async function setPrimaryImage(
   imageId: string
 ): Promise<{ success: boolean; error?: string }> {
+  const guard = await requireAction("property:update");
+  if (guard) return { success: false, error: guard.error };
+
   try {
     const { orgId } = await auth();
     if (!orgId) return { success: false, error: "Unauthorized" };

@@ -49,9 +49,9 @@ type PropertyOption = {
 
 type ClientOption = {
   id: string;
-  client_name: string;
-  primary_email: string | null;
-  primary_phone: string | null;
+  displayName: string;
+  email: string | null;
+  primaryPhone: string | null;
 };
 
 export function GenerateDocumentModal({
@@ -395,8 +395,8 @@ export function GenerateDocumentModal({
                       <SelectItem value="none">{t("noClient")}</SelectItem>
                       {clients.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
-                          {c.client_name}
-                          {c.primary_phone && ` - ${c.primary_phone}`}
+                          {c.displayName}
+                          {c.primaryPhone && ` - ${c.primaryPhone}`}
                         </SelectItem>
                       ))}
                     </SelectContent>

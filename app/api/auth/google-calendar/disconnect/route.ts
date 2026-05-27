@@ -40,8 +40,17 @@ export async function POST() {
     // Continue with local cleanup even if revocation fails (network or already revoked)
   }
 
+  const affectedEvents = await prismadb.calendarEvent.findMany({
+    where: { assignedUserId: user.id, googleEventId: { not: null } },
+    select: { id: true },
+  });
+  const affectedEventIds = affectedEvents.map((e) => e.id);
+
   // Clear googleEventId links and delete the connection record
   await prismadb.$transaction([
+    prismadb.calendarReminder.deleteMany({
+      where: { eventId: { in: affectedEventIds } },
+    }),
     prismadb.calendarEvent.updateMany({
       where: { assignedUserId: user.id, googleEventId: { not: null } },
       data: { googleEventId: null },

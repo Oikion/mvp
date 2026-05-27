@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { getDocument } from "@/actions/documents/get-document";
@@ -7,7 +6,6 @@ import { Prisma } from "@prisma/client";
 import { mergeDocumentMentions } from "@/actions/documents/parse-mentions";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
-import { isDemoOrg } from "@/lib/demo/demo-guard";
 
 export async function GET(
   req: Request,
@@ -17,9 +15,9 @@ export async function GET(
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const params = await props.params;
-    
+
     const document = await getDocument(params.documentId, organizationId);
-    
+
     if (!document) {
       return new NextResponse("Document not found", { status: 404 });
     }
@@ -43,11 +41,12 @@ export async function PUT(
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const params = await props.params;
-    
+
     const body = await req.json();
     const {
       document_name,
       description,
+      content,
       document_type,
       assigned_user,
       clientIds,
@@ -90,6 +89,7 @@ export async function PUT(
       data: {
         document_name: document_name || existingDocument.document_name,
         description: description !== undefined ? description : existingDocument.description,
+        content: content ?? undefined,
         document_type: document_type || existingDocument.document_type,
         assigned_user: assigned_user || existingDocument.assigned_user,
         mentions: mergedMentions as unknown as Prisma.InputJsonValue,
@@ -97,7 +97,7 @@ export async function PUT(
         linkedPropertiesIds: mergedMentions.properties.map((p) => p.id),
         linkedCalendarEventsIds: mergedMentions.events.map((e) => e.id),
         linkedTasksIds: mergedMentions.tasks.map((t) => t.id),
-        Clients: {
+        Contacts: {
           set: mergedMentions.clients.map((c) => ({ id: c.id })),
         },
         Properties: {
@@ -111,7 +111,7 @@ export async function PUT(
         },
       },
       include: {
-        Clients: true,
+        Contacts: true,
         Properties: true,
         CalendarEvent: true,
         crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: true,
@@ -140,10 +140,6 @@ export async function DELETE(
     const organizationId = await getCurrentOrgId();
     const params = await props.params;
 
-    if (await isDemoOrg(organizationId)) {
-      return NextResponse.json({ success: true });
-    }
-
     const document = await prismadb.documents.findFirst({
       where: { id: params.documentId, organizationId },
     });
@@ -152,9 +148,23 @@ export async function DELETE(
       return new NextResponse("Document not found", { status: 404 });
     }
 
-    await prismadb.documents.update({
-      where: { id: params.documentId, organizationId },
-      data: { archivedAt: new Date(), archivedBy: user.id },
+    await prismadb.$transaction(async (tx) => {
+      await tx.documents.update({
+        where: { id: params.documentId, organizationId },
+        data: { archivedAt: new Date(), archivedBy: user.id },
+      });
+      await tx.documentView.deleteMany({ where: { documentId: params.documentId } });
+      await tx.sharedEntity.deleteMany({
+        where: { entityType: "DOCUMENT", entityId: params.documentId },
+      });
+      await tx.documents.update({
+        where: { id: params.documentId },
+        data: {
+          Contacts: { set: [] },
+          Properties: { set: [] },
+          Requests: { set: [] },
+        },
+      });
     });
 
     await invalidateCache(["documents"]);
@@ -165,4 +175,3 @@ export async function DELETE(
     return new NextResponse("Internal error", { status: 500 });
   }
 }
-

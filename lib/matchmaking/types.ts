@@ -359,7 +359,7 @@ export interface MatchOptions {
 // V2 TYPES — Request-based matching engine
 // ============================================
 
-export type FinancingStatus = "CASH" | "MORTGAGE" | "MIXED" | "UNSPECIFIED";
+export type FinancingStatus = "CASH" | "MORTGAGE_PREAPPROVED" | "MORTGAGE_PENDING" | "SEEKING_FINANCING" | "UNKNOWN";
 export type Timeline = "IMMEDIATE" | "ONE_THREE_MONTHS" | "THREE_SIX_MONTHS" | "SIX_PLUS_MONTHS";
 
 /**

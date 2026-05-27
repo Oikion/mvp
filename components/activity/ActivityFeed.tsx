@@ -190,10 +190,11 @@ function ChangelogRow({
   return (
     <li className="relative py-1.5 flex items-start gap-2">
       <span
-        className="absolute -left-[0.8125rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
+        className="absolute -left-[2.0625rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
         aria-hidden
-      />
-      <Icon className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" aria-label={iconLabel} />
+      >
+        <Icon className="h-2.5 w-2.5 text-muted-foreground" />
+      </span>
       <div className="flex flex-col gap-0.5 min-w-0">
         <span className="text-sm text-foreground">{sentence}</span>
         <span className="text-xs text-muted-foreground">
@@ -225,10 +226,11 @@ function SystemActivityRow({
   return (
     <li className="relative py-1.5 flex items-start gap-2">
       <span
-        className="absolute -left-[0.8125rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
+        className="absolute -left-[2.0625rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
         aria-hidden
-      />
-      <Icon className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" aria-hidden />
+      >
+        <Icon className="h-2.5 w-2.5 text-muted-foreground" />
+      </span>
       <div className="flex flex-col gap-0.5 min-w-0">
         {targetUrl ? (
           <Link href={targetUrl} className="hover:underline">{label}</Link>
@@ -260,7 +262,7 @@ function ActivityRow({
   return (
     <li className="relative">
       <span
-        className="absolute -left-[0.8125rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
+        className="absolute -left-[2.0625rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
         aria-hidden
       />
       <div className="rounded-lg border border-border bg-card p-3 text-sm">

@@ -407,6 +407,19 @@ export function useSendMessage(params?: { channelId?: string; conversationId?: s
           globalMutate(getThreadMessagesKey(parentId));
         }
       },
+      onError: () => {
+        // On any send failure, force-revalidate the message list so the SWR
+        // cache reflects server truth — prevents stale/ghost message state.
+        if (params?.channelId || params?.conversationId) {
+          const cacheKey = getMessagesKey({
+            channelId: params.channelId,
+            conversationId: params.conversationId,
+          });
+          if (cacheKey) {
+            globalMutate(cacheKey, undefined, { revalidate: true });
+          }
+        }
+      },
     }
   );
 
@@ -801,6 +814,17 @@ export function getCredentialsKey(): string {
  * Get the SWR cache key for messages
  */
 export function getMessagesKey(params: { channelId?: string; conversationId?: string }): string | null {
+  // Guard: both IDs provided is a caller bug — the cache key would diverge from
+  // the API's actual query, causing Ably mutations to target the wrong SWR entry.
+  if (params.channelId && params.conversationId) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        "[getMessagesKey] Both channelId and conversationId provided — only one may be set. channelId will take precedence."
+      );
+    }
+    // In production, prefer channelId (drop conversationId silently).
+    params = { channelId: params.channelId };
+  }
   if (!params.channelId && !params.conversationId) return null;
   const queryParams = new URLSearchParams();
   if (params.channelId) queryParams.set("channelId", params.channelId);

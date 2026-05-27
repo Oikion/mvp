@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/backend";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrganizationId } from "@/lib/permissions/action-guards";
-import { requireOwner } from "@/lib/permissions/guards";
+import { requireOwner, requireAtLeastLead } from "@/lib/permissions/guards";
+import { getCurrentOrgId } from "@/lib/get-current-user";
 import { updateUserModuleAccess } from "@/lib/permissions/service";
 import { ModuleId, ALL_MODULES } from "@/lib/permissions";
+import { apiUnauthorized } from "@/lib/api-response";
 
 /**
  * GET /api/org/members/[userId]/access
@@ -15,15 +17,14 @@ export async function GET(
   props: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = await props.params;
-    const organizationId = await getCurrentOrganizationId();
+    const { userId: callerId, orgId: organizationId } = await auth();
+    if (!callerId || !organizationId) return apiUnauthorized();
 
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: "Organization context required" },
-        { status: 403 }
-      );
-    }
+    // Require LEAD or higher role to read other members' module access config
+    const roleGuard = await requireAtLeastLead();
+    if (roleGuard) return roleGuard;
+
+    const { userId } = await props.params;
 
     // Verify the target user belongs to the caller's organization
     const clerk = createClerkClient({
@@ -85,7 +86,7 @@ export async function PUT(
     if (permissionError) return permissionError;
 
     const { userId } = await props.params;
-    const organizationId = await getCurrentOrganizationId();
+    const organizationId = await getCurrentOrgId();
 
     if (!organizationId) {
       return NextResponse.json(

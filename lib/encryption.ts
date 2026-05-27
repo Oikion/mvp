@@ -87,6 +87,32 @@ export function decrypt(encrypted: string): string {
   return decrypted.toString("utf8");
 }
 
+/**
+ * Decrypt a value, falling back to SECRETS_ENCRYPTION_KEY_PREVIOUS if the
+ * current key fails. Use this wherever tokens encrypted under an older master
+ * key must remain readable while a key rotation is in progress.
+ *
+ * Rotation procedure: set SECRETS_ENCRYPTION_KEY_PREVIOUS to the old key,
+ * set SECRETS_ENCRYPTION_KEY to the new key, deploy, run the re-encryption
+ * script, then remove SECRETS_ENCRYPTION_KEY_PREVIOUS.
+ */
+export function decryptWithFallback(encrypted: string): string {
+  try {
+    return decrypt(encrypted);
+  } catch {
+    const prevHex = process.env.SECRETS_ENCRYPTION_KEY_PREVIOUS;
+    if (!prevHex) {
+      throw new Error("[encryption] decryptWithFallback: current key failed and SECRETS_ENCRYPTION_KEY_PREVIOUS is not set");
+    }
+    if (prevHex.length !== 64) {
+      throw new Error(
+        `[encryption] SECRETS_ENCRYPTION_KEY_PREVIOUS must be 64 hex chars (32 bytes), got ${prevHex.length}`
+      );
+    }
+    return decryptWithKey(encrypted, Buffer.from(prevHex, "hex"));
+  }
+}
+
 // M-4: Hex character validation regex (compiled once, reused per call)
 const HEX_RE = /^[0-9a-f]+$/;
 

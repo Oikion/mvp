@@ -278,6 +278,7 @@ export type ImportAction =
 // =============================================================================
 
 export type ArchiveAction =
+  | "archive:create"
   | "archive:view"
   | "archive:restore"
   | "archive:purge";
@@ -503,6 +504,7 @@ export const ACTION_MODULES = {
     "import:hard_delete",
   ] as const,
   archive: [
+    "archive:create",
     "archive:view",
     "archive:restore",
     "archive:purge",
@@ -737,6 +739,7 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "import:hard_delete": "Permanently delete import records and rollback data",
 
   // Archive actions
+  "archive:create": "Archive (soft-delete) entities",
   "archive:view": "View archived (soft-deleted) entities",
   "archive:restore": "Restore archived entities back to active state",
   "archive:purge": "Permanently delete archived entities (irreversible)",

@@ -57,6 +57,10 @@ export async function resolveUsernamesToIds(
   if (usernames.length === 0) return [];
 
   try {
+    // TODO: filter by org membership once a Prisma relation from Users to
+    // organizations is available. Currently org membership is Clerk-only and
+    // the Users model has no organizationId field, so we cannot scope this
+    // query to the org via Prisma alone.
     const users = await prisma.users.findMany({
       where: {
         username: { in: usernames },

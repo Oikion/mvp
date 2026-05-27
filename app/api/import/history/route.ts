@@ -6,10 +6,10 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { ImportEntityType } from "@prisma/client";
 import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
+import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { getImportHistory } from "@/lib/import/history";
 import { recordImport } from "@/lib/import/history";
 
@@ -29,21 +29,7 @@ export async function GET(req: NextRequest) {
     const guard = await requireAction("import:view_history");
     if (guard) return handleGuardError(guard);
 
-    const { userId, orgId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    if (!orgId) {
-      return NextResponse.json(
-        { error: "Organization context required" },
-        { status: 403 }
-      );
-    }
+    const orgId = await getCurrentOrgId();
 
     const searchParams = req.nextUrl.searchParams;
     const limit = parseInt(searchParams.get("limit") || "20", 10);
@@ -94,21 +80,8 @@ export async function POST(req: NextRequest) {
     const guard = await requireAction("import:create");
     if (guard) return handleGuardError(guard);
 
-    const { userId, orgId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    if (!orgId) {
-      return NextResponse.json(
-        { error: "Organization context required" },
-        { status: 403 }
-      );
-    }
+    const user = await getCurrentUser();
+    const orgId = await getCurrentOrgId();
 
     const body = await req.json();
     const parsed = importHistoryBodySchema.safeParse(body);
@@ -122,7 +95,7 @@ export async function POST(req: NextRequest) {
 
     const record = await recordImport({
       orgId,
-      userId,
+      userId: user.id,
       importType,
       sourceFilename,
       rowCount: rowCount ?? 0,

@@ -101,12 +101,12 @@ export function EditDealForm({ deal, onSuccess }: EditDealFormProps) {
         toast.error(result.error ?? "Update failed", { isTranslationKey: false });
         return;
       }
-      toast.success("updateSuccess");
+      toast.success(t("edit.updateSuccess"));
       router.refresh();
       onSuccess?.();
     } catch (err) {
       console.error("[DEAL_EDIT]", err);
-      toast.error("updateFailed");
+      toast.error(t("edit.updateFailed"));
     } finally {
       setIsSubmitting(false);
     }

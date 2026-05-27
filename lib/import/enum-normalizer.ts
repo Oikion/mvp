@@ -495,31 +495,6 @@ export const personTypeMap: EnumMapping = {
 };
 
 /**
- * Client Intent mappings
- */
-export const clientIntentMap: EnumMapping = {
-  // English variations
-  "buy": "BUY",
-  "purchase": "BUY",
-  "buying": "BUY",
-  "rent": "RENT",
-  "renting": "RENT",
-  "lease": "LEASE",
-  "leasing": "LEASE",
-  "sell": "SELL",
-  "selling": "SELL",
-  "invest": "INVEST",
-  "investment": "INVEST",
-  "investing": "INVEST",
-  // Greek translations
-  "αγορά": "BUY",
-  "ενοικίαση": "RENT",
-  "μίσθωση": "LEASE",
-  "πώληση": "SELL",
-  "επένδυση": "INVEST",
-};
-
-/**
  * Property Purpose mappings
  */
 export const propertyPurposeMap: EnumMapping = {
@@ -570,29 +545,6 @@ export const timelineMap: EnumMapping = {
   "3-6 μήνες": "THREE_SIX_MONTHS",
   "6+ μήνες": "SIX_PLUS_MONTHS",
   "αργότερα": "SIX_PLUS_MONTHS",
-};
-
-/**
- * Financing Type mappings
- */
-export const financingTypeMap: EnumMapping = {
-  // English variations
-  "cash": "CASH",
-  "all cash": "CASH",
-  "mortgage": "MORTGAGE",
-  "loan": "MORTGAGE",
-  "bank loan": "MORTGAGE",
-  "financing": "MORTGAGE",
-  "preapproval pending": "PREAPPROVAL_PENDING",
-  "preapproval_pending": "PREAPPROVAL_PENDING",
-  "pending": "PREAPPROVAL_PENDING",
-  "pre-approval": "PREAPPROVAL_PENDING",
-  // Greek translations
-  "μετρητά": "CASH",
-  "στεγαστικό": "MORTGAGE",
-  "δάνειο": "MORTGAGE",
-  "στεγαστικό δάνειο": "MORTGAGE",
-  "εκκρεμεί προέγκριση": "PREAPPROVAL_PENDING",
 };
 
 /**
@@ -704,30 +656,44 @@ export const frontageTypeMap: EnumMapping = {
 };
 
 /**
- * Normalize an enum value using the provided mapping
- * Returns the normalized value or the original if no match found
+ * Normalize an enum value using the provided mapping.
+ *
+ * @param value   Raw value from the CSV/XLSX row
+ * @param mapping Enum mapping table to use for normalization
+ * @param required When true, unrecognized values are returned as `"__INVALID__:<raw>"`
+ *                 so the downstream Zod schema rejects them with a meaningful error.
+ *                 When false (default), unrecognized values return null.
  */
 export function normalizeEnumValue(
   value: unknown,
-  mapping: EnumMapping
+  mapping: EnumMapping,
+  required: boolean = false
 ): string | null {
   if (value === null || value === undefined || value === "") {
     return null;
   }
-  
+
   // Convert to string safely
   const valueStr = typeof value === "object" ? JSON.stringify(value) : String(value);
   const strValue = valueStr.toLowerCase().trim();
-  
+
   // Check if it's already a valid enum value (uppercase)
   const upperValue = valueStr.toUpperCase().trim();
   const validEnumValues = new Set(Object.values(mapping));
   if (validEnumValues.has(upperValue)) {
     return upperValue;
   }
-  
+
   // Look up in mapping
-  return mapping[strValue] || null;
+  const mapped = mapping[strValue] ?? null;
+  if (mapped !== null) return mapped;
+
+  // For required fields, return a sentinel so Zod validation fails with context
+  if (required) {
+    return `__INVALID__:${valueStr}`;
+  }
+
+  return null;
 }
 
 /**

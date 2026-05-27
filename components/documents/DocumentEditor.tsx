@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileText, Save, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface DocumentEditorProps {
   readonly initialContent?: string;
@@ -39,6 +39,20 @@ export function DocumentEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSaveRef = useRef(onSave);
+
+  // Keep onSaveRef current so the debounced callback always calls the latest version
+  useEffect(() => {
+    onSaveRef.current = onSave;
+  }, [onSave]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -63,8 +77,18 @@ export function DocumentEditor({
     ],
     content: initialContent,
     editable: !readOnly,
-    onUpdate: () => {
+    onUpdate: ({ editor: updatedEditor }) => {
       setHasUnsavedChanges(true);
+      // Debounced autosave — triggers 2500ms after last keystroke
+      if (!readOnly && onSaveRef.current) {
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => {
+          const html = updatedEditor.getHTML();
+          onSaveRef.current?.(html).catch((err) => {
+            console.error("Autosave failed:", err);
+          });
+        }, 2500);
+      }
     },
     editorProps: {
       attributes: {

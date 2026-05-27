@@ -1,4 +1,5 @@
 // lib/billing/plan-access.ts
+import { unstable_cache } from "next/cache";
 import { prismadb } from "@/lib/prisma";
 import { PLAN_RANK, getPlanConfig } from "@/lib/billing/plans";
 import type { OrgSubscription, SubscriptionPlan } from "@prisma/client";
@@ -8,9 +9,11 @@ export type { OrgSubscription };
 export async function getOrgSubscription(
   organizationId: string
 ): Promise<OrgSubscription | null> {
-  return prismadb.orgSubscription.findUnique({
-    where: { organizationId },
-  });
+  return unstable_cache(
+    () => prismadb.orgSubscription.findUnique({ where: { organizationId } }),
+    ["org-subscription", organizationId],
+    { tags: [`org-subscription:${organizationId}`], revalidate: 300 }
+  )();
 }
 
 /** Returns true if the org has an active or trialing subscription. */

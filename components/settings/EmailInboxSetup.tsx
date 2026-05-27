@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -74,6 +75,7 @@ interface EmailInboxSetupProps {
 }
 
 export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSetupProps) {
+  const t = useTranslations("Settings.emailInbox");
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +106,7 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
 
       if (!res.ok) {
         const body = await res.json();
-        setError(body.error ?? "Failed to connect inbox");
+        setError(body.error ?? t("errorFailedToConnect"));
         return;
       }
 
@@ -112,7 +114,7 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
       setOpen(false);
       onCreated();
     } catch {
-      setError("Network error — please try again");
+      setError(t("errorNetwork"));
     } finally {
       setIsSubmitting(false);
     }
@@ -136,46 +138,46 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-medium">Email Inboxes</h3>
+          <h3 className="text-sm font-medium">{t("title")}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Connect a mailbox to receive and reply to emails inside the Messaging Hub.
+            {t("description")}
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="outline" className="gap-1.5">
               <Plus className="h-3.5 w-3.5" />
-              Connect Inbox
+              {t("connectButton")}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[520px]">
             <DialogHeader>
-              <DialogTitle>Connect Email Inbox</DialogTitle>
+              <DialogTitle>{t("dialogTitle")}</DialogTitle>
               <DialogDescription>
-                Enter your IMAP credentials to connect a mailbox. Emails will be polled every 2 minutes.
+                {t("dialogDescription")}
               </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2 space-y-1.5">
-                  <Label htmlFor="channelName">Channel name</Label>
-                  <Input id="channelName" placeholder="e.g. info@agency.gr" {...form.register("channelName")} />
+                  <Label htmlFor="channelName">{t("channelNameLabel")}</Label>
+                  <Input id="channelName" placeholder={t("channelNamePlaceholder")} {...form.register("channelName")} />
                   {form.formState.errors.channelName && (
                     <p className="text-xs text-destructive">{form.formState.errors.channelName.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="fromAddress">From address</Label>
-                  <Input id="fromAddress" type="email" placeholder="info@agencyname.gr" {...form.register("fromAddress")} />
+                  <Label htmlFor="fromAddress">{t("fromAddressLabel")}</Label>
+                  <Input id="fromAddress" type="email" placeholder={t("fromAddressPlaceholder")} {...form.register("fromAddress")} />
                   {form.formState.errors.fromAddress && (
                     <p className="text-xs text-destructive">{form.formState.errors.fromAddress.message}</p>
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="fromName">Display name <span className="text-muted-foreground">(optional)</span></Label>
-                  <Input id="fromName" placeholder="Agency Name" {...form.register("fromName")} />
+                  <Label htmlFor="fromName">{t("fromNameLabel")} <span className="text-muted-foreground">{t("fromNameOptional")}</span></Label>
+                  <Input id="fromName" placeholder={t("fromNamePlaceholder")} {...form.register("fromName")} />
                 </div>
               </div>
 
@@ -183,25 +185,25 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="imapHost">IMAP host</Label>
-                  <Input id="imapHost" placeholder="imap.gmail.com" {...form.register("imapHost")} />
+                  <Label htmlFor="imapHost">{t("imapHostLabel")}</Label>
+                  <Input id="imapHost" placeholder={t("imapHostPlaceholder")} {...form.register("imapHost")} />
                   {form.formState.errors.imapHost && (
                     <p className="text-xs text-destructive">{form.formState.errors.imapHost.message}</p>
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="imapPort">Port</Label>
+                  <Label htmlFor="imapPort">{t("portLabel")}</Label>
                   <Input id="imapPort" type="number" {...form.register("imapPort")} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="imapUser">IMAP username</Label>
-                  <Input id="imapUser" placeholder="info@agencyname.gr" {...form.register("imapUser")} />
+                  <Label htmlFor="imapUser">{t("imapUsernameLabel")}</Label>
+                  <Input id="imapUser" placeholder={t("imapUsernamePlaceholder")} {...form.register("imapUser")} />
                   {form.formState.errors.imapUser && (
                     <p className="text-xs text-destructive">{form.formState.errors.imapUser.message}</p>
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="imapPassword">IMAP password / app password</Label>
+                  <Label htmlFor="imapPassword">{t("imapPasswordLabel")}</Label>
                   <Input id="imapPassword" type="password" {...form.register("imapPassword")} />
                   {form.formState.errors.imapPassword && (
                     <p className="text-xs text-destructive">{form.formState.errors.imapPassword.message}</p>
@@ -209,9 +211,9 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
                 </div>
                 <div className="col-span-2 flex items-center justify-between rounded-md border px-3 py-2">
                   <div>
-                    <p className="text-sm font-medium">Use SSL/TLS</p>
+                    <p className="text-sm font-medium">{t("useSslLabel")}</p>
                     <p className="text-xs text-muted-foreground">
-                      {imapUseTLS ? "Port 993 (SSL) — recommended" : "Port 143 with STARTTLS"}
+                      {imapUseTLS ? t("useSslDescriptionEnabled") : t("useSslDescriptionDisabled")}
                     </p>
                   </div>
                   <Switch
@@ -224,7 +226,7 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
               <hr />
 
               <div className="space-y-1.5">
-                <Label>Outbound sending via</Label>
+                <Label>{t("outboundLabel")}</Label>
                 <Select
                   value={smtpSendVia}
                   onValueChange={(v) => form.setValue("smtpSendVia", v as "RESEND_CUSTOM_DOMAIN" | "SMTP_DIRECT")}
@@ -233,8 +235,8 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="RESEND_CUSTOM_DOMAIN">Resend (custom domain — recommended)</SelectItem>
-                    <SelectItem value="SMTP_DIRECT">SMTP direct</SelectItem>
+                    <SelectItem value="RESEND_CUSTOM_DOMAIN">{t("outboundResend")}</SelectItem>
+                    <SelectItem value="SMTP_DIRECT">{t("outboundSmtp")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -242,19 +244,19 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
               {smtpSendVia === "SMTP_DIRECT" && (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="smtpHost">SMTP host</Label>
-                    <Input id="smtpHost" placeholder="smtp.agencyname.gr" {...form.register("smtpHost")} />
+                    <Label htmlFor="smtpHost">{t("smtpHostLabel")}</Label>
+                    <Input id="smtpHost" placeholder={t("smtpHostPlaceholder")} {...form.register("smtpHost")} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="smtpPort">Port</Label>
-                    <Input id="smtpPort" type="number" placeholder="587" {...form.register("smtpPort")} />
+                    <Label htmlFor="smtpPort">{t("portLabel")}</Label>
+                    <Input id="smtpPort" type="number" placeholder={t("smtpPortPlaceholder")} {...form.register("smtpPort")} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="smtpUser">SMTP username</Label>
+                    <Label htmlFor="smtpUser">{t("smtpUsernameLabel")}</Label>
                     <Input id="smtpUser" {...form.register("smtpUser")} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="smtpPassword">SMTP password</Label>
+                    <Label htmlFor="smtpPassword">{t("smtpPasswordLabel")}</Label>
                     <Input id="smtpPassword" type="password" {...form.register("smtpPassword")} />
                   </div>
                 </div>
@@ -269,11 +271,11 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
+                  {t("cancelButton")}
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Connect Inbox
+                  {t("connectSubmitButton")}
                 </Button>
               </DialogFooter>
             </form>
@@ -285,7 +287,7 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
       {inboxes.length === 0 ? (
         <div className="flex items-center gap-3 rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
           <Mail className="h-5 w-5 flex-shrink-0" />
-          No email inboxes connected yet.
+          {t("emptyState")}
         </div>
       ) : (
         <div className="space-y-2">
@@ -307,10 +309,10 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
                 {inbox.emailInbox?.isActive ? (
                   <Badge variant="secondary" className="gap-1 text-[10px]">
                     <CheckCircle className="h-2.5 w-2.5 text-green-500" />
-                    Active
+                    {t("statusActive")}
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="text-[10px]">Paused</Badge>
+                  <Badge variant="outline" className="text-[10px]">{t("statusPaused")}</Badge>
                 )}
                 <Button
                   size="icon"
@@ -330,20 +332,20 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
       <AlertDialog open={!!inboxToDelete} onOpenChange={(v) => !v && setInboxToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Disconnect inbox?</AlertDialogTitle>
+            <AlertDialogTitle>{t("disconnectTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will stop polling for new emails. Existing conversations will be preserved.
+              {t("disconnectDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>{t("disconnectCancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-              Disconnect
+              {t("disconnectConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

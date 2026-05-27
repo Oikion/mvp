@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { getCurrentUserSafe, getCurrentOrgId } from "@/lib/get-current-user";
 import { actionSuccess, actionError } from "@/lib/action-response";
 import { notifyEntityAccessRequested } from "@/lib/notifications/helpers";
 
@@ -83,7 +83,10 @@ export async function requestEntityAccess(input: z.infer<typeof inputSchema>) {
   if (existing) return actionSuccess(null);
 
   const owner = await resolveOwner(entityType, entityId);
-  if (!owner) return actionError("Entity not found", "NOT_FOUND");
+  const currentOrgId = await getCurrentOrgId();
+  if (!owner || owner.ownerOrganizationId !== currentOrgId) {
+    return actionError("Entity not found");
+  }
 
   // No owner assigned — notify fallback to org admin (not implemented here,
   // so just succeed silently to avoid leaking entity existence)

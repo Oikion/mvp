@@ -161,6 +161,7 @@ export async function resolveMentions(
     const taskTitles = taskMentions.map((m) => m.name);
     const tasks = await prismaClient.crm_Accounts_Tasks.findMany({
       where: {
+        organizationId,
         title: {
           in: taskTitles,
         },
@@ -271,6 +272,7 @@ export async function mergeMentions(
     const explicitTasks = await prismaClient.crm_Accounts_Tasks.findMany({
       where: {
         id: { in: explicitAssociations.taskIds },
+        organizationId,
       },
       select: {
         id: true,

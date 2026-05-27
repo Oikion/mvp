@@ -24,6 +24,7 @@ export async function registerWatchChannel(userId: string): Promise<void> {
 
   const cal = google.calendar({ version: "v3", auth: oauth2Client });
   const channelId = crypto.randomUUID();
+  const channelToken = crypto.randomUUID();
   const expiration = Date.now() + CHANNEL_TTL_MS;
 
   try {
@@ -34,6 +35,7 @@ export async function registerWatchChannel(userId: string): Promise<void> {
         type: "web_hook",
         address: WEBHOOK_URL,
         expiration: String(expiration),
+        token: channelToken,
       },
     });
 
@@ -41,6 +43,7 @@ export async function registerWatchChannel(userId: string): Promise<void> {
       where: { userId },
       data: {
         watchChannelId: res.data.id ?? channelId,
+        watchChannelToken: channelToken,
         watchResourceId: res.data.resourceId ?? null,
         watchExpiry: new Date(Number(res.data.expiration ?? expiration)),
       },
@@ -110,6 +113,20 @@ export async function renewExpiringWatchChannels(): Promise<{
       failed++;
     }
   }
+
+  await prismadb.userGoogleCalendarConnection.updateMany({
+    where: {
+      watchExpiry: { lt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
+      watchChannelId: { not: null },
+      status: { not: "ACTIVE" },
+    },
+    data: {
+      watchChannelId: null,
+      watchChannelToken: null,
+      watchResourceId: null,
+      watchExpiry: null,
+    },
+  });
 
   return { renewed, failed };
 }

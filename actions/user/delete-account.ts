@@ -10,6 +10,8 @@ import { createClerkClient } from "@clerk/backend";
 import { isOrgOwner } from "@/lib/org-admin";
 import { handleUserDeparture } from "@/lib/user-departure";
 import { isOrgPersonal } from "@/lib/personal-workspace-guard";
+import { getStripeClient } from "@/lib/stripe";
+import resendHelper from "@/lib/resend";
 
 /**
  * Delete the current user's account and all associated data
@@ -147,6 +149,47 @@ export async function deleteOrganization(
       select: { organizationId: true },
     });
 
+    // Notify org members before deletion so they aren't silently locked out
+    try {
+      const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+      const userId = await getCurrentUserId();
+      const memberships = await clerk.organizations.getOrganizationMembershipList({
+        organizationId,
+        limit: 500,
+      });
+      const memberEmails = memberships.data
+        .filter((m) => m.publicUserData?.userId !== userId && m.publicUserData?.identifier)
+        .map((m) => m.publicUserData!.identifier!);
+
+      if (memberEmails.length > 0) {
+        const resend = await resendHelper();
+        await resend.emails.send({
+          from: "Oikion <noreply@oikion.app>",
+          to: memberEmails,
+          subject: "Your organization has been deleted",
+          html: `<p>The organization you were a member of has been deleted by its owner. Your access has been removed.</p>`,
+        });
+      }
+    } catch (emailError) {
+      console.error("[DELETE_ORGANIZATION] Failed to send member departure emails:", emailError);
+    }
+
+    // Cancel Stripe subscription if one exists
+    const orgSubscription = await prismadb.orgSubscription.findUnique({
+      where: { organizationId },
+      select: { stripeSubscriptionId: true },
+    });
+    if (orgSubscription?.stripeSubscriptionId) {
+      try {
+        const stripe = getStripeClient();
+        await stripe.subscriptions.cancel(orgSubscription.stripeSubscriptionId);
+        console.log("[DELETE_ORGANIZATION] Cancelled Stripe subscription:", orgSubscription.stripeSubscriptionId);
+      } catch (stripeError) {
+        // Don't fail the deletion if Stripe is unavailable
+        console.error("[DELETE_ORGANIZATION] Failed to cancel Stripe subscription:", stripeError);
+      }
+    }
+
     // Delete all organization data in a transaction
     // Order matters due to foreign key constraints
     await prismadb.$transaction(async (tx) => {
@@ -194,7 +237,41 @@ export async function deleteOrganization(
       });
 
       // =============================================================================
-      // Step 6: Delete property-related data
+      // Step 6: Delete v2.0 entity data (Contact, Request, Deal, Showing)
+      // Cascade order: Showing → Deal → PropertyRequestMatch → Request → Contact
+      // DealParty, DealStageLog, ShowingAttendee, RequestComment, ContactComment,
+      // ContactRelationship, ContactProperty, RequestContact cascade automatically.
+      // =============================================================================
+      await tx.propertyShowing.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.deal.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.propertyRequestMatch.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.requestContact.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.request.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.contactProperty.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.contact.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 7: Delete property-related data
       // =============================================================================
       await tx.marketingSpend.deleteMany({
         where: { organizationId },
@@ -205,7 +282,7 @@ export async function deleteOrganization(
       });
 
       // =============================================================================
-      // Step 7: Delete client-related data
+      // Step 8: Delete legacy client-related data
       // =============================================================================
       await tx.client_Contacts.deleteMany({
         where: { organizationId },
@@ -216,7 +293,7 @@ export async function deleteOrganization(
       });
 
       // =============================================================================
-      // Step 8: Delete documents and uploads
+      // Step 9: Delete documents and uploads
       // =============================================================================
       await tx.documents.deleteMany({
         where: { organizationId },
@@ -241,6 +318,10 @@ export async function deleteOrganization(
       });
 
       await tx.backgroundJob.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.orgSubscription.deleteMany({
         where: { organizationId },
       });
 

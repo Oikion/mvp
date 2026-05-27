@@ -10,6 +10,12 @@ import { registerWatchChannel } from "@/lib/google-calendar/watch-manager";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
+const SAFE_RETURN_PREFIXES = [
+  "/app/calendar",
+  "/app/integrations",
+  "/app/settings",
+];
+
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
@@ -28,7 +34,7 @@ export async function GET(req: NextRequest) {
     const returnTo = cookieStore.get("gcal_return_to")?.value ?? null;
     cookieStore.delete("gcal_return_to");
     const basePath =
-      returnTo && returnTo.startsWith("/app/") && !returnTo.includes("//")
+      returnTo && SAFE_RETURN_PREFIXES.some((p) => returnTo.startsWith(p))
         ? returnTo
         : "/app/calendar";
     const dest = new URL(`${APP_URL}${basePath}`);
@@ -109,7 +115,7 @@ export async function GET(req: NextRequest) {
     cookieStore.delete("gcal_return_to");
 
     const basePath =
-      returnTo && returnTo.startsWith("/app/") && !returnTo.includes("//")
+      returnTo && SAFE_RETURN_PREFIXES.some((p) => returnTo.startsWith(p))
         ? returnTo
         : "/app/calendar";
 

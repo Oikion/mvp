@@ -86,6 +86,7 @@ export async function shareEntity(input: ShareEntityInput) {
       const document = await prismadb.documents.findFirst({
         where: {
           id: input.entityId,
+          organizationId,
           OR: [
             { created_by_user: currentUser.id },
             { assigned_user: currentUser.id },
@@ -184,6 +185,13 @@ export async function revokeShare(shareId: string) {
   await prismadb.sharedEntity.delete({
     where: { id: shareId },
   });
+
+  if (share.entityType === "DOCUMENT") {
+    await prismadb.documents.update({
+      where: { id: share.entityId },
+      data: { linkEnabled: false },
+    });
+  }
 
   revalidatePath("/shared-with-me");
   return { success: true };

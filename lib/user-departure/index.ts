@@ -49,6 +49,55 @@ export async function handleUserDeparture(
     return result;
   }
 
+  // Step 2b: Pre-flight — block departure if user is the sole org owner
+  // (forced account deletion is always allowed, but log a warning)
+  try {
+    const clerkForOwnerCheck = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    // Look up the Clerk user ID from our DB record to match against membership list
+    const dbUser = await prismadb.users.findUnique({
+      where: { id: userId },
+      select: { clerkUserId: true },
+    });
+    const clerkId = dbUser?.clerkUserId ?? userId;
+
+    const ownerMembers = await clerkForOwnerCheck.organizations.getOrganizationMembershipList({
+      organizationId: orgId,
+      role: ["org:admin"],
+      limit: 10,
+    });
+    const ownerClerkIds = ownerMembers.data
+      .map((m) => m.publicUserData?.userId)
+      .filter((id): id is string => !!id);
+
+    const isSoleOwner =
+      ownerClerkIds.length === 1 && ownerClerkIds[0] === clerkId;
+
+    if (isSoleOwner) {
+      if (reason === "ACCOUNT_DELETED") {
+        console.error(
+          `[UserDeparture] WARNING: userId=${userId} orgId=${orgId} is the sole owner and is being deleted — org will be left ownerless. Platform admin follow-up required.`
+        );
+        // Allow departure to continue (forced deletion)
+      } else {
+        result.errors.push(
+          "Cannot leave organization: you are the sole owner. Transfer ownership before departing."
+        );
+        return result;
+      }
+    }
+  } catch (ownerCheckError) {
+    console.error("[UserDeparture] Sole-owner check failed:", ownerCheckError);
+    // Fail safe: block departure if we cannot verify ownership
+    if (reason !== "ACCOUNT_DELETED") {
+      result.errors.push(
+        "Cannot verify organization ownership status. Departure blocked for safety."
+      );
+      return result;
+    }
+  }
+
   // Step 3: Data ownership — AGENT migration (must run BEFORE nullify)
   let migrationResult: MigrationResult | undefined;
   let policyApplied: DataOwnershipMode = "AGENCY";
@@ -67,16 +116,22 @@ export async function handleUserDeparture(
     policyApplied = settings.dataOwnershipMode;
 
     if (shouldMigrateData(reason, settings.dataOwnershipMode)) {
+      let personalOrgId: string | undefined;
+      let workspaceWasNewlyCreated = false;
+
       try {
-        // Find or create personal workspace
-        const personalOrgId = await findOrCreatePersonalWorkspace(userId);
+        // Find or create personal workspace — track whether it was newly created
+        // so we can roll it back if the migration transaction fails.
+        const workspaceResult = await findOrCreatePersonalWorkspace(userId);
+        personalOrgId = workspaceResult.orgId;
+        workspaceWasNewlyCreated = workspaceResult.isNew;
 
         migrationResult = await prismadb.$transaction(
           async (tx) =>
             migrateAgentEntities(tx, {
               userId,
               sourceOrgId: orgId,
-              personalOrgId,
+              personalOrgId: personalOrgId!,
               currentMode: settings.dataOwnershipMode,
               policyHistory: settings.policyHistory as PolicyEra[] | null,
             }),
@@ -86,9 +141,28 @@ export async function handleUserDeparture(
         result.migrationResult = migrationResult;
       } catch (error) {
         console.error("[UserDeparture] AGENT migration failed:", error);
-        result.errors.push(
-          `AGENT migration failed: ${error instanceof Error ? error.message : String(error)}`
-        );
+        const errMsg = error instanceof Error ? error.message : String(error);
+        result.errors.push(`AGENT migration failed: ${errMsg}`);
+
+        // If the personal workspace was newly created by this run and the
+        // migration transaction failed, attempt to delete the Clerk org so
+        // it isn't orphaned.
+        if (workspaceWasNewlyCreated && personalOrgId) {
+          try {
+            const clerkCleanup = createClerkClient({
+              secretKey: process.env.CLERK_SECRET_KEY,
+            });
+            await clerkCleanup.organizations.deleteOrganization(personalOrgId);
+            console.warn(
+              `[UserDeparture] Cleaned up orphaned personal workspace ${personalOrgId} after migration failure.`
+            );
+          } catch (cleanupError) {
+            console.error(
+              `[UserDeparture] Failed to clean up orphaned personal workspace ${personalOrgId}:`,
+              cleanupError
+            );
+          }
+        }
       }
     }
   }
@@ -102,10 +176,18 @@ export async function handleUserDeparture(
   // fails the cleanup is rolled back (and vice-versa), so we never have a departed user
   // without an audit trail.
   const userName = await getUserNameSnapshot(userId);
-  const departureLogNotes =
-    reason === "ACCOUNT_DELETED" && policyApplied === "AGENT"
-      ? "Account deletion overrode AGENT policy — data stays with org"
-      : null;
+  const migrationFailed =
+    result.errors.some((e) => e.startsWith("AGENT migration failed"));
+  const departureLogNotes: string | null = (() => {
+    const parts: string[] = [];
+    if (reason === "ACCOUNT_DELETED" && policyApplied === "AGENT") {
+      parts.push("Account deletion overrode AGENT policy — data stays with org");
+    }
+    if (migrationFailed) {
+      parts.push("migration_failed: true");
+    }
+    return parts.length > 0 ? parts.join("; ") : null;
+  })();
 
   const [notifs, invitees, departureLog] = await prismadb.$transaction([
     prismadb.notification.deleteMany({
@@ -157,8 +239,13 @@ export async function handleUserDeparture(
 
 /**
  * Find the user's personal workspace or create one if missing.
+ * Returns the org ID and whether it was newly created in this call.
+ * The `isNew` flag is used by the caller to clean up the Clerk org if
+ * the downstream Prisma migration transaction fails.
  */
-async function findOrCreatePersonalWorkspace(userId: string): Promise<string> {
+async function findOrCreatePersonalWorkspace(
+  userId: string
+): Promise<{ orgId: string; isNew: boolean }> {
   const clerk = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY,
   });
@@ -174,7 +261,7 @@ async function findOrCreatePersonalWorkspace(userId: string): Promise<string> {
     });
     const metadata = org.publicMetadata as Record<string, unknown>;
     if (metadata?.type === "personal") {
-      return org.id;
+      return { orgId: org.id, isNew: false };
     }
   }
 
@@ -192,7 +279,7 @@ async function findOrCreatePersonalWorkspace(userId: string): Promise<string> {
     publicMetadata: { type: "personal" },
   });
 
-  return newOrg.id;
+  return { orgId: newOrg.id, isNew: true };
 }
 
 /**

@@ -69,6 +69,13 @@ export interface StoredResultDetails {
     requestProperty: number;
     requestContact: number;
   };
+  /** Rows skipped because a matching entity already existed in the org. */
+  skippedDuplicates?: Array<{
+    dedupKey: string;
+    existingId: string;
+    existingFriendlyId: string | null;
+    entity: "contact" | "property";
+  }>;
 }
 
 function deriveStatus(
@@ -76,6 +83,8 @@ function deriveStatus(
   reusedCount: number,
   failedCount: number,
 ): ImportStatus {
+  // An import where every row was a duplicate (reused > 0, created === 0) is
+  // still COMPLETED — the data is already in the org, nothing went wrong.
   if (failedCount > 0 && createdCount === 0 && reusedCount === 0) return "FAILED";
   if (failedCount > 0) return "PARTIALLY_FAILED";
   return "COMPLETED";
@@ -147,7 +156,7 @@ export async function recordImport(params: RecordImportParams): Promise<ImportHi
   } = params;
 
   const createdCount = result.contacts.length + result.properties.length + result.requests.length;
-  const reusedCount = 0; // BatchImportResult does not track reuse separately
+  const reusedCount = result.matchedCount ?? 0;
   const failedCount = result.errors.length;
   const skippedCount = result.skippedCount;
 
@@ -162,6 +171,9 @@ export async function recordImport(params: RecordImportParams): Promise<ImportHi
       requestProperty: result.linkCounts.requestProperty,
       requestContact: result.linkCounts.requestContact,
     },
+    ...(result.skippedDuplicates && result.skippedDuplicates.length > 0
+      ? { skippedDuplicates: result.skippedDuplicates }
+      : {}),
   };
 
   // Errors from BatchImportResult use rowIndex/entity/error — normalise to stored format
@@ -176,8 +188,12 @@ export async function recordImport(params: RecordImportParams): Promise<ImportHi
 
   if (importHistoryId) {
     // UPDATE existing preflight record → mark as COMPLETE
+    // orgId is included in the where clause as an ownership guard: Prisma
+    // generates WHERE id = ? AND organizationId = ? and throws P2025 if the
+    // record belongs to a different org (defense-in-depth alongside the
+    // preflight creation check).
     const record = await prismadb.importHistory.update({
-      where: { id: importHistoryId },
+      where: { id: importHistoryId, organizationId: orgId },
       data: {
         importType,
         sourceFilename,
@@ -347,7 +363,8 @@ export async function deleteImportBatch(
   orgId: string,
   userId: string,
   entityTypes: "all" | string[],
-): Promise<{ deletedCounts: Record<string, number> }> {
+  dryRun?: boolean,
+): Promise<{ deletedCounts: Record<string, number>; affectedDealCount: number }> {
   // 1. Fetch record and verify org ownership
   const existing = await prismadb.importHistory.findFirst({
     where: { id, organizationId: orgId },
@@ -423,6 +440,18 @@ export async function deleteImportBatch(
     properties: 0,
     requests: 0,
   };
+
+  // Count deals linked to properties that would be deleted — reported to caller before commit
+  const affectedDealCount =
+    propertyIds.length > 0
+      ? await prismadb.deal.count({
+          where: { propertyId: { in: propertyIds }, organizationId: orgId },
+        })
+      : 0;
+
+  if (dryRun) {
+    return { deletedCounts: { contacts: 0, properties: 0, requests: 0 }, affectedDealCount };
+  }
 
   // 4. Wrap in transaction
   await prismadb.$transaction(
@@ -508,5 +537,5 @@ export async function deleteImportBatch(
     { timeout: 30000 },
   );
 
-  return { deletedCounts };
+  return { deletedCounts, affectedDealCount };
 }

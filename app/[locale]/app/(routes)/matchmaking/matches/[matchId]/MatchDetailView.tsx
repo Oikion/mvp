@@ -197,28 +197,36 @@ export function MatchDetailView({ match, locale }: Props) {
               <div className="flex items-baseline gap-2 flex-wrap">
                 <span
                   className={`text-4xl font-bold tabular-nums ${
-                    match.matchScore >= 70
+                    match.matchScore == null
+                      ? "text-muted-foreground"
+                      : match.matchScore >= 70
                       ? "text-success"
                       : match.matchScore >= 50
                       ? "text-warning"
                       : "text-destructive"
                   }`}
                 >
-                  {match.matchScore}
+                  {match.matchScore != null ? match.matchScore : "—"}
                 </span>
-                <span className="text-lg text-muted-foreground font-medium">%</span>
+                {match.matchScore != null && (
+                  <span className="text-lg text-muted-foreground font-medium">%</span>
+                )}
               </div>
               <div className="mt-2">
                 <span
                   className={`inline-flex items-center px-2.5 py-1 rounded-md text-sm font-semibold ${
-                    match.matchScore >= 70
+                    match.matchScore == null
+                      ? "bg-muted text-muted-foreground"
+                      : match.matchScore >= 70
                       ? "bg-success/10 text-success"
                       : match.matchScore >= 50
                       ? "bg-warning/10 text-warning"
                       : "bg-destructive/10 text-destructive"
                   }`}
                 >
-                  {match.matchScore >= 70
+                  {match.matchScore == null
+                    ? "—"
+                    : match.matchScore >= 70
                     ? t("matchDetail.qualityExcellent")
                     : match.matchScore >= 50
                     ? t("matchDetail.qualityGood")

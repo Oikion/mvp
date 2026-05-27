@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useOrganization, useOrganizationList } from "@clerk/nextjs";
+import { useSWRConfig } from "swr";
 import {
   Check,
   ChevronsUpDown,
@@ -44,6 +45,7 @@ export function AgencyOrganizationSwitcher() {
   const [isSwitching, setIsSwitching] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { isPersonalWorkspace } = useWorkspaceContext();
+  const { mutate: swrMutate } = useSWRConfig();
 
   const {
     initiateAcceptance,
@@ -85,6 +87,15 @@ export function AgencyOrganizationSwitcher() {
     setIsSwitching(true);
     try {
       await setActive({ organization: orgId });
+      // Flush the entire SWR cache so messaging, unread counts, and other
+      // org-scoped data from the previous org are not shown after the switch.
+      // revalidate:false avoids redundant fetches — the subsequent router.refresh()
+      // triggers a full page re-render which will re-fetch with the new org context.
+      swrMutate(
+        (key) => typeof key === "string",
+        undefined,
+        { revalidate: false }
+      );
       router.refresh();
     } catch (error) {
       console.error("Error switching organization:", error);

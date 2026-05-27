@@ -551,6 +551,12 @@ export async function GET(req: Request) {
 
     // For minimal mode (selectors), return just id and name - much faster
     if (minimal) {
+      const parsedMinimalLimit = limitParam ? Number.parseInt(limitParam, 10) : 100;
+      const minimalLimit = Math.min(
+        Number.isNaN(parsedMinimalLimit) || parsedMinimalLimit <= 0 ? 100 : parsedMinimalLimit,
+        100
+      );
+
       const where: Record<string, unknown> = { organizationId };
       if (search?.trim()) {
         where.property_name = {
@@ -558,7 +564,8 @@ export async function GET(req: Request) {
           mode: "insensitive",
         };
       }
-      
+
+      // Fetch one extra to detect hasMore
       const properties = await prismadb.properties.findMany({
         where,
         select: {
@@ -566,13 +573,19 @@ export async function GET(req: Request) {
           property_name: true,
         },
         orderBy: { property_name: "asc" },
-        take: 1000, // Limit for selector use cases
+        take: minimalLimit + 1,
+        cursor: cursor ? { id: cursor } : undefined,
+        skip: cursor ? 1 : 0,
       });
 
+      const minimalHasMore = properties.length > minimalLimit;
+      const minimalItems = minimalHasMore ? properties.slice(0, -1) : properties;
+      const minimalNextCursor = minimalHasMore ? minimalItems[minimalItems.length - 1]?.id : null;
+
       return NextResponse.json({
-        items: properties,
-        nextCursor: null,
-        hasMore: false,
+        items: minimalItems,
+        nextCursor: minimalNextCursor,
+        hasMore: minimalHasMore,
       }, { status: 200 });
     }
 

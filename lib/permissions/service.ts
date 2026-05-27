@@ -286,7 +286,8 @@ export async function getCurrentOrgRole(): Promise<OrgRole | null> {
 export async function updateRolePermissions(
   organizationId: string,
   role: OrgRole,
-  permissions: Partial<PermissionConfig>
+  permissions: Partial<PermissionConfig>,
+  changedByUserId?: string
 ): Promise<void> {
   // SECURITY: Verify the caller belongs to the target org and is an OWNER.
   // Without this check, any authenticated caller could supply an arbitrary
@@ -307,23 +308,41 @@ export async function updateRolePermissions(
     throw new Error("Cannot modify owner permissions");
   }
 
-  await prismadb.organizationRolePermission.upsert({
-    where: {
-      organizationId_role: {
+  // Fetch current value for audit trail before overwriting
+  const existing = await prismadb.organizationRolePermission.findUnique({
+    where: { organizationId_role: { organizationId, role } },
+    select: { permissions: true },
+  });
+
+  await prismadb.$transaction([
+    prismadb.organizationRolePermission.upsert({
+      where: {
+        organizationId_role: {
+          organizationId,
+          role,
+        },
+      },
+      update: {
+        permissions: permissions as object,
+        updatedAt: new Date(),
+      },
+      create: {
         organizationId,
         role,
+        permissions: permissions as object,
       },
-    },
-    update: {
-      permissions: permissions as object,
-      updatedAt: new Date(),
-    },
-    create: {
-      organizationId,
-      role,
-      permissions: permissions as object,
-    },
-  });
+    }),
+    prismadb.organizationSettingsAudit.create({
+      data: {
+        organizationId,
+        settingKey: `rolePermissions.${role}`,
+        oldValue: existing ? JSON.stringify(existing.permissions) : null,
+        newValue: JSON.stringify(permissions),
+        changedBy: changedByUserId ?? context.userId,
+        ipAddress: null,
+      },
+    }),
+  ]);
 
   // Bump permission version to invalidate all cached contexts for this org.
   // Cache invalidation is best-effort — the DB write already succeeded above.
@@ -342,7 +361,8 @@ export async function updateRoleModuleAccess(
   organizationId: string,
   role: OrgRole,
   moduleId: ModuleId,
-  hasAccess: boolean
+  hasAccess: boolean,
+  changedByUserId?: string
 ): Promise<void> {
   // SECURITY: Verify the caller belongs to the target org and is at least an OWNER.
   const context = await getUserPermissionContext();
@@ -356,25 +376,43 @@ export async function updateRoleModuleAccess(
     throw new Error("Only organization owners can modify role module access");
   }
 
-  await prismadb.roleModuleAccess.upsert({
-    where: {
-      organizationId_role_moduleId: {
+  // Fetch current value for audit trail
+  const existing = await prismadb.roleModuleAccess.findUnique({
+    where: { organizationId_role_moduleId: { organizationId, role, moduleId } },
+    select: { hasAccess: true },
+  });
+
+  await prismadb.$transaction([
+    prismadb.roleModuleAccess.upsert({
+      where: {
+        organizationId_role_moduleId: {
+          organizationId,
+          role,
+          moduleId,
+        },
+      },
+      update: {
+        hasAccess,
+        updatedAt: new Date(),
+      },
+      create: {
         organizationId,
         role,
         moduleId,
+        hasAccess,
       },
-    },
-    update: {
-      hasAccess,
-      updatedAt: new Date(),
-    },
-    create: {
-      organizationId,
-      role,
-      moduleId,
-      hasAccess,
-    },
-  });
+    }),
+    prismadb.organizationSettingsAudit.create({
+      data: {
+        organizationId,
+        settingKey: `roleModuleAccess.${role}.${moduleId}`,
+        oldValue: existing !== null ? String(existing.hasAccess) : null,
+        newValue: String(hasAccess),
+        changedBy: changedByUserId ?? context.userId,
+        ipAddress: null,
+      },
+    }),
+  ]);
 
   try {
     await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);

@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { useAblyPublish } from "@/hooks/useAbly";
 import { useSendMessage } from "@/hooks/swr/useMessaging";
 import { useE2EE } from "@/hooks/useE2EE";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { ShareEntityDialog } from "./ShareEntityDialog";
 import type { SharedEntity } from "./ShareEntityDialog";
 import type { MessagingCredentials } from "@/hooks/swr/useMessaging";
@@ -77,6 +78,9 @@ export function MessageComposer({
 
   // Use the SWR mutation hook for sending messages
   const { sendMessage, isSending } = useSendMessage({ channelId, conversationId });
+
+  // Toast notifications
+  const { toast } = useAppToast();
 
   // E2EE encryption
   const { isUnlocked, encryptDM, encryptGroup } = useE2EE();
@@ -192,6 +196,11 @@ export function MessageComposer({
               })
             );
             uploadedAttachments = uploads;
+          } catch (uploadError) {
+            setIsUploadingFiles(false);
+            console.error("Failed to upload attachment:", uploadError);
+            toast.error("uploadFailed");
+            return;
           } finally {
             setIsUploadingFiles(false);
           }
@@ -256,8 +265,9 @@ export function MessageComposer({
       textareaRef.current?.focus();
     } catch (error) {
       console.error("Failed to send message:", error);
+      toast.error("networkError");
     }
-  }, [message, attachments, sharedEntity, isSending, disabled, onSend, sendMessage, channelId, conversationId, isTyping, sendTyping, replyTo, onCancelReply, typingEnabled, displayName]);
+  }, [message, attachments, sharedEntity, isSending, disabled, onSend, sendMessage, channelId, conversationId, isTyping, sendTyping, replyTo, onCancelReply, typingEnabled, displayName, toast]);
 
   // Handle keyboard shortcuts
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -2,14 +2,18 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 /**
  * Get a property that has been shared with the current user
  * This allows cross-organization access for sharees
  */
 export async function getSharedProperty(propertyId: string) {
+  const guard = await requireAction("property:read");
+  if (guard) return null;
+
   const currentUser = await getCurrentUserSafe();
-  
+
   // Return null if no user context (e.g., session not synced yet)
   if (!currentUser) {
     return null;

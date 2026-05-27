@@ -285,6 +285,9 @@
       "noPropertyType": "Please select a property type in step 1 first.",
       "otherType": "Fields are shown based on the property type you selected.",
       "otherTypeContinue": "For parking, industrial, or other types, you can continue to the next step."
+    },
+    "autosave": {
+      "saving": "Saving..."
     }
   },
   "QuickAdd": {

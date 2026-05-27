@@ -5,9 +5,11 @@ import { getStripeClient } from "@/lib/stripe";
 import { getClerkClient } from "@/lib/clerk";
 import { createOrRetrieveCustomer } from "@/lib/billing/helpers";
 import { getBasePriceId, PLAN_CONFIGS } from "@/lib/billing/plans";
+import { isAtLeastLead } from "@/lib/org-admin";
 import {
   apiUnauthorized,
   apiBadRequest,
+  apiForbidden,
   apiInternalError,
   validateBody,
 } from "@/lib/api-response";
@@ -24,6 +26,9 @@ export async function POST(req: Request) {
   try {
     const { userId, orgId: organizationId } = await auth();
     if (!userId || !organizationId) return apiUnauthorized();
+
+    const canAccessBilling = await isAtLeastLead();
+    if (!canAccessBilling) return apiForbidden("Billing access requires at least Lead role");
 
     const body = await req.json();
     const validation = validateBody(body, checkoutSchema);

@@ -81,7 +81,11 @@ export function getWeightV2(
 ): number {
   const override = orgWeights?.[criterion];
   if (override !== undefined) {
-    return override;
+    if (typeof override === "number" && isFinite(override) && override >= 0) {
+      return override;
+    }
+    // Invalid weight — fall back to default
+    console.warn(`[MATCHMAKING] Invalid org weight override for ${criterion}: ${override}, using default`);
   }
   return MATCH_WEIGHTS_V2[criterion];
 }

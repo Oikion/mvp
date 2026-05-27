@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
         organizationId,
         fileHash,
         status: { notIn: ["BATCH_DELETED", "PARTIALLY_DELETED"] },
+        importPhase: { not: "IMPORTING" },
         createdAt: { gte: thirtyDaysAgo },
       },
       select: {

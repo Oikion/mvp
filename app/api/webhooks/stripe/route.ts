@@ -1,6 +1,7 @@
 // app/api/webhooks/stripe/route.ts
 import Stripe from "stripe";
 import { headers } from "next/headers";
+import { updateTag } from "next/cache";
 import { getStripeClient } from "@/lib/stripe";
 import { prismadb } from "@/lib/prisma";
 import { getPlanConfig } from "@/lib/billing/plans";
@@ -27,19 +28,40 @@ export async function POST(req: Request) {
     return new Response("Webhook signature verification failed", { status: 400 });
   }
 
+  // Idempotency: skip already-processed events
+  const existing = await prismadb.stripeWebhookEvent.findUnique({
+    where: { stripeEventId: event.id },
+  });
+  if (existing) {
+    return new Response("OK", { status: 200 });
+  }
+  await prismadb.stripeWebhookEvent.create({
+    data: { stripeEventId: event.id, type: event.type },
+  });
+
   try {
     switch (event.type) {
       case "checkout.session.completed":
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
         break;
 
-      case "customer.subscription.updated":
-        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+      case "customer.subscription.updated": {
+        const sub = event.data.object as Stripe.Subscription;
+        await handleSubscriptionUpdated(sub);
+        if (sub.metadata.organizationId) {
+          updateTag(`org-subscription:${sub.metadata.organizationId}`);
+        }
         break;
+      }
 
-      case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        await handleSubscriptionDeleted(sub);
+        if (sub.metadata.organizationId) {
+          updateTag(`org-subscription:${sub.metadata.organizationId}`);
+        }
         break;
+      }
 
       case "invoice.payment_failed":
         await handlePaymentFailed(event.data.object as Stripe.Invoice);
@@ -80,6 +102,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const periodStart = new Date(baseItem.current_period_start * 1000);
   const periodEnd = new Date(baseItem.current_period_end * 1000);
   let seatItemId: string | null = null;
+
+  // Idempotency: if the subscription is already set up with this subscriptionId, skip
+  const existing = await prismadb.orgSubscription.findUnique({
+    where: { organizationId },
+    select: { stripeSubscriptionId: true, stripeBaseItemId: true },
+  });
+  if (existing?.stripeSubscriptionId === subscription.id && existing?.stripeBaseItemId) {
+    console.log(`[STRIPE_WEBHOOK] checkout already processed for org ${organizationId}, skipping`);
+    return;
+  }
 
   const memberCount = await getOrgMemberCount(organizationId);
   const overageSeats = calculateOverageSeats(memberCount, seatAllowance);

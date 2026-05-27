@@ -61,7 +61,10 @@ export function useDocumentLinked(
 
   const key = enabled && documentId ? `/api/documents/${documentId}/linked` : null;
 
-  const { data, error, isLoading, isValidating, mutate } = useSWR<DocumentLinkedData>(key);
+  const { data, error, isLoading, isValidating, mutate } = useSWR<DocumentLinkedData>(key, {
+    revalidateOnFocus: false,
+    dedupingInterval: 5000,
+  });
 
   return {
     linkedData: data ?? null,

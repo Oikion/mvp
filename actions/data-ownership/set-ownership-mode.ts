@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { DataOwnershipMode } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import {
@@ -24,16 +24,29 @@ export async function setOwnershipMode(
   mode: DataOwnershipMode,
   targetOrgId?: string
 ): Promise<ActionResponse> {
-  // When called during onboarding, the JWT may not yet carry the new orgId,
-  // so we accept an explicit targetOrgId parameter.
+  // Authentication is always required regardless of path.
+  const { orgId: sessionOrgId, userId } = await auth();
+  if (!userId) return actionError("Not authenticated");
+
   if (!targetOrgId) {
+    // Normal path: use session-based permission guard
     const guard = await requireAction("admin:manage_org_settings");
     if (guard) return guard;
+  } else {
+    // Onboarding path: JWT may not carry the new orgId yet.
+    // Verify the caller is actually a member of the target org via Clerk.
+    try {
+      const clerk = await clerkClient();
+      const memberships = await clerk.users.getOrganizationMembershipList({ userId });
+      const isMember = memberships.data.some(m => m.organization.id === targetOrgId);
+      if (!isMember) return actionError("Forbidden", "FORBIDDEN");
+    } catch {
+      return actionError("Forbidden", "FORBIDDEN");
+    }
   }
 
-  const { orgId: sessionOrgId, userId } = await auth();
-  const orgId = targetOrgId || sessionOrgId;
-  if (!orgId || !userId) {
+  const orgId = targetOrgId ?? sessionOrgId;
+  if (!orgId) {
     return actionError("Not authenticated");
   }
 
@@ -92,6 +105,15 @@ export async function setOwnershipMode(
           userId,
           consentedMode: mode,
           policyVersion: 1,
+        },
+      }),
+      prismadb.organizationSettingsAudit.create({
+        data: {
+          organizationId: orgId,
+          settingKey: "dataOwnershipMode",
+          oldValue: null,
+          newValue: String(mode),
+          changedBy: userId,
         },
       }),
     ]);

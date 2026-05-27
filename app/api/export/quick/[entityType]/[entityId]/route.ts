@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix type errors
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
@@ -13,6 +11,7 @@ type EntityType = "property" | "contact";
 
 interface PropertyData {
   id: string;
+  friendlyId: string;
   property_name: string;
   property_type: string | null;
   transaction_type: string | null;
@@ -768,7 +767,7 @@ export async function GET(
         property_name: property.property_name,
         property_type: property.property_type,
         transaction_type: property.transaction_type,
-        price: property.price,
+        price: property.price ? Number(property.price) : null,
         price_type: property.price_type,
         address_street: property.address_street,
         address_city: property.address_city,
@@ -779,7 +778,7 @@ export async function GET(
         area: property.area,
         bedrooms: property.bedrooms,
         bathrooms: property.bathrooms,
-        square_feet: property.square_feet,
+        square_feet: property.square_feet ? Number(property.square_feet) : null,
         size_net_sqm: property.size_net_sqm ? Number(property.size_net_sqm) : null,
         size_gross_sqm: property.size_gross_sqm ? Number(property.size_gross_sqm) : null,
         plot_size_sqm: property.plot_size_sqm ? Number(property.plot_size_sqm) : null,
@@ -826,7 +825,7 @@ export async function GET(
       }
 
       // Return response with file
-      return new NextResponse(content, {
+      return new NextResponse(content as unknown as BodyInit, {
         status: 200,
         headers: {
           "Content-Type": contentType,
@@ -863,9 +862,10 @@ export async function GET(
         );
       }
 
-      // Extract billing address from JSON addresses array
-      const addresses = (contact.addresses as any[]) || [];
-      const billing = addresses.find((a: any) => a.type === "billing") || addresses[0];
+      // Extract billing address from JSON addresses array (Json? field — cast is required)
+      type AddressEntry = { type?: string; street?: string; city?: string; postalCode?: string };
+      const addresses = (contact.addresses as AddressEntry[] | null) ?? [];
+      const billing = addresses.find((a) => a.type === "billing") ?? addresses[0];
 
       // Generate contact card PDF
       const { Document, Page, Text, View, StyleSheet, pdf, Font } = await import("@react-pdf/renderer");

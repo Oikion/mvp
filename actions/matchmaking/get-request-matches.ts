@@ -119,12 +119,16 @@ async function fetchActiveRequests(organizationId: string) {
 type RequestRow = Awaited<ReturnType<typeof fetchActiveRequests>>[number];
 
 async function fetchActiveProperties(organizationId: string) {
+  // Capped to prevent serverless timeouts on large orgs. Most recently updated
+  // properties are scored first as they are most likely to have fresh/complete data.
   return prismadb.properties.findMany({
     where: {
       organizationId,
       property_status: { in: ["ACTIVE", "PENDING"] },
       visibility: { not: "HIDDEN" },
     },
+    orderBy: { updatedAt: "desc" },
+    take: 500,
     select: {
       id: true,
       friendlyId: true,
@@ -326,6 +330,9 @@ function getEmptyRequestAnalytics(): RequestMatchAnalytics {
   };
 }
 
+// Capped to prevent memory exhaustion on large orgs; increase if analytics are incomplete
+const ANALYTICS_MATCH_LIMIT = 500;
+
 // ──────────────────────────────────────────────
 // Main server actions
 // ──────────────────────────────────────────────
@@ -422,7 +429,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
     prismadb.propertyRequestMatch.findMany({
       where: { organizationId, matchScore: { gte: 0.5 } },
       orderBy: { matchScore: "desc" },
-      take: 200,
+      take: ANALYTICS_MATCH_LIMIT,
       include: {
         property: {
           select: {

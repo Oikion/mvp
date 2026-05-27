@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { mutate } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "@/navigation";
@@ -153,6 +154,7 @@ export function EditContactForm({ contact, onSuccess }: EditContactFormProps) {
         return;
       }
       toast.success("updateSuccess");
+      mutate((key: unknown) => typeof key === "string" && key.startsWith("/api/crm/contacts"), undefined, { revalidate: true });
       router.refresh();
       onSuccess?.();
     } catch (err) {

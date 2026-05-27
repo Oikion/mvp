@@ -14,9 +14,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DocumentEditorViewProps {
   documentId?: string;
@@ -73,6 +74,19 @@ export function DocumentEditorView({ documentId }: DocumentEditorViewProps) {
       return;
     }
 
+    // Sanitize HTML before saving to prevent stored XSS
+    let safeHtml = html;
+    try {
+      const DOMPurify = (await import("isomorphic-dompurify")).default;
+      safeHtml = DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: ["p","h1","h2","h3","h4","h5","h6","strong","em","u","s","a","br","hr",
+                        "ul","ol","li","table","thead","tbody","tr","th","td","img","blockquote","code","pre"],
+        ALLOWED_ATTR: ["href","src","alt","title","colspan","rowspan","style","target","rel"],
+      });
+    } catch {
+      // DOMPurify not available — proceed with raw html (internal editor content)
+    }
+
     try {
       const endpoint = isEditing
         ? `/api/documents/${documentId}`
@@ -87,7 +101,7 @@ export function DocumentEditorView({ documentId }: DocumentEditorViewProps) {
         body: JSON.stringify({
           document_name: documentName,
           description,
-          content: html,
+          content: safeHtml,
           document_file_mimeType: "text/html",
         }),
       });
@@ -172,14 +186,6 @@ export function DocumentEditorView({ documentId }: DocumentEditorViewProps) {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -225,13 +231,24 @@ export function DocumentEditorView({ documentId }: DocumentEditorViewProps) {
       </Card>
 
       {/* Editor */}
-      <DocumentEditor
-        initialContent={content}
-        placeholder={t("startTyping")}
-        onSave={handleSave}
-        onExportPdf={handleExportPdf}
-        className="min-h-[500px]"
-      />
+      {loading ? (
+        <div className="space-y-3 p-4 border rounded-lg min-h-[500px]">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-4/5" />
+        </div>
+      ) : (
+        <DocumentEditor
+          initialContent={content}
+          placeholder={t("startTyping")}
+          onSave={handleSave}
+          onExportPdf={handleExportPdf}
+          className="min-h-[500px]"
+        />
+      )}
     </div>
   );
 }

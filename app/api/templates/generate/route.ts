@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { TemplateType } from "@prisma/client";
 import {
@@ -8,6 +9,15 @@ import {
   generateFilename,
 } from "@/lib/templates";
 import { canPerformAction } from "@/lib/permissions/action-service";
+
+const GenerateBodySchema = z.object({
+  templateType: z.string(),
+  values: z.record(z.string(), z.string().max(2000)).refine(
+    (v) => Object.keys(v).length <= 100,
+    { message: "Too many template fields" }
+  ),
+  locale: z.enum(["en", "el"]).optional().default("el"),
+}).strict();
 
 export async function POST(req: Request) {
   try {
@@ -28,19 +38,12 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { templateType, values, locale = "el" } = body as {
-      templateType: TemplateType;
-      values: Record<string, string>;
-      locale?: "en" | "el";
-    };
-
-    // Validate input
-    if (!templateType || !values) {
-      return NextResponse.json(
-        { error: "Template type and values are required" },
-        { status: 400 }
-      );
+    const parsed = GenerateBodySchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
+    const { templateType: templateTypeRaw, values, locale } = parsed.data;
+    const templateType = templateTypeRaw as TemplateType;
 
     // Get template definition
     const definition = getTemplateDefinition(templateType);

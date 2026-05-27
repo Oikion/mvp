@@ -7,7 +7,7 @@ if (typeof process !== "undefined" && !process.env.VERCEL_BLOB_USE_X_CONTENT_LEN
 }
 
 /** Supported blob storage folder types */
-export type BlobFolder = "documents" | "avatars" | "templates" | "attachments" | "property-images";
+export type BlobFolder = "documents" | "avatars" | "templates" | "attachments" | "property-images" | "exports";
 
 function getBlobToken() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -233,7 +233,7 @@ export async function listOrgBlobs(
  */
 export async function getOrgStorageUsage(organizationId: string): Promise<number> {
   try {
-    const folders: BlobFolder[] = ["documents", "avatars", "templates", "attachments", "property-images"];
+    const folders: BlobFolder[] = ["documents", "avatars", "templates", "attachments", "property-images", "exports"];
     let totalSize = 0;
 
     for (const folder of folders) {

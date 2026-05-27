@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { Row } from "@tanstack/react-table";
@@ -135,6 +134,7 @@ export function DataTableRowActions<TData>({
   };
 
   const isCurrentUserAdmin = data.orgRole === "org:admin";
+  const isOrgOwner = data.orgRole === "org:owner";
 
   return (
     <>
@@ -188,9 +188,9 @@ export function DataTableRowActions<TData>({
             <Copy className="mr-2 w-4 h-4" />
             {t("copyId")}
           </DropdownMenuItem>
-          
+
           <DropdownMenuSeparator />
-          
+
           {!isCurrentUserAdmin ? (
             <DropdownMenuItem onClick={onPromoteToAdmin} disabled={loading}>
               <Shield className="mr-2 w-4 h-4" />
@@ -202,16 +202,19 @@ export function DataTableRowActions<TData>({
               {t("removeAdminRole")}
             </DropdownMenuItem>
           )}
-          
-          <DropdownMenuSeparator />
-          
-          <DropdownMenuItem 
-            onClick={() => setRemoveOpen(true)}
-            className="text-destructive focus:text-destructive"
-          >
-            <UserMinus className="mr-2 w-4 h-4" />
-            {t("removeFromOrg")}
-          </DropdownMenuItem>
+
+          {!isOrgOwner && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setRemoveOpen(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <UserMinus className="mr-2 w-4 h-4" />
+                {t("removeFromOrg")}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

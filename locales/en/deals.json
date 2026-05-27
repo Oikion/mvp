@@ -218,6 +218,8 @@
     "title": "Edit Deal",
     "saving": "Saving…",
     "save": "Save changes",
+    "updateSuccess": "Deal updated successfully",
+    "updateFailed": "Failed to update deal",
     "tabs": {
       "basic": "Basic Info",
       "financial": "Financial",

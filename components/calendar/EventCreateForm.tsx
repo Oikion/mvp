@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import React from "react";
@@ -41,23 +40,28 @@ import { FormSelectWithOther } from "@/components/ui/form-select-with-other";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CalendarIcon, Plus, X } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { CalendarIcon, ChevronDown, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { ContactSelector } from "./ClientSelector";
+import { ClientSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
-import { RequestSelector } from "./RequestSelector";
+import { MandateSelector } from "./MandateSelector";
 import { InviteeSelector, Invitee } from "./InviteeSelector";
 import { useOrgUsers, useCreateEvent } from "@/hooks/swr";
 import { inviteToEvent } from "@/actions/calendar/invite-to-event";
-import { QuickAddContact } from "@/app/[locale]/app/(routes)/crm/contacts/components/QuickAddContact";
+import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
-import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
+import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
 
-const createEventFormSchema = (t: (key: string) => string) => z.object({
+const createEventFormSchema = (t: ReturnType<typeof useTranslations<"calendar">>) => z.object({
   title: z.string().min(1, t("eventCreateForm.titleRequired")),
   description: z.string().optional(),
   startTime: z.date(),
@@ -66,13 +70,14 @@ const createEventFormSchema = (t: (key: string) => string) => z.object({
   eventType: z.string().optional(),
   eventTypeOther: z.string().optional(),
   assignedUserId: z.string().optional(),
-  contactIds: z.array(z.string()).default([]),
+  clientIds: z.array(z.string()).default([]),
   propertyIds: z.array(z.string()).default([]),
   documentIds: z.array(z.string()).default([]),
-  requestIds: z.array(z.string()).default([]),
+  mandateIds: z.array(z.string()).default([]),
   reminderMinutes: z.array(z.number()).default([]),
   recurrenceRule: z.string().optional(),
   invitees: z.array(z.custom<Invitee>()).default([]),
+  timezone: z.string().default("Europe/Athens"),
 });
 
 interface EventCreateFormProps {
@@ -85,6 +90,14 @@ interface EventCreateFormProps {
   defaultStartTime?: Date | null;
   defaultEndTime?: Date | null;
 }
+
+const TIMEZONE_OPTIONS = [
+  { value: "Europe/Athens", label: "Athens (EET/EEST)" },
+  { value: "Europe/London", label: "London (GMT/BST)" },
+  { value: "Europe/Paris", label: "Paris (CET/CEST)" },
+  { value: "America/New_York", label: "New York (EST/EDT)" },
+  { value: "UTC", label: "UTC" },
+];
 
 const REMINDER_OPTIONS = [
   { value: 15, label: "15 minutes" },
@@ -112,7 +125,7 @@ function EventCreateFormBody({
   onSubmit,
   onCancel,
 }: {
-  t: (key: string, values?: Record<string, string | number | Date>) => string;
+  t: ReturnType<typeof useTranslations<"calendar">>;
   form: ReturnType<typeof useForm<EventFormValues>>;
   isCreating: boolean;
   users: Array<{ id: string; name: string | null; email: string }>;
@@ -122,9 +135,9 @@ function EventCreateFormBody({
   const selectedReminders = form.watch("reminderMinutes");
 
   // QuickAdd overlay state
-  const [quickAddContact, setQuickAddContact] = React.useState(false);
+  const [quickAddClient, setQuickAddClient] = React.useState(false);
   const [quickAddProperty, setQuickAddProperty] = React.useState(false);
-  const [quickAddRequest, setQuickAddRequest] = React.useState(false);
+  const [quickAddMandate, setQuickAddMandate] = React.useState(false);
 
   const orgUsers = React.useMemo(
     () => users.map((u) => ({ id: u.id, name: u.name || u.email })),
@@ -383,16 +396,16 @@ function EventCreateFormBody({
 
           <FormField
             control={form.control}
-            name="contactIds"
+            name="clientIds"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("eventCreateForm.linkContacts")}</FormLabel>
+                <FormLabel>{t("eventCreateForm.linkClients")}</FormLabel>
                 <FormControl>
-                  <ContactSelector
+                  <ClientSelector
                     value={field.value}
                     onChange={field.onChange}
-                    createNewLabel={t("selectors.createContact")}
-                    onCreateNew={() => setQuickAddContact(true)}
+                    createNewLabel={t("selectors.createClient")}
+                    onCreateNew={() => setQuickAddClient(true)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -435,16 +448,16 @@ function EventCreateFormBody({
 
           <FormField
             control={form.control}
-            name="requestIds"
+            name="mandateIds"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("eventCreateForm.linkRequests")}</FormLabel>
+                <FormLabel>{t("eventCreateForm.linkMandates")}</FormLabel>
                 <FormControl>
-                  <RequestSelector
+                  <MandateSelector
                     value={field.value}
                     onChange={field.onChange}
-                    createNewLabel={t("selectors.createRequest")}
-                    onCreateNew={() => setQuickAddRequest(true)}
+                    createNewLabel={t("selectors.createMandate")}
+                    onCreateNew={() => setQuickAddMandate(true)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -454,14 +467,14 @@ function EventCreateFormBody({
         </div>
 
         {/* QuickAdd overlays — render as sibling Sheets so they stack above the parent */}
-        <QuickAddContact
-          open={quickAddContact}
-          onOpenChange={setQuickAddContact}
+        <QuickAddClient
+          open={quickAddClient}
+          onOpenChange={setQuickAddClient}
           organizationUsers={orgUsers}
-          onSuccess={(contactId) => {
-            if (contactId) {
-              const current = form.getValues("contactIds");
-              form.setValue("contactIds", [...current, contactId]);
+          onSuccess={(clientId) => {
+            if (clientId) {
+              const current = form.getValues("clientIds");
+              form.setValue("clientIds", [...current, clientId]);
             }
           }}
         />
@@ -476,11 +489,10 @@ function EventCreateFormBody({
             }
           }}
         />
-        <QuickAddRequest
-          open={quickAddRequest}
-          onOpenChange={setQuickAddRequest}
+        <QuickAddMandate
+          open={quickAddMandate}
+          onOpenChange={setQuickAddMandate}
           organizationUsers={orgUsers}
-          onContinueToFull={() => setQuickAddRequest(false)}
         />
 
         <Separator />
@@ -543,6 +555,44 @@ function EventCreateFormBody({
           />
         </div>
 
+        <Separator />
+
+        {/* Advanced Section */}
+        <Collapsible>
+          <CollapsibleTrigger className="flex w-full items-center justify-between py-1">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              {t("eventCreateForm.advanced") || "Advanced"}
+            </h3>
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" aria-hidden="true" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 pt-4">
+            <FormField
+              control={form.control}
+              name="timezone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("eventCreateForm.timezone")}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {TIMEZONE_OPTIONS.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+
         {/* Footer Actions */}
         <div className="flex gap-3 pt-4 pb-6">
           <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
@@ -588,13 +638,14 @@ export function EventCreateForm({
       eventType: undefined,
       eventTypeOther: "",
       assignedUserId: userId || undefined,
-      contactIds: clientId ? [clientId] : [],
+      clientIds: clientId ? [clientId] : [],
       propertyIds: propertyId ? [propertyId] : [],
       documentIds: [],
-      requestIds: [],
+      mandateIds: [],
       reminderMinutes: [],
       recurrenceRule: undefined,
       invitees: [],
+      timezone: "Europe/Athens",
     },
   });
 
@@ -620,12 +671,13 @@ export function EventCreateForm({
         location: locationString,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
-        contactIds: data.contactIds,
+        clientIds: data.clientIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
-        requestIds: data.requestIds,
+        mandateIds: data.mandateIds,
         reminderMinutes: data.reminderMinutes,
         recurrenceRule: data.recurrenceRule,
+        timezone: data.timezone,
       });
 
       // Send invitations if there are invitees
@@ -706,13 +758,14 @@ export function EventCreateSidePanel({
       eventType: undefined,
       eventTypeOther: "",
       assignedUserId: userId || undefined,
-      contactIds: clientId ? [clientId] : [],
+      clientIds: clientId ? [clientId] : [],
       propertyIds: propertyId ? [propertyId] : [],
       documentIds: [],
-      requestIds: [],
+      mandateIds: [],
       reminderMinutes: [],
       recurrenceRule: undefined,
       invitees: [],
+      timezone: "Europe/Athens",
     },
   });
 
@@ -738,12 +791,13 @@ export function EventCreateSidePanel({
         location: locationString,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
-        contactIds: data.contactIds,
+        clientIds: data.clientIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
-        requestIds: data.requestIds,
+        mandateIds: data.mandateIds,
         reminderMinutes: data.reminderMinutes,
         recurrenceRule: data.recurrenceRule,
+        timezone: data.timezone,
       });
 
       if (data.invitees && data.invitees.length > 0 && event?.id) {

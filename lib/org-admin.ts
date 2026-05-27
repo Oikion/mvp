@@ -83,11 +83,7 @@ export async function isOrgOwner(): Promise<boolean> {
     return false;
   }
 
-  // Check for owner role or legacy admin
-  const isOwner = await has({ role: "org:owner" });
-  const isLegacyAdmin = await has({ role: "org:admin" });
-  
-  return isOwner || isLegacyAdmin;
+  return await has({ role: "org:owner" });
 }
 
 /**

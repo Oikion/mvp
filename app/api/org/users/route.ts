@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { getOrgMembersFromDb } from "@/lib/org-members";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { apiUnauthorized } from "@/lib/api-response";
 
 interface SanitizedUser {
   id: string;
@@ -15,6 +17,9 @@ interface SanitizedUser {
 
 export async function GET() {
   try {
+    const { userId, orgId } = await auth();
+    if (!userId || !orgId) return apiUnauthorized();
+
     const currentUser = await getCurrentUser();
     // Use getCurrentOrgId instead of destructuring from getOrgMembersFromDb result
     // because getOrgMembersFromDb internally calls getCurrentOrgId if not provided,

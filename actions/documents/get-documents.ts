@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
@@ -132,21 +131,24 @@ export async function getDocuments(filters?: DocumentFilters) {
     orderBy: {
       createdAt: "desc",
     },
+    take: 200,
   });
 
-  const results = [];
-  for (const doc of documents) {
-    try {
-      const decrypted = await decryptDocumentForOrg(doc, organizationId);
-      results.push({
-        ...decrypted,
-        Contacts: await Promise.all(doc.Contacts.map((c) => decryptContactForOrg(c, organizationId))),
-        CalendarEvent: await Promise.all(doc.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, organizationId))),
-      });
-    } catch (err) {
-      console.error(`[GET_DOCUMENTS] Failed to decrypt document ${doc.id}:`, err);
-    }
-  }
-  return results;
+  const settled = await Promise.all(
+    documents.map(async (doc) => {
+      try {
+        const decrypted = await decryptDocumentForOrg(doc, organizationId);
+        return {
+          ...decrypted,
+          Contacts: await Promise.all(doc.Contacts.map((c) => decryptContactForOrg(c, organizationId))),
+          CalendarEvent: await Promise.all(doc.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, organizationId))),
+        };
+      } catch (err) {
+        console.error(`[GET_DOCUMENTS] Failed to decrypt document ${doc.id}:`, err);
+        return null;
+      }
+    })
+  );
+  return settled.filter((d): d is NonNullable<typeof d> => d !== null);
 }
 

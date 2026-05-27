@@ -11,6 +11,7 @@ interface CalendarEvent {
   location?: string;
   status?: string;
   eventType?: string;
+  timezone?: string;
 }
 
 interface CalendarTask {

@@ -884,6 +884,9 @@ function scoreBudgetV2(
   if (budgetMax === null) {
     return createScoreV2("BUDGET", weight, 50, "No budgetMax specified");
   }
+  if (budgetMin !== null && budgetMin > budgetMax) {
+    return createScoreV2("BUDGET", weight, 50, "Invalid budget range");
+  }
 
   // Within budget range — perfect score
   const minOk = budgetMin === null || price >= budgetMin;
@@ -946,7 +949,10 @@ function scorePropertyTypeV2(
       if (compatible.includes(propertyType)) {
         return createScoreV2("PROPERTY_TYPE", weight, 70, "Category match via purposeOfUse");
       }
+      // purposeOfUse is set but property type doesn't match — penalise
+      return createScoreV2("PROPERTY_TYPE", weight, 20, `Property type ${propertyType} does not match purposeOfUse ${request.purposeOfUse}`);
     }
+    // Neither propertyTypes nor purposeOfUse specified — neutral
     return createScoreV2("PROPERTY_TYPE", weight, 50, "No property type preference");
   }
 
@@ -1001,7 +1007,7 @@ function scoreLocationV2(
   if (property.address_state) propertyLocations.push(property.address_state);
 
   if (propertyLocations.length === 0) {
-    return createScoreV2("LOCATION", weight, 20, "Property has no location data");
+    return createScoreV2("LOCATION", weight, 50, "Property has no location data");
   }
 
   const normalizedRequested = requestAreas.map(normalizeLocation);
@@ -1038,6 +1044,9 @@ function scoreBedroomsV2(
 
   if (minBedrooms === null && maxBedrooms === null) {
     return createScoreV2("BEDROOMS", weight, 50, "No bedroom preference");
+  }
+  if (minBedrooms !== null && maxBedrooms !== null && minBedrooms > maxBedrooms) {
+    return createScoreV2("BEDROOMS", weight, 50, "Invalid bedroom range");
   }
   if (bedrooms === null || bedrooms === undefined) {
     return createScoreV2("BEDROOMS", weight, 50, "Bedroom count unknown");
@@ -1354,6 +1363,10 @@ function scoreGoldenVisaV2(
   if (price === null || price === undefined) {
     return createScoreV2("GOLDEN_VISA", weight, 0, "No price — cannot verify golden-visa eligibility");
   }
+  if ((property.region === null || property.region === undefined) &&
+      (property.municipality === null || property.municipality === undefined)) {
+    return createScoreV2("GOLDEN_VISA", weight, 50, "Property location unknown — golden visa threshold undetermined");
+  }
   const threshold = getGoldenVisaThreshold(property.region, property.municipality);
   if (price >= threshold) {
     return createScoreV2("GOLDEN_VISA", weight, 100, `Meets golden-visa threshold €${threshold}`, true);
@@ -1369,11 +1382,13 @@ function scoreFinancingTypeV2(
   switch (request.financingStatus) {
     case "CASH":
       return createScoreV2("FINANCING_TYPE", weight, 100, "Cash financing", true);
-    case "MIXED":
-      return createScoreV2("FINANCING_TYPE", weight, 80, "Mixed financing");
-    case "MORTGAGE":
-      return createScoreV2("FINANCING_TYPE", weight, 70, "Mortgage financing");
-    case "UNSPECIFIED":
+    case "MORTGAGE_PREAPPROVED":
+      return createScoreV2("FINANCING_TYPE", weight, 85, "Mortgage pre-approved");
+    case "MORTGAGE_PENDING":
+      return createScoreV2("FINANCING_TYPE", weight, 65, "Mortgage in process");
+    case "SEEKING_FINANCING":
+      return createScoreV2("FINANCING_TYPE", weight, 45, "Seeking financing");
+    case "UNKNOWN":
     case null:
     case undefined:
     default:

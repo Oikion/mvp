@@ -32,7 +32,8 @@ import { EventActionsMenu } from "./EventActionsMenu";
 import { MiniMonthCalendar } from "./MiniMonthCalendar";
 import { DayHourView } from "./DayHourView";
 import { EventListSidebar } from "./EventListSidebar";
-import { useCalendarEvents, useOrgUsers, useContacts, useProperties } from "@/hooks/swr";
+import { useCalendarEvents, useOrgUsers, useContacts, useProperties, usePendingInvitationCount, useInvitedEvents } from "@/hooks/swr";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -91,6 +92,7 @@ function parseLocalYyyyMmDd(value: string | null): Date | null {
 
 export function CalendarPageView() {
   const t = useTranslations("calendar");
+  const { toast } = useAppToast();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -269,13 +271,15 @@ export function CalendarPageView() {
   }, [viewMode, selectedDate]);
 
   // Fetch events and users
-  const { events, tasks, isLoading, mutate } = useCalendarEvents({
+  const { events, tasks, isLoading, error: calendarError, mutate } = useCalendarEvents({
     startTime: dateRange.start.toISOString(),
     endTime: dateRange.end.toISOString(),
     includeTasks: true,
   });
 
   const { users } = useOrgUsers();
+  const { count: pendingInvitations } = usePendingInvitationCount();
+  const { invitedEvents, isLoading: isLoadingInvited } = useInvitedEvents();
 
   // Prefetch selector data so dropdowns open instantly
   useContacts();
@@ -353,16 +357,13 @@ export function CalendarPageView() {
       return eventDate >= now && eventDate <= weekEnd;
     }).length;
 
-    // TODO: Implement pending invitations count when invitations are implemented
-    const pendingInvitations = 0;
-
     return {
       upcoming: upcomingEvents,
       thisWeek: thisWeekEvents,
       pendingInvitations,
       total: events.length,
     };
-  }, [events]);
+  }, [events, pendingInvitations]);
 
   // Get events for selected day (day view)
   const getDayEvents = useCallback(() => {
@@ -427,9 +428,10 @@ export function CalendarPageView() {
       mutate();
     } catch (error) {
       console.error("Failed to move event:", error);
+      toast.error(t("calendarView.failedToMoveEvent"), { isTranslationKey: false });
       throw error;
     }
-  }, [events, mutate]);
+  }, [events, mutate, toast, t]);
 
   const handleEventResize = useCallback(async (eventId: string, newStartTime: Date, newEndTime: Date) => {
     try {
@@ -454,9 +456,10 @@ export function CalendarPageView() {
       mutate();
     } catch (error) {
       console.error("Failed to resize event:", error);
+      toast.error(t("calendarView.failedToResizeEvent"), { isTranslationKey: false });
       throw error;
     }
-  }, [events, mutate]);
+  }, [events, mutate, toast, t]);
 
   const navigateToday = () => setSelectedDate(new Date());
 
@@ -686,8 +689,14 @@ export function CalendarPageView() {
         <TabsContent value="myEvents" className="mt-0">
           <Card>
             <CardContent className="p-4 sm:p-6">
-              {viewMode === "day" && renderDayViewContent()}
-              {viewMode === "week" && (
+              {calendarError && events.length === 0 && (
+                <div className="py-12 text-center text-muted-foreground">
+                  <p className="font-medium">{t("errors.failedToLoad")}</p>
+                  <p className="text-sm mt-1">{t("errors.networkError")}</p>
+                </div>
+              )}
+              {(!calendarError || events.length > 0) && viewMode === "day" && renderDayViewContent()}
+              {(!calendarError || events.length > 0) && viewMode === "week" && (
                 <div className="flex flex-col lg:flex-row gap-4 h-full">
                   {/* Mini Calendar sidebar for week view */}
                   <Card className="lg:w-[280px] flex-shrink-0">
@@ -720,7 +729,7 @@ export function CalendarPageView() {
                   </div>
                 </div>
               )}
-              {viewMode === "month" && (
+              {(!calendarError || events.length > 0) && viewMode === "month" && (
                 <MonthView
                   events={filteredEvents}
                   selectedDate={selectedDate}
@@ -737,7 +746,7 @@ export function CalendarPageView() {
                   onEventDeleted={handleEventDeleted}
                 />
               )}
-              {viewMode === "semester" && (
+              {(!calendarError || events.length > 0) && viewMode === "semester" && (
                 <SemesterView
                   events={filteredEvents}
                   selectedDate={selectedDate}
@@ -758,7 +767,7 @@ export function CalendarPageView() {
                   onEventDeleted={handleEventDeleted}
                 />
               )}
-              {viewMode === "year" && (
+              {(!calendarError || events.length > 0) && viewMode === "year" && (
                 <YearView
                   events={filteredEvents}
                   selectedDate={selectedDate}
@@ -785,10 +794,51 @@ export function CalendarPageView() {
 
         <TabsContent value="invited" className="mt-0">
           <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{t("empty.noInvitations")}</p>
-              <p className="text-sm mt-1">{t("empty.noInvitationsDescription")}</p>
+            <CardContent className="p-4 sm:p-6">
+              {isLoadingInvited ? (
+                <div className="py-8 text-center text-muted-foreground">
+                  {t("calendarView.loading")}
+                </div>
+              ) : invitedEvents.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{t("empty.noInvitations")}</p>
+                  <p className="text-sm mt-1">{t("empty.noInvitationsDescription")}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {invitedEvents.map((invitation) => (
+                    <div
+                      key={invitation.invitationId}
+                      className="flex items-start gap-3 rounded-lg border p-3"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {invitation.event.title ?? t("eventPage.untitledEvent")}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            {format(new Date(invitation.event.startTime), "d MMM yyyy, HH:mm", { locale: dateLocale })}
+                          </span>
+                          {invitation.event.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                              <span className="truncate">{invitation.event.location}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Badge
+                        variant={invitation.status === "ACCEPTED" ? "default" : invitation.status === "DECLINED" ? "destructive" : "secondary"}
+                        className="shrink-0"
+                      >
+                        {t(`invitees.status.${invitation.status.toLowerCase() as "pending" | "accepted" | "declined" | "tentative"}`)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -796,8 +846,14 @@ export function CalendarPageView() {
         <TabsContent value="all" className="mt-0">
           <Card>
             <CardContent className="p-4 sm:p-6">
-              {viewMode === "day" && renderDayViewContent()}
-              {viewMode === "week" && (
+              {calendarError && events.length === 0 && (
+                <div className="py-12 text-center text-muted-foreground">
+                  <p className="font-medium">{t("errors.failedToLoad")}</p>
+                  <p className="text-sm mt-1">{t("errors.networkError")}</p>
+                </div>
+              )}
+              {(!calendarError || events.length > 0) && viewMode === "day" && renderDayViewContent()}
+              {(!calendarError || events.length > 0) && viewMode === "week" && (
                 <div className="flex flex-col lg:flex-row gap-4 h-full">
                   {/* Mini Calendar sidebar for week view */}
                   <Card className="lg:w-[280px] flex-shrink-0">
@@ -830,7 +886,7 @@ export function CalendarPageView() {
                   </div>
                 </div>
               )}
-              {viewMode === "month" && (
+              {(!calendarError || events.length > 0) && viewMode === "month" && (
                 <MonthView
                   events={filteredEvents}
                   selectedDate={selectedDate}
@@ -847,7 +903,7 @@ export function CalendarPageView() {
                   onEventDeleted={handleEventDeleted}
                 />
               )}
-              {viewMode === "semester" && (
+              {(!calendarError || events.length > 0) && viewMode === "semester" && (
                 <SemesterView
                   events={filteredEvents}
                   selectedDate={selectedDate}
@@ -868,7 +924,7 @@ export function CalendarPageView() {
                   onEventDeleted={handleEventDeleted}
                 />
               )}
-              {viewMode === "year" && (
+              {(!calendarError || events.length > 0) && viewMode === "year" && (
                 <YearView
                   events={filteredEvents}
                   selectedDate={selectedDate}

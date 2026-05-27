@@ -298,7 +298,7 @@ describe("calculateMatchScoreV2 — financing bonus", () => {
   it("no bonus when financingStatus=MORTGAGE and price >= 500_000", () => {
     const request: RequestForMatching = {
       ...baseRequest,
-      financingStatus: "MORTGAGE",
+      financingStatus: "MORTGAGE_PENDING",
       budgetMin: 400_000,
       budgetMax: 600_000,
     };

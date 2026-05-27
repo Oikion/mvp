@@ -128,51 +128,6 @@ export type CreateClientInput = z.infer<typeof createClientSchema>;
 export type UpdateClientInput = z.infer<typeof updateClientSchema>;
 
 // =============================================================================
-// Form Schemas — shared between creation wizards and edit forms
-// =============================================================================
-
-/**
- * Single source of truth for client form field constraints.
- * Both NewClientWizard and EditClientForm import from here.
- * assigned_to uses .nullable() because the DB stores null when no agent was set.
- */
-export const clientFormSchema = z.object({
-  client_name: z.string().optional(),
-  person_type: personTypeSchema.optional(),
-  full_name: z.string().optional(),
-  company_name: z.string().optional(),
-  primary_phone: z.string().optional(),
-  primary_email: z.string().email().optional().or(z.literal("")),
-  secondary_phone: z.string().optional().or(z.literal("")),
-  secondary_email: z.string().email().optional().or(z.literal("")),
-  channels: z.array(z.string()).optional().default([]),
-  language: z.nativeEnum(Language).optional(),
-  afm: z.string().optional().or(z.literal("")),
-  doy: z.string().optional().or(z.literal("")),
-  id_doc: z.string().optional().or(z.literal("")),
-  company_gemi: z.string().optional().or(z.literal("")),
-  gdpr_consent: z.boolean().optional().default(false),
-  allow_marketing: z.boolean().optional().default(false),
-  lead_source: leadSourceSchema,
-  assigned_to: z.string().optional().nullable(),
-  client_type: clientTypeSchema,
-  client_status: clientStatusSchema,
-  description: z.string().optional().nullable(),
-  office_phone: z.string().max(50).optional().nullable(),
-  website: z.string().url().optional().or(z.literal("")).nullable(),
-});
-
-export const clientEditFormSchema = clientFormSchema.extend({
-  id: z.string().min(1, "Client ID is required"),
-  client_name: z.string().min(1, "Client name is required").max(255),
-  person_type: personTypeSchema,
-});
-
-export type ClientFormValues = z.infer<typeof clientFormSchema>;
-export type ClientEditFormValues = z.infer<typeof clientEditFormSchema>;
-export type ClientQueryParams = z.infer<typeof clientQuerySchema>;
-
-// =============================================================================
 // Form Schemas — shared by NewClientWizard and EditClientForm
 // =============================================================================
 

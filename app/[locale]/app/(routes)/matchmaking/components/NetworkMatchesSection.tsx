@@ -92,9 +92,9 @@ function MatchCard({ match, locale, t }: { match: CrossOrgMatchResult; locale: s
       {/* Score */}
       <div className="flex flex-col items-center gap-1 shrink-0">
         <div
-          className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm ${getScoreColor(matchScore)}`}
+          className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm ${matchScore != null ? getScoreColor(matchScore) : "bg-muted"}`}
         >
-          {matchScore}%
+          {matchScore != null ? `${matchScore}%` : "—"}
         </div>
         <Badge variant="outline" className="text-xs gap-1 border-primary/30 text-primary">
           <Globe className="h-3 w-3" />

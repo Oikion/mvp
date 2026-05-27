@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import { prismadb } from "@/lib/prisma";
-import { encrypt, decrypt } from "@/lib/encryption";
+import { encrypt, decryptWithFallback } from "@/lib/encryption";
 import { GoogleSyncStatus } from "@prisma/client";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
@@ -43,8 +43,8 @@ export async function getAuthenticatedClient(userId: string) {
   if (!conn) return null;
 
   const oauth2Client = buildOAuthClient();
-  const accessToken = decrypt(conn.accessToken);
-  const refreshToken = decrypt(conn.refreshToken);
+  const accessToken = decryptWithFallback(conn.accessToken);
+  const refreshToken = decryptWithFallback(conn.refreshToken);
 
   oauth2Client.setCredentials({
     access_token: accessToken,
@@ -58,14 +58,31 @@ export async function getAuthenticatedClient(userId: string) {
       const newAccessToken = credentials.access_token!;
       const newExpiry = new Date(credentials.expiry_date ?? Date.now() + 3600 * 1000);
 
-      await prismadb.userGoogleCalendarConnection.update({
-        where: { userId },
+      const updated = await prismadb.userGoogleCalendarConnection.updateMany({
+        where: {
+          userId,
+          tokenExpiresAt: conn.tokenExpiresAt,
+        },
         data: {
           accessToken: encrypt(newAccessToken),
           tokenExpiresAt: newExpiry,
           status: GoogleSyncStatus.ACTIVE,
         },
       });
+
+      if (updated.count === 0) {
+        // Another concurrent request already refreshed; re-fetch the fresh token
+        const fresh = await prismadb.userGoogleCalendarConnection.findUnique({
+          where: { userId },
+          select: { accessToken: true, refreshToken: true },
+        });
+        if (!fresh) return null;
+        oauth2Client.setCredentials({
+          access_token: decryptWithFallback(fresh.accessToken),
+          refresh_token: decryptWithFallback(fresh.refreshToken),
+        });
+        return oauth2Client;
+      }
 
       oauth2Client.setCredentials({
         access_token: newAccessToken,

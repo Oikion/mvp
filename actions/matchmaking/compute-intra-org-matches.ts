@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import {
@@ -405,13 +406,16 @@ export async function runIntraOrgMatches(
     upserted += batch.length;
   }
 
-  // Delete stale rows in batches of 50 (rows that now score below DEFAULT_MIN_MATCH_SCORE)
+  // Delete stale rows in batches of 50 (rows that now score below DEFAULT_MIN_MATCH_SCORE).
+  // Only delete PENDING matches — do not touch rows the user has already acted on
+  // (PRESENTED, INTERESTED, DISMISSED) so that user actions are never silently lost.
   let deleted = 0;
   for (let i = 0; i < stalePairs.length; i += BATCH_SIZE) {
     const batch = stalePairs.slice(i, i + BATCH_SIZE);
     const result = await prismadb.propertyRequestMatch.deleteMany({
       where: {
         organizationId,
+        status: "PENDING", // Only delete untouched matches
         OR: batch.map((p) => ({
           propertyId: p.propertyId,
           requestId: p.requestId,
@@ -421,14 +425,16 @@ export async function runIntraOrgMatches(
     deleted += result.count;
   }
 
-  // Purge rows for properties that are no longer in the active set
+  // Purge PENDING rows for properties that are no longer in the active set
   // (SOLD, OFF_MARKET, WITHDRAWN, etc.) — they were never scored in this run,
   // so the below-threshold pass above never touched their rows.
+  // Only delete PENDING matches — preserve user-acted rows even for inactive properties.
   const activePropertyIds = matchableProperties.map((p) => p.id);
   if (activePropertyIds.length > 0) {
     const purgeResult = await prismadb.propertyRequestMatch.deleteMany({
       where: {
         organizationId,
+        status: "PENDING", // Only delete untouched matches
         propertyId: { notIn: activePropertyIds },
       },
     });
@@ -481,6 +487,7 @@ export async function triggerIntraOrgMatches(): Promise<ActionResponse<IntraOrgM
 
   try {
     const result = await runIntraOrgMatches(organizationId);
+    revalidatePath("/matchmaking");
     return actionSuccess(result);
   } catch (error) {
     console.error("[MATCHMAKING_INTRA_ORG_TRIGGER]", error);

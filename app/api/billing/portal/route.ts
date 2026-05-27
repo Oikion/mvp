@@ -2,9 +2,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { getStripeClient } from "@/lib/stripe";
 import { prismadb } from "@/lib/prisma";
+import { isAtLeastLead } from "@/lib/org-admin";
 import {
   apiUnauthorized,
   apiBadRequest,
+  apiForbidden,
   apiInternalError,
 } from "@/lib/api-response";
 import { NextResponse } from "next/server";
@@ -13,6 +15,9 @@ export async function POST() {
   try {
     const { userId, orgId: organizationId } = await auth();
     if (!userId || !organizationId) return apiUnauthorized();
+
+    const canAccessBilling = await isAtLeastLead();
+    if (!canAccessBilling) return apiForbidden("Billing access requires at least Lead role");
 
     const sub = await prismadb.orgSubscription.findUnique({
       where: { organizationId },

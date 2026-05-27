@@ -49,6 +49,28 @@ export function autoFillPlaceholders(
       continue;
     }
 
+    const ALLOWED_AUTO_FILL_FIELDS = new Set([
+      // Contact fields
+      "client_name", "full_name", "company_name", "primary_email", "primary_phone",
+      "secondary_phone", "afm", "vat", "id_doc", "billing_street", "billing_city",
+      "billing_state", "billing_postal_code", "billing_country",
+      "company_gemi",
+      // Property fields
+      "property_name", "address_street", "address_city", "address_state",
+      "address_postal_code", "address_municipality", "municipality",
+      "property_type", "price", "size_net_sqm", "condition", "energy_class",
+      "floor", "bedrooms", "transaction_type", "land_registry_kaek",
+      "is_exclusive", "description", "accepts_pets",
+      // Organization fields
+      "VAT_number", "phone",
+      // Agent/shared fields
+      "id", "name", "friendlyId",
+    ]);
+
+    if (!ALLOWED_AUTO_FILL_FIELDS.has(placeholder.autoFillField)) {
+      continue; // skip unknown fields silently
+    }
+
     const fieldValue = entity[placeholder.autoFillField];
 
     if (fieldValue !== null && fieldValue !== undefined) {

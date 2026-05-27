@@ -10,7 +10,7 @@
  * - DEAL-002: Deal status transitions
  */
 
-import type { ClientStatus, PropertyStatus, DealStatus, DealStage } from "@prisma/client";
+import type { ClientStatus, ContactStatus, PropertyStatus, DealStatus, DealStage, RequestStatus } from "@prisma/client";
 
 // =============================================================================
 // Client Status Transitions (CRM-005)
@@ -58,6 +58,108 @@ export function getClientTransitionError(from: ClientStatus, to: ClientStatus): 
  */
 export function getValidClientNextStatuses(current: ClientStatus): ClientStatus[] {
   return CLIENT_STATUS_TRANSITIONS[current] ?? [];
+}
+
+// =============================================================================
+// Contact Status Transitions (CRM-006)
+// =============================================================================
+
+/**
+ * Valid transitions for contact status
+ *
+ * Flow:
+ * - LEAD: New contact, not yet contacted
+ * - CONTACTED: Initial outreach made
+ * - QUALIFIED: Needs/budget confirmed
+ * - ACTIVE: Actively working with contact
+ * - UNDER_CONTRACT: In an active deal
+ * - COMPLETED: Transaction finalised — terminal
+ * - ON_HOLD: Temporarily paused
+ * - INACTIVE: Disengaged
+ */
+export const CONTACT_STATUS_TRANSITIONS: Record<ContactStatus, ContactStatus[]> = {
+  LEAD: ["CONTACTED", "INACTIVE"],
+  CONTACTED: ["QUALIFIED", "INACTIVE"],
+  QUALIFIED: ["ACTIVE", "INACTIVE"],
+  ACTIVE: ["UNDER_CONTRACT", "ON_HOLD", "INACTIVE"],
+  UNDER_CONTRACT: ["COMPLETED", "ACTIVE", "INACTIVE"],
+  COMPLETED: [], // Terminal — cannot transition out
+  ON_HOLD: ["ACTIVE", "INACTIVE"],
+  INACTIVE: ["LEAD", "ACTIVE"], // Can re-engage
+};
+
+/**
+ * Check if a contact status transition is valid
+ */
+export function isValidContactTransition(from: ContactStatus, to: ContactStatus): boolean {
+  if (from === to) return true; // No change is always valid
+  return CONTACT_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+/**
+ * Get error message for invalid contact status transition
+ */
+export function getContactTransitionError(from: ContactStatus, to: ContactStatus): string {
+  const validNext = CONTACT_STATUS_TRANSITIONS[from];
+  if (validNext.length === 0) {
+    return `Contact status "${from}" is a terminal state and cannot be changed`;
+  }
+  return `Cannot transition contact from "${from}" to "${to}". Valid transitions: ${validNext.join(", ")}`;
+}
+
+/**
+ * Get all valid next statuses for a contact
+ */
+export function getValidContactNextStatuses(current: ContactStatus): ContactStatus[] {
+  return CONTACT_STATUS_TRANSITIONS[current] ?? [];
+}
+
+// =============================================================================
+// Request Status Transitions (CRM-007)
+// =============================================================================
+
+/**
+ * Valid transitions for request (mandate) status
+ *
+ * Flow:
+ * - ACTIVE: Open request, seeking a match
+ * - MATCHED: A suitable property has been identified
+ * - UNDER_OFFER: Offer placed on a matched property
+ * - CLOSED: Request fulfilled or ended — terminal
+ * - PAUSED: Temporarily suspended
+ */
+export const REQUEST_STATUS_TRANSITIONS: Record<RequestStatus, RequestStatus[]> = {
+  ACTIVE: ["MATCHED", "PAUSED", "CLOSED"],
+  MATCHED: ["UNDER_OFFER", "ACTIVE", "CLOSED"],
+  UNDER_OFFER: ["CLOSED", "ACTIVE"], // Can fall back to ACTIVE if offer fails
+  CLOSED: [], // Terminal — cannot transition out
+  PAUSED: ["ACTIVE", "CLOSED"],
+};
+
+/**
+ * Check if a request status transition is valid
+ */
+export function isValidRequestTransition(from: RequestStatus, to: RequestStatus): boolean {
+  if (from === to) return true; // No change is always valid
+  return REQUEST_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+/**
+ * Get error message for invalid request status transition
+ */
+export function getRequestTransitionError(from: RequestStatus, to: RequestStatus): string {
+  const validNext = REQUEST_STATUS_TRANSITIONS[from];
+  if (validNext.length === 0) {
+    return `Request status "${from}" is a terminal state and cannot be changed`;
+  }
+  return `Cannot transition request from "${from}" to "${to}". Valid transitions: ${validNext.join(", ")}`;
+}
+
+/**
+ * Get all valid next statuses for a request
+ */
+export function getValidRequestNextStatuses(current: RequestStatus): RequestStatus[] {
+  return REQUEST_STATUS_TRANSITIONS[current] ?? [];
 }
 
 // =============================================================================

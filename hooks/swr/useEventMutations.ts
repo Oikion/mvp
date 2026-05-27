@@ -13,12 +13,13 @@ export interface CreateEventData {
   location?: string;
   eventType?: string;
   assignedUserId?: string;
-  contactIds?: string[];
+  clientIds?: string[];
   propertyIds?: string[];
   documentIds?: string[];
-  requestIds?: string[];
+  mandateIds?: string[];
   reminderMinutes?: number[];
   recurrenceRule?: string;
+  timezone?: string;
 }
 
 export interface UpdateEventData extends Partial<CreateEventData> {}

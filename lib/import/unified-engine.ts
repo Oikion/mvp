@@ -23,6 +23,7 @@ import { requestImportConfig } from "./request-import-config";
 import { contactImportSchema } from "./contact-import-schema";
 import { propertyImportSchema } from "./property-import-schema";
 import { requestImportSchema } from "./request-import-schema";
+import { batchDedupCheck, type DuplicateMatch } from "./dedup-checker";
 import type { ValidatedRow } from "./validation-engine";
 
 // ---------------------------------------------------------------------------
@@ -40,7 +41,13 @@ export interface BatchImportResult {
   };
   errors: Array<{ rowIndex: number; entity: string; error: string }>;
   skippedCount: number;
+  /** Entities matched in the DB and either skipped or overwritten. */
+  matchedCount: number;
+  /** Details of each row skipped because an existing entity was found. */
+  skippedDuplicates: Array<DuplicateMatch & { entity: "contact" | "property" }>;
 }
+
+export type DuplicateHandling = "skip" | "overwrite" | "create_anyway";
 
 export interface ImportEngineOptions {
   /** When false, request rows are skipped even if present. Defaults to true. */
@@ -49,6 +56,13 @@ export interface ImportEngineOptions {
   importBatchId?: string;
   /** Original filename shown in the activity body. */
   importFilename?: string;
+  /**
+   * How to handle rows whose dedup key matches an existing entity in the org:
+   *  "skip"         — skip the row, record in skippedDuplicates (default)
+   *  "overwrite"    — update the existing entity with the new field values
+   *  "create_anyway"— bypass all DB dedup checks, always create new entities
+   */
+  duplicateHandling?: DuplicateHandling;
 }
 
 
@@ -102,18 +116,13 @@ function contactDedupKeyFromRow(row: Record<string, unknown>): string {
   return `name:${name}`;
 }
 
-// ---------------------------------------------------------------------------
-// Batch-optimized friendly ID generation
-// ---------------------------------------------------------------------------
-
-async function generateBatchFriendlyIds(
-  tx: any,
-  entityType: EntityType,
-  count: number,
-  orgId: string,
-): Promise<string[]> {
-  if (count === 0) return [];
-  return generateFriendlyIds(tx, entityType, count, orgId);
+function propertyDedupKeyFromRow(row: Record<string, unknown>): string {
+  const kaek = String(row.land_registry_kaek ?? "").trim();
+  if (kaek) return `kaek:${kaek}`;
+  const street = String(row.address_street ?? "").trim().toLowerCase();
+  const city = String(row.address_city ?? "").trim().toLowerCase();
+  if (street) return `addr:${street}|${city}`;
+  return `name:${String(row.property_name ?? "").trim().toLowerCase()}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,7 +137,11 @@ export async function executeBatchImport(
   options?: ImportEngineOptions,
 ): Promise<BatchImportResult> {
   const errors: BatchImportResult["errors"] = [];
+  const skippedDuplicates: BatchImportResult["skippedDuplicates"] = [];
   let skippedCount = 0;
+  let matchedCount = 0;
+
+  const duplicateHandling: DuplicateHandling = options?.duplicateHandling ?? "skip";
 
   if (validatedRows.length === 0) {
     return {
@@ -138,6 +151,8 @@ export async function executeBatchImport(
       linkCounts: { contactProperty: 0, requestProperty: 0, requestContact: 0 },
       errors: [],
       skippedCount: 0,
+      matchedCount: 0,
+      skippedDuplicates: [],
     };
   }
 
@@ -163,7 +178,7 @@ export async function executeBatchImport(
   // --- Request (no dedup, 1 per row) ---
   const rowRequestUuid = new Map<number, string>();
 
-  // Collect data arrays for createMany
+  // Collect data arrays for createMany / update
   interface ContactCreateData {
     uuid: string;
     prismaData: Record<string, unknown>;
@@ -178,7 +193,9 @@ export async function executeBatchImport(
   }
 
   const contactsToCreate: ContactCreateData[] = [];
+  const contactsToUpdate: Array<{ existingId: string; prismaData: Record<string, unknown> }> = [];
   const propertiesToCreate: PropertyCreateData[] = [];
+  const propertiesToUpdate: Array<{ existingId: string; prismaData: Record<string, unknown> }> = [];
   const requestsToCreate: RequestCreateData[] = [];
 
   // Track friendly IDs by UUID for result assembly
@@ -223,6 +240,38 @@ export async function executeBatchImport(
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // 2.5 — Cross-batch DB dedup check (between passes)
+  //
+  // Skip entirely when duplicateHandling === "create_anyway" to preserve
+  // the original behaviour of always inserting new entities.
+  // ---------------------------------------------------------------------------
+
+  let dbContactMatches = new Map<string, DuplicateMatch>();
+  let dbPropertyMatches = new Map<string, DuplicateMatch>();
+
+  if (duplicateHandling !== "create_anyway" && (contactDedupMap.size > 0 || propertyDedupMap.size > 0)) {
+    const dedupResult = await batchDedupCheck(
+      new Set(contactDedupMap.keys()),
+      new Set(propertyDedupMap.keys()),
+      orgId,
+      dek,
+    );
+    dbContactMatches = dedupResult.contacts;
+    dbPropertyMatches = dedupResult.properties;
+
+    // Adjust unique counts to exclude entities we won't create (skip) or
+    // entities that reuse an existing ID rather than consuming a new one (overwrite).
+    // Both modes avoid allocating a new friendly ID for the matched entity.
+    if (duplicateHandling === "skip" || duplicateHandling === "overwrite") {
+      uniqueContactCount -= dbContactMatches.size;
+      uniquePropertyCount -= dbPropertyMatches.size;
+    }
+    // Ensure counts don't go negative (safety guard)
+    uniqueContactCount = Math.max(0, uniqueContactCount);
+    uniquePropertyCount = Math.max(0, uniquePropertyCount);
+  }
+
   // Pre-generate all friendly IDs in batch (outside transaction, uses raw SQL)
   const contactFriendlyIdBatch =
     uniqueContactCount > 0
@@ -255,54 +304,71 @@ export async function executeBatchImport(
     if (row.hasContact && row.contactRow && row.contactDedupKey) {
       const dedupEntry = contactDedupMap.get(row.contactDedupKey);
       if (dedupEntry) {
-        const contactUuid = dedupEntry.uuid;
+        const dbMatch = dbContactMatches.get(row.contactDedupKey);
+        const contactUuid = dbMatch ? dbMatch.existingId : dedupEntry.uuid;
         rowClientUuid.set(row.rowIndex, contactUuid);
 
         const contactName = String(row.contactRow.contact_name ?? row.contactRow.name ?? "");
         rowClientName.set(row.rowIndex, contactName);
 
-        // Only build create data for the first occurrence of this dedup key
+        // Only build create/update data for the first occurrence of this dedup key
         if (!processedClientKeys.has(row.contactDedupKey)) {
           processedClientKeys.add(row.contactDedupKey);
 
-          try {
-            const contactRowData = { ...row.contactRow };
+          if (dbMatch) {
+            // Existing entity found in DB
+            matchedCount++;
 
-            // Encrypt with DEK (use the raw validated row which already has
-            // stripped keys from the validation engine)
-            const encrypted = contactImportConfig.encryptWithDek(contactRowData, dek);
-
-            // Get friendly ID from pre-generated batch
-            const friendlyId = contactFriendlyIdBatch[contactFidCursor++];
-            contactFriendlyIds.set(contactUuid, friendlyId);
-
-            // Build Prisma data using the import config's toPrismaData
-            const prismaData = contactImportConfig.toPrismaData(
-              contactRowData as any,
-              encrypted,
-              friendlyId,
-              userId,
-              orgId,
-            );
-
-            // Override with pre-generated UUID
-            prismaData.id = contactUuid;
-
-            // Apply assignedTo if provided
-            if (assignedTo) {
-              prismaData.assigned_to = assignedTo;
+            if (duplicateHandling === "skip") {
+              skippedDuplicates.push({ ...dbMatch, entity: "contact" });
+              // rowClientUuid already set to existingId — links will reference it
+            } else if (duplicateHandling === "overwrite") {
+              // Build updated prismaData (same path as create, but without id/friendlyId/createdBy)
+              try {
+                const contactRowData = { ...row.contactRow };
+                const encrypted = contactImportConfig.encryptWithDek(contactRowData, dek);
+                const prismaData = contactImportConfig.toPrismaData(
+                  contactRowData as any,
+                  encrypted,
+                  dbMatch.existingFriendlyId ?? "",
+                  userId,
+                  orgId,
+                );
+                // Don't overwrite id, friendlyId, createdBy on an existing entity
+                delete prismaData.id;
+                delete prismaData.friendlyId;
+                delete prismaData.createdBy;
+                if (assignedTo) prismaData.assigned_to = assignedTo;
+                contactsToUpdate.push({ existingId: dbMatch.existingId, prismaData });
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                errors.push({ rowIndex: row.rowIndex, entity: "contact", error: msg });
+              }
             }
+            // "create_anyway" is handled by the outer guard — dbMatch will always be empty
+          } else {
+            // No existing entity — create new
+            try {
+              const contactRowData = { ...row.contactRow };
+              const encrypted = contactImportConfig.encryptWithDek(contactRowData, dek);
+              const friendlyId = contactFriendlyIdBatch[contactFidCursor++];
+              contactFriendlyIds.set(contactUuid, friendlyId);
 
-            contactsToCreate.push({ uuid: contactUuid, prismaData });
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            errors.push({
-              rowIndex: row.rowIndex,
-              entity: "contact",
-              error: msg,
-            });
-            // Remove from dedup map so links won't reference this entity
-            rowClientUuid.delete(row.rowIndex);
+              const prismaData = contactImportConfig.toPrismaData(
+                contactRowData as any,
+                encrypted,
+                friendlyId,
+                userId,
+                orgId,
+              );
+              prismaData.id = contactUuid;
+              if (assignedTo) prismaData.assigned_to = assignedTo;
+              contactsToCreate.push({ uuid: contactUuid, prismaData });
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              errors.push({ rowIndex: row.rowIndex, entity: "contact", error: msg });
+              rowClientUuid.delete(row.rowIndex);
+            }
           }
         }
       }
@@ -312,50 +378,64 @@ export async function executeBatchImport(
     if (row.hasProperty && row.propertyRow && row.propertyDedupKey) {
       const dedupEntry = propertyDedupMap.get(row.propertyDedupKey);
       if (dedupEntry) {
-        const propertyUuid = dedupEntry.uuid;
+        const dbMatch = dbPropertyMatches.get(row.propertyDedupKey);
+        const propertyUuid = dbMatch ? dbMatch.existingId : dedupEntry.uuid;
         rowPropertyUuid.set(row.rowIndex, propertyUuid);
 
         const propertyName = String(row.propertyRow.property_name ?? "");
         rowPropertyName.set(row.rowIndex, propertyName);
 
-        // Only build create data for the first occurrence
         if (!processedPropertyKeys.has(row.propertyDedupKey)) {
           processedPropertyKeys.add(row.propertyDedupKey);
 
-          try {
-            const propertyRowData = { ...row.propertyRow };
+          if (dbMatch) {
+            matchedCount++;
 
-            // Encrypt
-            const encrypted = propertyImportConfig.encryptWithDek(propertyRowData, dek);
-
-            // Get friendly ID
-            const friendlyId = propertyFriendlyIdBatch[propertyFidCursor++];
-            propertyFriendlyIds.set(propertyUuid, friendlyId);
-
-            // Build Prisma data
-            const prismaData = propertyImportConfig.toPrismaData(
-              propertyRowData as any,
-              encrypted,
-              friendlyId,
-              userId,
-              orgId,
-            );
-
-            prismaData.id = propertyUuid;
-
-            if (assignedTo) {
-              prismaData.assigned_to = assignedTo;
+            if (duplicateHandling === "skip") {
+              skippedDuplicates.push({ ...dbMatch, entity: "property" });
+            } else if (duplicateHandling === "overwrite") {
+              try {
+                const propertyRowData = { ...row.propertyRow };
+                const encrypted = propertyImportConfig.encryptWithDek(propertyRowData, dek);
+                const prismaData = propertyImportConfig.toPrismaData(
+                  propertyRowData as any,
+                  encrypted,
+                  dbMatch.existingFriendlyId ?? "",
+                  userId,
+                  orgId,
+                );
+                delete prismaData.id;
+                delete prismaData.friendlyId;
+                delete prismaData.createdBy;
+                if (assignedTo) prismaData.assigned_to = assignedTo;
+                propertiesToUpdate.push({ existingId: dbMatch.existingId, prismaData });
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                errors.push({ rowIndex: row.rowIndex, entity: "property", error: msg });
+              }
             }
+          } else {
+            try {
+              const propertyRowData = { ...row.propertyRow };
+              const encrypted = propertyImportConfig.encryptWithDek(propertyRowData, dek);
+              const friendlyId = propertyFriendlyIdBatch[propertyFidCursor++];
+              propertyFriendlyIds.set(propertyUuid, friendlyId);
 
-            propertiesToCreate.push({ uuid: propertyUuid, prismaData });
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            errors.push({
-              rowIndex: row.rowIndex,
-              entity: "property",
-              error: msg,
-            });
-            rowPropertyUuid.delete(row.rowIndex);
+              const prismaData = propertyImportConfig.toPrismaData(
+                propertyRowData as any,
+                encrypted,
+                friendlyId,
+                userId,
+                orgId,
+              );
+              prismaData.id = propertyUuid;
+              if (assignedTo) prismaData.assigned_to = assignedTo;
+              propertiesToCreate.push({ uuid: propertyUuid, prismaData });
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              errors.push({ rowIndex: row.rowIndex, entity: "property", error: msg });
+              rowPropertyUuid.delete(row.rowIndex);
+            }
           }
         }
       }
@@ -388,14 +468,10 @@ export async function executeBatchImport(
           );
         }
 
-        // Encrypt
         const encrypted = requestImportConfig.encryptWithDek(requestRowData, dek);
-
-        // Get friendly ID
         const friendlyId = requestFriendlyIdBatch[requestFidCursor++];
         requestFriendlyIds.set(requestUuid, friendlyId);
 
-        // Build Prisma data
         const prismaData = requestImportConfig.toPrismaData(
           requestRowData as any,
           encrypted,
@@ -403,22 +479,14 @@ export async function executeBatchImport(
           userId,
           orgId,
         );
-
         prismaData.id = requestUuid;
-
-        if (assignedTo) {
-          prismaData.assigned_to = assignedTo;
-        }
+        if (assignedTo) prismaData.assigned_to = assignedTo;
 
         rowRequestUuid.set(row.rowIndex, requestUuid);
         requestsToCreate.push({ uuid: requestUuid, prismaData });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        errors.push({
-          rowIndex: row.rowIndex,
-          entity: "request",
-          error: msg,
-        });
+        errors.push({ rowIndex: row.rowIndex, entity: "request", error: msg });
       }
     }
   }
@@ -498,7 +566,7 @@ export async function executeBatchImport(
   // 4. Execute everything inside a single transaction
   await prismadb.$transaction(
     async (tx: any) => {
-      // Phase 1 — Contacts
+      // Phase 1 — Create Contacts
       if (contactsToCreate.length > 0) {
         await tx.contact.createMany({
           data: contactsToCreate.map((c) => c.prismaData),
@@ -506,11 +574,27 @@ export async function executeBatchImport(
         });
       }
 
-      // Phase 2 — Properties
+      // Phase 1b — Overwrite Contacts (individual updates for per-row encrypted payloads)
+      for (const { existingId, prismaData } of contactsToUpdate) {
+        await tx.contact.update({
+          where: { id: existingId, organizationId: orgId },
+          data: prismaData,
+        });
+      }
+
+      // Phase 2 — Create Properties
       if (propertiesToCreate.length > 0) {
         await tx.properties.createMany({
           data: propertiesToCreate.map((p) => p.prismaData),
           skipDuplicates: true,
+        });
+      }
+
+      // Phase 2b — Overwrite Properties
+      for (const { existingId, prismaData } of propertiesToUpdate) {
+        await tx.properties.update({
+          where: { id: existingId, organizationId: orgId },
+          data: prismaData,
         });
       }
 
@@ -544,10 +628,12 @@ export async function executeBatchImport(
         });
       }
     },
-    { timeout: 15000 },
+    // 30s: matches deleteImportBatch; accommodates overwrite mode which issues
+    // individual UPDATE calls in addition to bulk createMany.
+    { timeout: 30000 },
   );
 
-  // 5. Fire-and-forget activity log — one CREATED entry per entity, after commit
+  // 5. Fire-and-forget activity log — one CREATED entry per new entity, after commit
   const importBatchId = options?.importBatchId;
   const importFilename = options?.importFilename;
   void Promise.allSettled([
@@ -607,8 +693,9 @@ export async function executeBatchImport(
     },
     errors,
     skippedCount,
+    matchedCount,
+    skippedDuplicates,
   };
 
   return result;
 }
-

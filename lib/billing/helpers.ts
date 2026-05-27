@@ -22,22 +22,36 @@ export async function createOrRetrieveCustomer(
   if (existing) return existing.stripeCustomerId;
 
   const stripe = getStripeClient();
-  const customer = await stripe.customers.create({
-    email,
-    name,
-    metadata: { organizationId },
-  });
+  const customer = await stripe.customers.create(
+    {
+      email,
+      name,
+      metadata: { organizationId },
+    },
+    {
+      idempotencyKey: `create-customer-${organizationId}`,
+    }
+  );
 
   // Upsert prevents a unique-constraint crash if two requests race past the findUnique above.
   // update: {} is a deliberate no-op — we preserve the winner's stripeCustomerId and accept
   // that our newly created Stripe customer becomes an orphan in the rare concurrent case.
-  const sub = await prismadb.orgSubscription.upsert({
-    where: { organizationId },
-    create: { organizationId, stripeCustomerId: customer.id },
-    update: {},
-  });
-
-  return sub.stripeCustomerId;
+  try {
+    const sub = await prismadb.orgSubscription.upsert({
+      where: { organizationId },
+      create: { organizationId, stripeCustomerId: customer.id },
+      update: {},
+    });
+    return sub.stripeCustomerId;
+  } catch (e: unknown) {
+    // P2002: unique constraint — concurrent request already created the record
+    if ((e as { code?: string }).code !== "P2002") throw e;
+    const created = await prismadb.orgSubscription.findUnique({
+      where: { organizationId },
+      select: { stripeCustomerId: true },
+    });
+    return created!.stripeCustomerId;
+  }
 }
 
 /**

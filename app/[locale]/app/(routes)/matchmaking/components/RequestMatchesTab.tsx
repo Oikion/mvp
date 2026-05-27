@@ -241,9 +241,9 @@ function TopRequestMatchesGrid({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold cursor-help ${getScoreColor(match.matchScore)}`}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold cursor-help ${match.matchScore != null ? getScoreColor(match.matchScore) : "bg-muted"}`}
                   >
-                    {Math.round(match.matchScore)}%
+                    {match.matchScore != null ? `${Math.round(match.matchScore)}%` : "—"}
                   </div>
                 </TooltipTrigger>
                 {match.scoreBreakdown && (

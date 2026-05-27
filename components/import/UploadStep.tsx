@@ -376,9 +376,9 @@ const ENUM_FIELD_OPTIONS: Record<string, string[]> = {
   client_type: ["BUYER", "SELLER", "RENTER", "INVESTOR", "REFERRAL_PARTNER"],
   client_status: ["LEAD", "ACTIVE", "INACTIVE", "CONVERTED", "LOST"],
   person_type: ["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"],
-  lead_source: ["REFERRAL", "WEB", "PORTAL", "WALK_IN", "SOCIAL"],
-  // Mandate
-  status: ["DRAFT", "ACTIVE", "PAUSED", "FULFILLED", "EXPIRED", "CANCELLED"],
+  lead_source: ["REFERRAL", "WEB", "PORTAL_LEAD", "WALK_IN", "COLD_CALL", "SOCIAL_MEDIA", "OTHER"],
+  // Request
+  status: ["ACTIVE", "MATCHED", "UNDER_OFFER", "CLOSED", "PAUSED"],
   urgency: ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
   timeline: ["IMMEDIATE", "ONE_THREE_MONTHS", "THREE_SIX_MONTHS", "SIX_PLUS_MONTHS"],
   property_purpose: ["RESIDENTIAL", "COMMERCIAL", "LAND", "PARKING", "OTHER"],

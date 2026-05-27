@@ -216,6 +216,7 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "import:hard_delete": "none",
 
   // Archive - No access
+  "archive:create": "none",
   "archive:view": "none",
   "archive:restore": "none",
   "archive:purge": "none",
@@ -415,6 +416,7 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "import:hard_delete": "none",
 
   // Archive - No access
+  "archive:create": "none",
   "archive:view": "none",
   "archive:restore": "none",
   "archive:purge": "none",
@@ -613,7 +615,8 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "import:delete_any": "all",
   "import:hard_delete": "none",
 
-  // Archive - No access
+  // Archive - Lead can archive entities
+  "archive:create": "all",
   "archive:view": "none",
   "archive:restore": "none",
   "archive:purge": "none",
@@ -813,6 +816,7 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "import:hard_delete": "all",
 
   // Archive - Owner only
+  "archive:create": "all",
   "archive:view": "all",
   "archive:restore": "all",
   "archive:purge": "all",

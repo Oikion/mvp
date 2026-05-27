@@ -322,6 +322,7 @@ function getSheetNameForModule(module: ExportModule, locale: "en" | "el"): strin
     calendar: { en: "Events", el: "Εκδηλώσεις" },
     reports: { en: "Reports", el: "Αναφορές" },
     documents: { en: "Documents", el: "Έγγραφα" },
+    portal: { en: "Portal", el: "Πύλη" },
   };
 
   return names[module][locale];

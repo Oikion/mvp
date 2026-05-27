@@ -1,12 +1,3 @@
-// @ts-nocheck
-// TODO: Fix type errors
-/**
- * Portal Export API Route
- * 
- * Exports properties to Greek real estate portals in their specific formats.
- * Supports XML and CSV formats with portal-specific field mappings.
- */
-
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
@@ -162,19 +153,8 @@ export async function GET(req: NextRequest) {
       whereClause.draft_status = false;
     }
     
-    // Access properties through dynamic prisma client
-    const client = prismadb as unknown as { properties: { findMany: (args: unknown) => Promise<unknown[]> } };
-    const delegate = client?.properties;
-    
-    if (!delegate) {
-      return NextResponse.json(
-        { error: "Database error", message: "Properties table not accessible" },
-        { status: 500 }
-      );
-    }
-    
     // Fetch properties with full data for export
-    const properties = await delegate.findMany({
+    const properties = await prismadb.properties.findMany({
       where: whereClause,
       select: {
         id: true,
@@ -221,7 +201,7 @@ export async function GET(req: NextRequest) {
         },
       },
       orderBy: { createdAt: "desc" },
-    }) as PropertyData[];
+    }) as unknown as PropertyData[];
     
     // Check row limit
     const rowCheck = checkRowLimit("mls", properties.length);
@@ -246,7 +226,7 @@ export async function GET(req: NextRequest) {
     const transformedProperties: PropertyData[] = properties.map((property) => {
       const enhanced = enhancePropertyWithComputed({
         ...property,
-        assigned_to_name: (property as unknown as { Users_Properties_assigned_toToUsers?: { name?: string } }).Users_Properties_assigned_toToUsers?.name || "",
+        assigned_to_name: (property as PropertyData & { Users_Properties_assigned_toToUsers?: { name?: string } }).Users_Properties_assigned_toToUsers?.name || "",
         // Convert numeric fields
         price: property.price ? Number(property.price) : null,
         bedrooms: property.bedrooms ? Number(property.bedrooms) : null,
@@ -362,7 +342,7 @@ export async function GET(req: NextRequest) {
     // Return file response
     const headers_response = getSecureDownloadHeaders(filename, template.format);
     
-    return new Response(fileBuffer, {
+    return new Response(fileBuffer as unknown as BodyInit, {
       status: 200,
       headers: headers_response,
     });
@@ -431,14 +411,13 @@ export async function POST(req: NextRequest) {
       }
       
       // Fetch properties
-      const client = prismadb as unknown as { properties: { findMany: (args: unknown) => Promise<PropertyData[]> } };
-      const properties = await client.properties.findMany({
+      const properties = await prismadb.properties.findMany({
         where: {
           organizationId: orgId,
           ...(propertyIds?.length ? { id: { in: propertyIds } } : {}),
         },
-        take: 100, // Limit for validation
-      });
+        take: 100,
+      }) as unknown as PropertyData[];
       
       // Transform and validate
       const transformedProperties = properties.map(p => enhancePropertyWithComputed(p));

@@ -72,7 +72,7 @@ export async function POST(req: Request) {
           id: channelId,
           organizationId, // ← CRITICAL: Verify tenant ownership
         },
-        select: { id: true },
+        select: { id: true, channelType: true },
       });
 
       if (!channel) {
@@ -95,6 +95,13 @@ export async function POST(req: Request) {
       if (!membership) {
         return NextResponse.json(
           { error: "You are not a member of this channel" },
+          { status: 403 }
+        );
+      }
+
+      if (channel.channelType === "ANNOUNCEMENT" && membership.role === "MEMBER") {
+        return NextResponse.json(
+          { error: "Only admins can post in announcement channels" },
           { status: 403 }
         );
       }
@@ -651,7 +658,7 @@ export async function GET(req: Request) {
     if (before) {
       const cursorMessage = await prismadb.message.findUnique({
         where: { id: before },
-        select: { createdAt: true, organizationId: true },
+        select: { id: true, createdAt: true, organizationId: true },
       });
       
       // SECURITY: Verify cursor message belongs to same organization
@@ -663,7 +670,15 @@ export async function GET(req: Request) {
       }
       
       if (cursorMessage) {
-        whereClause.createdAt = { lt: cursorMessage.createdAt };
+        whereClause.AND = [
+          ...(whereClause.AND as object[] ?? []),
+          {
+            OR: [
+              { createdAt: { lt: cursorMessage.createdAt } },
+              { createdAt: cursorMessage.createdAt, id: { lt: cursorMessage.id } },
+            ],
+          },
+        ];
       }
     }
 
@@ -699,7 +714,7 @@ export async function GET(req: Request) {
           select: { replies: true },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: limit + 1,
     });
 

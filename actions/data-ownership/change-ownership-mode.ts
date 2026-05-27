@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { auth } from "@clerk/nextjs/server";
 import { DataOwnershipMode } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
@@ -103,6 +104,12 @@ export async function changeOwnershipMode(
     // Guard: reject if someone accidentally adds encryptionMode to updateData
     await assertEncryptionModeUnchanged(orgId, updateData);
 
+    const requestHeaders = await headers();
+    const ipAddress =
+      requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      requestHeaders.get("x-real-ip") ??
+      "";
+
     await prismadb.$transaction([
       prismadb.organizationSettings.update({
         where: { organizationId: orgId },
@@ -115,6 +122,16 @@ export async function changeOwnershipMode(
           userId,
           consentedMode: newMode,
           policyVersion: newVersion,
+        },
+      }),
+      prismadb.organizationSettingsAudit.create({
+        data: {
+          organizationId: orgId,
+          settingKey: "dataOwnershipMode",
+          oldValue: String(settings.dataOwnershipMode ?? ""),
+          newValue: String(newMode),
+          changedBy: userId,
+          ipAddress: ipAddress || undefined,
         },
       }),
     ]);

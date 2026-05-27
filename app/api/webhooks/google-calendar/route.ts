@@ -25,11 +25,16 @@ export async function POST(req: NextRequest) {
   // Look up which user this channel belongs to
   const conn = await prismadb.userGoogleCalendarConnection.findFirst({
     where: { watchChannelId: channelId },
-    select: { userId: true, organizationId: true },
+    select: { userId: true, organizationId: true, watchChannelToken: true },
   });
 
   if (!conn) {
     // Unknown channel — may be from a previously disconnected account
+    return NextResponse.json({ ok: true });
+  }
+
+  const channelToken = req.headers.get("x-goog-channel-token");
+  if (!channelToken || conn.watchChannelToken !== channelToken) {
     return NextResponse.json({ ok: true });
   }
 

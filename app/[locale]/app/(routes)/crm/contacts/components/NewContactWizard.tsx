@@ -6,6 +6,7 @@ import axios from "axios";
 import { contactFormSchema, type ContactFormValues } from "@/lib/validations/contacts";
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { mutate } from "swr";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -293,6 +294,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
 
       hasSubmittedRef.current = true;
       toast.success(t("contacts.wizard.success"), { isTranslationKey: false });
+      mutate((key: unknown) => typeof key === "string" && key.startsWith("/api/crm/contacts"), undefined, { revalidate: true });
       router.refresh();
       onFinish();
     } catch (error) {

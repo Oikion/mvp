@@ -73,6 +73,11 @@ async function fetchOrgMemberships(
   });
 
   const memberships = membershipsResponse.data ?? [];
+
+  if (memberships.length === 500) {
+    console.warn("[OrgMembers] Organization has >500 members — results truncated. Pagination required.");
+  }
+
   const clerkUserIds = memberships
     .map((member) => member.publicUserData?.userId)
     .filter((id): id is string => Boolean(id));

@@ -3,11 +3,13 @@ import { z } from "zod";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
 import { invalidateCache } from "@/lib/cache-invalidate";
-import { executeBatchImport, type ImportEngineOptions } from "@/lib/import/unified-engine";
+import { executeBatchImport, type ImportEngineOptions, type DuplicateHandling } from "@/lib/import/unified-engine";
 import { recordImport } from "@/lib/import/history";
 import { isDemoOrg } from "@/lib/demo/demo-guard";
 
 const MAX_ROWS = 5000;
+
+const duplicateHandlingSchema = z.enum(["skip", "overwrite", "create_anyway"]).default("skip");
 
 const validatedRowSchema = z.object({
   rowIndex: z.number().int().min(0),
@@ -25,6 +27,11 @@ export async function POST(req: Request) {
   try {
     const guard = await requireAction("import:create");
     if (guard) return handleGuardError(guard);
+
+    const contentLength = req.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > 15 * 1024 * 1024) {
+      return NextResponse.json({ error: "Request body too large (max 15 MB)" }, { status: 413 });
+    }
 
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
@@ -62,12 +69,18 @@ export async function POST(req: Request) {
     }
     const validatedRows = parsed.data as Parameters<typeof executeBatchImport>[0];
 
+    const duplicateHandlingParsed = duplicateHandlingSchema.safeParse(options?.duplicateHandling);
+    const duplicateHandling: DuplicateHandling = duplicateHandlingParsed.success
+      ? duplicateHandlingParsed.data
+      : "skip";
+
     const engineOptions: ImportEngineOptions = {
       autoCreateRequests: typeof options?.autoCreateRequests === "boolean"
         ? options.autoCreateRequests
         : true,
       importBatchId: importHistoryId ?? undefined,
       importFilename: sourceFilename ?? undefined,
+      duplicateHandling,
     };
 
     const batchResult = await executeBatchImport(

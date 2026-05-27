@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use server";
 
 import { prismadb } from "@/lib/prisma";
@@ -8,6 +7,7 @@ import {
   getTemplateDefinition,
   autoFillPlaceholders,
 } from "@/lib/templates";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface AutoFillInput {
   templateType: TemplateType;
@@ -25,6 +25,9 @@ export interface AutoFillResult {
  * Get auto-filled values for a template based on selected property and client
  */
 export async function getAutoFillData(input: AutoFillInput): Promise<AutoFillResult> {
+  const guard = await requireAction("template:use");
+  if (guard) throw new Error("Permission denied");
+
   const organizationId = await getCurrentOrgIdSafe();
   const user = await getCurrentUser();
 
@@ -51,7 +54,7 @@ export async function getAutoFillData(input: AutoFillInput): Promise<AutoFillRes
   // Fetch client if provided
   let client = null;
   if (input.clientId) {
-    client = await prismadb.clients.findFirst({
+    client = await prismadb.contact.findFirst({
       where: {
         id: input.clientId,
         organizationId,
@@ -78,7 +81,7 @@ export async function getAutoFillData(input: AutoFillInput): Promise<AutoFillRes
   return {
     values,
     propertyName: property?.property_name,
-    clientName: client?.client_name,
+    clientName: client?.displayName,
   };
 }
 
@@ -123,16 +126,17 @@ export async function getClientsForTemplate() {
     return [];
   }
 
-  const clients = await prismadb.clients.findMany({
+  const clients = await prismadb.contact.findMany({
     where: {
       organizationId,
+      archivedAt: null,
     },
     select: {
       id: true,
-      client_name: true,
-      primary_email: true,
-      primary_phone: true,
-      client_type: true,
+      displayName: true,
+      email: true,
+      primaryPhone: true,
+      category: true,
     },
     orderBy: {
       createdAt: "desc",

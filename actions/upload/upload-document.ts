@@ -158,12 +158,15 @@ export async function uploadDocument(
   const blobFolder: BlobFolder =
     folder === "messaging" || folder === "feedback" ? "attachments" : folder;
 
-  // Build the blob path for messaging (special path structure)
+  // Build the blob path for messaging (special path structure).
+  // Include userId in the path so orphaned blobs (message never sent)
+  // can be identified and scoped per-org per-user for cleanup queries.
   let blobPath: string | undefined;
   if (folder === "messaging") {
     const timestamp = Date.now();
     const safeName = finalFileName.replaceAll(/[^a-zA-Z0-9.-]/g, "_");
-    blobPath = `messaging/${organizationId}/${timestamp}-${safeName}`;
+    const userSegment = userId ? `${userId}/` : "";
+    blobPath = `messaging/${organizationId}/${userSegment}${timestamp}-${safeName}`;
   }
 
   // Upload to Vercel Blob
@@ -261,7 +264,8 @@ export async function uploadMessagingAttachment(
   file: File | Buffer,
   fileName: string,
   mimeType: string,
-  organizationId: string
+  organizationId: string,
+  userId?: string
 ): Promise<UploadDocumentResult> {
   return uploadDocument({
     file,
@@ -271,6 +275,7 @@ export async function uploadMessagingAttachment(
     folder: "messaging",
     preset: "general",
     addRandomSuffix: false, // Messaging uses timestamp in path
+    userId,
   });
 }
 

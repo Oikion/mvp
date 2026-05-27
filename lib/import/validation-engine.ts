@@ -117,19 +117,18 @@ function contactDedupKey(row: Record<string, unknown>): string {
 }
 
 // ---------------------------------------------------------------------------
-// Property deduplication key  (address composite, fallback to name)
+// Property deduplication key  (KAEK > address composite > name fallback)
 // ---------------------------------------------------------------------------
 
 function propertyDedupKey(row: Record<string, unknown>): string {
+  // KAEK (Κτηματολόγιο) is the strongest key — globally unique per parcel
+  const kaek = String(row.land_registry_kaek ?? "").trim();
+  if (kaek) return `kaek:${kaek}`;
+
   const street = String(row.address_street ?? "").trim().toLowerCase();
   const city = String(row.address_city ?? "").trim().toLowerCase();
+  if (street) return `addr:${street}|${city}`;
 
-  // Use composite address key if we have at least a street
-  if (street) {
-    return `addr:${street}|${city}`;
-  }
-
-  // Fallback to property_name
   const name = String(row.property_name ?? "").trim().toLowerCase();
   return `name:${name}`;
 }

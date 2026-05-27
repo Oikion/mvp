@@ -92,7 +92,11 @@
       "noClientsFound": "No clients found",
       "noClient": "No client linked",
       "transactionTypePlaceholder": "Select transaction type",
-      "clientSearchPlaceholder": "Search clients..."
+      "clientSearchPlaceholder": "Search clients...",
+      "timelinePlaceholder": "Select timeline",
+      "conditionPlaceholder": "Select conditions",
+      "heatingTypePlaceholder": "Select heating types",
+      "amenitiesPlaceholder": "Select amenities"
     },
     "status": {
       "DRAFT": "Draft",

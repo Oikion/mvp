@@ -88,15 +88,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check that there's only one owner (the current user)
-    const owners = memberships.data.filter((m) => 
-      m.role === "org:owner" || m.role === "org:admin"
-    );
-
-    if (owners.length > 1) {
-      // There are multiple owners/admins, just change roles
-    }
-
     // Update the new owner's role to org:owner
     await clerk.organizations.updateOrganizationMembership({
       organizationId,

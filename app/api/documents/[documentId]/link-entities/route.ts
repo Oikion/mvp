@@ -1,8 +1,8 @@
-// @ts-nocheck
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { requireCanModify } from "@/lib/permissions/guards";
 
 /**
  * POST /api/documents/[documentId]/link-entities
@@ -13,6 +13,9 @@ export async function POST(
   { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const { documentId } = await params;
@@ -50,17 +53,17 @@ export async function POST(
     const pushData: Record<string, unknown> = {};
 
     if (Array.isArray(clientIds) && clientIds.length > 0) {
-      const clients = await prismadb.clients.findMany({
+      const contacts = await prismadb.contact.findMany({
         where: { id: { in: clientIds }, organizationId },
         select: { id: true },
       });
-      if (clients.length !== clientIds.length) {
+      if (contacts.length !== clientIds.length) {
         return NextResponse.json(
-          { error: "Some clients not found or access denied" },
+          { error: "Some contacts not found or access denied" },
           { status: 404 }
         );
       }
-      connectData.Clients = { connect: clientIds.map((id: string) => ({ id })) };
+      connectData.Contacts = { connect: clientIds.map((id: string) => ({ id })) };
       pushData.accountsIDs = { push: clientIds };
     }
 
@@ -120,18 +123,22 @@ export async function DELETE(
   { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const { documentId } = await params;
     const { searchParams } = new URL(req.url);
 
-    const clientIds = searchParams.get("clientIds")?.split(",").filter(Boolean) || [];
-    const propertyIds = searchParams.get("propertyIds")?.split(",").filter(Boolean) || [];
+    const cuidPattern = /^c[a-z0-9]{24}$/;
+    const clientIds = (searchParams.get("clientIds")?.split(",") ?? [])
+      .filter((id) => cuidPattern.test(id));
+    const propertyIds = (searchParams.get("propertyIds")?.split(",") ?? [])
+      .filter((id) => cuidPattern.test(id));
     // Accept both `requestIds` (v2) and legacy `mandateIds` (v1 backward compat)
-    const requestIds =
-      (searchParams.get("requestIds") ?? searchParams.get("mandateIds"))
-        ?.split(",")
-        .filter(Boolean) || [];
+    const requestIds = ((searchParams.get("requestIds") ?? searchParams.get("mandateIds"))?.split(",") ?? [])
+      .filter((id) => cuidPattern.test(id));
 
     if (clientIds.length === 0 && propertyIds.length === 0 && requestIds.length === 0) {
       return NextResponse.json(

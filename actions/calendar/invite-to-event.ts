@@ -1,5 +1,6 @@
 "use server";
 
+import { clerkClient } from "@clerk/nextjs/server";
 import { prismaForOrg } from "@/lib/tenant";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { createNotificationsForUsers } from "@/actions/notifications/create-notification";
@@ -47,17 +48,41 @@ export async function inviteToEvent({ eventId, userIds }: InviteToEventParams): 
 
     const decryptedEvent = await decryptCalendarEventForOrg(event, organizationId);
 
+    const clerk = (await clerkClient()) as any;
+    const memberships = await clerk.organizations.getOrganizationMembershipList({
+      organizationId,
+      limit: 500,
+    });
+    const orgMemberIds = new Set(
+      memberships.data
+        .map((m: any) => m.publicUserData?.userId)
+        .filter((id: unknown): id is string => !!id)
+    );
+    const safeUserIds = userIds.filter((id) => orgMemberIds.has(id));
+
+    if (safeUserIds.length === 0) {
+      return { success: false, error: "No valid organization members to invite" };
+    }
+
+    if (safeUserIds.length < userIds.length) {
+      console.warn("[INVITE_TO_EVENT] Filtered cross-org user IDs", {
+        requested: userIds.length,
+        valid: safeUserIds.length,
+        organizationId,
+      });
+    }
+
     // Filter out users who are already invited
     const existingInvites = await prismaTenant.eventInvitee.findMany({
       where: {
         eventId,
-        userId: { in: userIds },
+        userId: { in: safeUserIds },
       },
       select: { userId: true },
     });
 
     const existingUserIds = new Set(existingInvites.map((i) => i.userId));
-    const newUserIds = userIds.filter((id) => !existingUserIds.has(id));
+    const newUserIds = safeUserIds.filter((id) => !existingUserIds.has(id));
 
     if (newUserIds.length === 0) {
       return { success: true, count: 0, message: "All users already invited" };

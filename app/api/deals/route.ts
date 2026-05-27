@@ -7,7 +7,9 @@ import {
   apiInternalError,
   apiBadRequest,
   apiCreated,
+  apiForbidden,
 } from "@/lib/api-response";
+import { canPerformAction } from "@/lib/permissions";
 import { createDealSchema, dealQuerySchema } from "@/lib/validations/deals";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { serializeDealForClient } from "@/lib/deals/serialize";
@@ -20,6 +22,11 @@ export async function GET(req: Request) {
   try {
     const { userId, orgId: organizationId } = await auth();
     if (!userId || !organizationId) return apiUnauthorized();
+
+    const readCheck = await canPerformAction("deal:read");
+    if (!readCheck.allowed) {
+      return apiForbidden(readCheck.reason);
+    }
 
     const { searchParams } = new URL(req.url);
     const queryValidation = dealQuerySchema.safeParse(Object.fromEntries(searchParams));
@@ -83,6 +90,11 @@ export async function POST(req: Request) {
     const { userId, orgId: organizationId } = await auth();
     if (!userId || !organizationId) return apiUnauthorized();
 
+    const createCheck = await canPerformAction("deal:create");
+    if (!createCheck.allowed) {
+      return apiForbidden(createCheck.reason);
+    }
+
     const body = await req.json();
     const validation = createDealSchema.safeParse(body);
     if (!validation.success) {
@@ -143,7 +155,7 @@ export async function POST(req: Request) {
         notaryContactId: data.notaryContactId ?? null,
         listingAgentId: data.listingAgentId ?? null,
         buyerAgentId: data.buyerAgentId ?? null,
-        proposedById: userId,
+        proposedById: actorUserId ?? userId,
         stage: data.stage ?? "INTEREST",
         dealType: data.dealType ?? null,
         agentRole: data.agentRole ?? null,
@@ -165,7 +177,7 @@ export async function POST(req: Request) {
         dealId: deal.id,
         fromStage: "INTEREST",
         toStage: data.stage ?? "INTEREST",
-        changedBy: userId,
+        changedBy: actorUserId ?? userId,
         notes: "Deal created via API",
       },
     });

@@ -14,6 +14,12 @@ export interface ArchivedEntityRow {
   archivedBy: string | null;
 }
 
+export interface ArchivedEntitiesResult {
+  data: ArchivedEntityRow[];
+  total: number;
+  error?: string;
+}
+
 async function resolveUserNames(
   rows: { archivedBy: string | null }[],
   organizationId: string
@@ -32,26 +38,37 @@ async function resolveUserNames(
 }
 
 export async function getArchivedEntities(
-  entityType: ArchivableEntityType
-): Promise<{ data: ArchivedEntityRow[]; error?: string }> {
+  entityType: ArchivableEntityType,
+  page: number = 1,
+  pageSize: number = 50
+): Promise<ArchivedEntitiesResult> {
   const { userId, orgId: organizationId } = await auth();
-  if (!userId || !organizationId) return { data: [], error: "Unauthorized" };
+  if (!userId || !organizationId) return { data: [], total: 0, error: "Unauthorized" };
 
   const check = await canPerformAction("archive:view" as any);
-  if (!check.allowed) return { data: [], error: "Permission denied" };
+  if (!check.allowed) return { data: [], total: 0, error: "Permission denied" };
+
+  const take = pageSize;
+  const skip = (page - 1) * pageSize;
 
   try {
     const where = { organizationId, archivedAt: { not: null } };
 
     switch (entityType) {
       case "property": {
-        const rows = await prismadb.properties.findMany({
-          where,
-          select: { id: true, property_name: true, archivedAt: true, archivedBy: true },
-          orderBy: { archivedAt: "desc" },
-        });
+        const [rows, total] = await prismadb.$transaction([
+          prismadb.properties.findMany({
+            where,
+            select: { id: true, property_name: true, archivedAt: true, archivedBy: true },
+            orderBy: { archivedAt: "desc" },
+            take,
+            skip,
+          }),
+          prismadb.properties.count({ where }),
+        ]);
         const userMap = await resolveUserNames(rows, organizationId);
         return {
+          total,
           data: rows.map((r) => ({
             id: r.id,
             label: r.property_name ?? r.id,
@@ -61,11 +78,16 @@ export async function getArchivedEntities(
         };
       }
       case "contact": {
-        const rows = await prismadb.contact.findMany({
-          where,
-          select: { id: true, displayName: true, archivedAt: true, archivedBy: true },
-          orderBy: { archivedAt: "desc" },
-        });
+        const [rows, total] = await prismadb.$transaction([
+          prismadb.contact.findMany({
+            where,
+            select: { id: true, displayName: true, archivedAt: true, archivedBy: true },
+            orderBy: { archivedAt: "desc" },
+            take,
+            skip,
+          }),
+          prismadb.contact.count({ where }),
+        ]);
         const userMap = await resolveUserNames(rows, organizationId);
         const decrypted = await Promise.all(
           rows.map((r) =>
@@ -73,6 +95,7 @@ export async function getArchivedEntities(
           )
         );
         return {
+          total,
           data: rows.map((r, i) => ({
             id: r.id,
             label: (decrypted[i] as any).displayName ?? r.id,
@@ -82,11 +105,16 @@ export async function getArchivedEntities(
         };
       }
       case "request": {
-        const rows = await prismadb.request.findMany({
-          where,
-          select: { id: true, friendlyId: true, name: true, archivedAt: true, archivedBy: true },
-          orderBy: { archivedAt: "desc" },
-        });
+        const [rows, total] = await prismadb.$transaction([
+          prismadb.request.findMany({
+            where,
+            select: { id: true, friendlyId: true, name: true, archivedAt: true, archivedBy: true },
+            orderBy: { archivedAt: "desc" },
+            take,
+            skip,
+          }),
+          prismadb.request.count({ where }),
+        ]);
         const userMap = await resolveUserNames(rows, organizationId);
         const decrypted = await Promise.all(
           rows.map((r) =>
@@ -96,6 +124,7 @@ export async function getArchivedEntities(
           )
         );
         return {
+          total,
           data: rows.map((r, i) => ({
             id: r.id,
             label:
@@ -108,13 +137,19 @@ export async function getArchivedEntities(
         };
       }
       case "deal": {
-        const rows = await prismadb.deal.findMany({
-          where,
-          select: { id: true, friendlyId: true, archivedAt: true, archivedBy: true },
-          orderBy: { archivedAt: "desc" },
-        });
+        const [rows, total] = await prismadb.$transaction([
+          prismadb.deal.findMany({
+            where,
+            select: { id: true, friendlyId: true, archivedAt: true, archivedBy: true },
+            orderBy: { archivedAt: "desc" },
+            take,
+            skip,
+          }),
+          prismadb.deal.count({ where }),
+        ]);
         const userMap = await resolveUserNames(rows, organizationId);
         return {
+          total,
           data: rows.map((r) => ({
             id: r.id,
             label: r.friendlyId ?? r.id,
@@ -124,13 +159,19 @@ export async function getArchivedEntities(
         };
       }
       case "event": {
-        const rows = await prismadb.calendarEvent.findMany({
-          where,
-          select: { id: true, title: true, archivedAt: true, archivedBy: true },
-          orderBy: { archivedAt: "desc" },
-        });
+        const [rows, total] = await prismadb.$transaction([
+          prismadb.calendarEvent.findMany({
+            where,
+            select: { id: true, title: true, archivedAt: true, archivedBy: true },
+            orderBy: { archivedAt: "desc" },
+            take,
+            skip,
+          }),
+          prismadb.calendarEvent.count({ where }),
+        ]);
         const userMap = await resolveUserNames(rows, organizationId);
         return {
+          total,
           data: rows.map((r) => ({
             id: r.id,
             label: r.title ?? r.id,
@@ -140,13 +181,19 @@ export async function getArchivedEntities(
         };
       }
       case "document": {
-        const rows = await prismadb.documents.findMany({
-          where,
-          select: { id: true, document_name: true, archivedAt: true, archivedBy: true },
-          orderBy: { archivedAt: "desc" },
-        });
+        const [rows, total] = await prismadb.$transaction([
+          prismadb.documents.findMany({
+            where,
+            select: { id: true, document_name: true, archivedAt: true, archivedBy: true },
+            orderBy: { archivedAt: "desc" },
+            take,
+            skip,
+          }),
+          prismadb.documents.count({ where }),
+        ]);
         const userMap = await resolveUserNames(rows, organizationId);
         return {
+          total,
           data: rows.map((r) => ({
             id: r.id,
             label: r.document_name ?? r.id,
@@ -156,10 +203,10 @@ export async function getArchivedEntities(
         };
       }
       default:
-        return { data: [] };
+        return { data: [], total: 0 };
     }
   } catch (error) {
     console.error("[GET_ARCHIVED_ENTITIES]", entityType, error);
-    return { data: [], error: "Failed to fetch archived entities" };
+    return { data: [], total: 0, error: "Failed to fetch archived entities" };
   }
 }
