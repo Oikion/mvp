@@ -25,43 +25,31 @@ export const getSearch = async (search: string) => {
     .map(m => m.publicUserData?.userId)
     .filter(Boolean) as string[];
 
-  const [resultsCrmClients, resultsCrmContacts, resultsUser] = await Promise.all([
-    prismadb.clients.findMany({
+  // The legacy `clients` (companies) and `client_Contacts` (people) models were
+  // unified into a single `Contact` model. Query it once and split by isCompany
+  // so the search UI's "clients" and "contacts" sections still populate.
+  const [crmContacts, resultsUser] = await Promise.all([
+    prismadb.contact.findMany({
       where: {
         organizationId,
         OR: [
-          { description: { contains: query, mode: "insensitive" } },
-          { client_name: { contains: query, mode: "insensitive" } },
-          { primary_email: { contains: query, mode: "insensitive" } },
+          { displayName: { contains: query, mode: "insensitive" } },
+          { email: { contains: query, mode: "insensitive" } },
+          { notes: { contains: query, mode: "insensitive" } },
         ],
       },
       select: {
         id: true,
-        client_name: true,
-        primary_email: true,
-        primary_phone: true,
-        client_status: true,
+        isCompany: true,
+        displayName: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        primaryPhone: true,
+        status: true,
         createdAt: true,
       },
-      take: 20,
-    }),
-    prismadb.client_Contacts.findMany({
-      where: {
-        organizationId,
-        OR: [
-          { contact_last_name: { contains: query, mode: "insensitive" } },
-          { contact_first_name: { contains: query, mode: "insensitive" } },
-          { email: { contains: query, mode: "insensitive" } },
-        ],
-      },
-      select: {
-        id: true,
-        contact_first_name: true,
-        contact_last_name: true,
-        email: true,
-        mobile_phone: true,
-      },
-      take: 20,
+      take: 40,
     }),
     memberClerkIds.length > 0
       ? prismadb.users.findMany({
@@ -84,6 +72,29 @@ export const getSearch = async (search: string) => {
         })
       : Promise.resolve([]),
   ]);
+
+  // Map Contact rows back to the legacy shape the search result UI expects.
+  const resultsCrmClients = crmContacts
+    .filter((c) => c.isCompany)
+    .slice(0, 20)
+    .map((c) => ({
+      id: c.id,
+      client_name: c.displayName,
+      primary_email: c.email,
+      primary_phone: c.primaryPhone,
+      client_status: c.status,
+      createdAt: c.createdAt,
+    }));
+  const resultsCrmContacts = crmContacts
+    .filter((c) => !c.isCompany)
+    .slice(0, 20)
+    .map((c) => ({
+      id: c.id,
+      contact_first_name: c.firstName,
+      contact_last_name: c.lastName,
+      email: c.email,
+      mobile_phone: c.primaryPhone,
+    }));
 
   return {
     message: "Fulltext search response",

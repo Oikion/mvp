@@ -23,9 +23,9 @@ export async function POST(req: Request) {
     }
 
     // Get account name for notifications
-    const accountData = await prismadb.clients.findUnique({
+    const accountData = await prismadb.contact.findUnique({
       where: { id: account },
-      select: { client_name: true },
+      select: { displayName: true },
     });
 
     // Generate friendly ID
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       account,
       organizationId,
       "ACCOUNT_TASK_CREATED",
-      `New task created for "${accountData?.client_name || "Account"}"`,
+      `New task created for "${accountData?.displayName || "Account"}"`,
       `${user.name || user.email} created a new task: "${title}"`,
       {
         taskId: task.id,

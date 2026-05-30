@@ -74,30 +74,30 @@ async function getClientDetails(
   currentUserId: string,
   baseUrl: string
 ): Promise<EntityDetails | null> {
-  const client = await prismadb.clients.findFirst({
+  const client = await prismadb.contact.findFirst({
     where: {
       id: entityId,
-      OR: [{ assigned_to: currentUserId }, { organizationId }],
+      OR: [{ assignedAgentId: currentUserId }, { organizationId }],
     },
     select: {
       id: true,
       friendlyId: true,
-      client_name: true,
-      primary_email: true,
-      client_status: true,
+      displayName: true,
+      email: true,
+      status: true,
     },
   });
 
   if (!client) return null;
 
-  const description = [client.client_status]
+  const description = [client.status]
     .filter(Boolean)
     .join(" • ");
 
   return {
-    title: client.client_name,
+    title: client.displayName,
     description: description || undefined,
-    url: `${baseUrl}/app/crm/clients/${client.friendlyId}`,
+    url: `${baseUrl}/app/crm/contacts/${client.id}`,
   };
 }
 

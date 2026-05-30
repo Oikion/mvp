@@ -17,7 +17,7 @@ export async function POST(req: Request, props: { params: Promise<{ accountId: s
     const accountId = params.accountId;
 
     // Verify client belongs to user's org before allowing watch
-    const client = await prismadb.clients.findFirst({
+    const client = await prismadb.contact.findFirst({
       where: { id: accountId, organizationId },
       select: { watchers: true },
     });
@@ -28,7 +28,7 @@ export async function POST(req: Request, props: { params: Promise<{ accountId: s
 
     const currentWatchers = client.watchers || [];
     if (!currentWatchers.includes(user.id)) {
-      await prismadb.clients.update({
+      await prismadb.contact.update({
         where: { id: accountId },
         data: {
           watchers: [...currentWatchers, user.id],

@@ -64,7 +64,7 @@ export async function getSharedClient(clientId: string) {
   const client = await prismadb.contact.findUnique({
     where: { id: resolvedClient.id },
     include: {
-      Users_Clients_assigned_toToUsers: {
+      assignedAgent: {
         select: {
           id: true,
           name: true,
@@ -72,10 +72,9 @@ export async function getSharedClient(clientId: string) {
           avatar: true,
         },
       },
-      Client_Contacts: true,
-      Client_Properties: {
+      linkedProperties: {
         include: {
-          Properties: {
+          property: {
             select: {
               id: true,
               property_name: true,
@@ -98,11 +97,11 @@ export async function getSharedClient(clientId: string) {
     return {
       ...decryptedClient,
       // Map to expected field names for backward compatibility
-      assigned_to_user: decryptedClient.Users_Clients_assigned_toToUsers,
-      contacts: decryptedClient.Client_Contacts,
-      linked_properties: decryptedClient.Client_Properties.map((cp) => ({
+      assigned_to_user: decryptedClient.assignedAgent,
+      contacts: [], // legacy Client_Contacts (sub-contacts) was unified into Contact; no nested list
+      linked_properties: decryptedClient.linkedProperties.map((cp) => ({
         ...cp,
-        property: cp.Properties,
+        property: cp.property,
       })),
       _shareInfo: {
         permissions: share.permissions,
