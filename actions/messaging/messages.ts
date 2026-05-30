@@ -610,6 +610,21 @@ export async function markAsRead(params: {
         select: { id: true },
       });
       messageIds = messages.map(m => m.id);
+    } else {
+      // SECURITY: the membership gate above proves the caller belongs to
+      // params.channelId / params.conversationId, but explicitly-supplied
+      // messageIds are otherwise untrusted. Constrain them to messages that
+      // actually live in the verified channel/conversation so a member of one
+      // channel cannot create read receipts for messages they cannot access.
+      const owned = await prismadb.message.findMany({
+        where: {
+          id: { in: messageIds },
+          channelId: params.channelId,
+          conversationId: params.conversationId,
+        },
+        select: { id: true },
+      });
+      messageIds = owned.map(m => m.id);
     }
 
     if (messageIds.length === 0) {
