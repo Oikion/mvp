@@ -188,6 +188,9 @@ export function getRateLimitTier(pathname: string): RateLimitTier {
     '/api/messaging/messages',
   ];
 
+  // Signing endpoint — strict tier (uploading + sending to OpenSign is expensive)
+  if (/^\/api\/documents\/[^/]+\/sign$/.test(pathname)) return 'strict';
+
   if (strictPaths.some(p => pathname.startsWith(p))) {
     return 'strict';
   }

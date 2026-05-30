@@ -165,8 +165,9 @@ export function QuickAddContact({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col flex-1 space-y-4 mt-6"
+            className="flex flex-col flex-1 overflow-hidden mt-6"
           >
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             {/* Display Name */}
             <FormField
               control={form.control}
@@ -303,8 +304,8 @@ export function QuickAddContact({
               )}
             />
 
-            {/* Actions — pushed to bottom (Gestalt: proximity of actions) */}
-            <div className="flex-1" />
+            </div>
+            {/* Actions */}
             <div className="flex justify-between gap-4 pt-4 border-t">
               {onContinueToFull && (
                 <Button

@@ -27,7 +27,7 @@ export function DocumentViewer({
   mimeType,
   fileName = "document",
   className = "",
-  height = "600px",
+  height = "800px",
 }: DocumentViewerProps) {
   const t = useTranslations("documents.viewer");
   const [loading, setLoading] = useState(true);
@@ -78,7 +78,6 @@ export function DocumentViewer({
         src={`${url}#zoom=${zoom}&toolbar=0`}
         className="w-full h-full border-0 rounded-lg"
         title={fileName}
-        style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top left" }}
         onLoad={() => setLoading(false)}
         onError={() => {
           setError(t("failedToLoadPdf"));
@@ -100,7 +99,7 @@ export function DocumentViewer({
         src={url}
         alt={fileName}
         className="max-w-full max-h-full object-contain"
-        style={{ transform: `scale(${zoom / 100})` }}
+        style={{ transform: `scale(${zoom / 100})`, transformOrigin: "center" }}
         onLoad={() => setLoading(false)}
         onError={() => {
           setError(t("failedToLoadImage"));

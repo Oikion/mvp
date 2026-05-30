@@ -26,6 +26,8 @@ import { ItemVisibility } from "@prisma/client";
 import { updateContactVisibility } from "@/actions/contacts";
 import { useTranslations } from "next-intl";
 import { Link } from "@/navigation";
+import { SendForSigningModal } from "@/components/signing/SendForSigningModal";
+import { FileSignature } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
@@ -128,6 +130,10 @@ export default function ContactView({ contact, isReadOnly = false, sharePermissi
   };
 
   // Dialog state
+  const [signingDocId, setSigningDocId] = useState<string | null>(null);
+  const [signingDocName, setSigningDocName] = useState("");
+  const tSigning = useTranslations("signing");
+
   const [linkRequestDialogOpen, setLinkRequestDialogOpen] = useState(false);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -711,6 +717,25 @@ export default function ContactView({ contact, isReadOnly = false, sharePermissi
             showAddButton={false}
           />
 
+          {/* Sign buttons for PDF documents */}
+          {linkedDocuments
+            .filter((d: any) => d.document_file_mimeType === "application/pdf")
+            .map((doc: any) => (
+              <Button
+                key={doc.id}
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-xs w-full justify-start"
+                onClick={() => {
+                  setSigningDocId(doc.id);
+                  setSigningDocName(doc.document_name ?? "");
+                }}
+              >
+                <FileSignature className="h-3 w-3 mr-1" />
+                {tSigning("trigger.sign")} — {doc.document_name}
+              </Button>
+            ))}
+
           {/* Activity Log */}
           <Card>
             <CardHeader className="pb-3">
@@ -751,6 +776,16 @@ export default function ContactView({ contact, isReadOnly = false, sharePermissi
         title={t("contacts.view.linkProperties") ?? "Link Properties"}
         description={t("contacts.view.linkPropertiesDescription") ?? "Select properties owned by this contact."}
       />
+
+      {signingDocId && (
+        <SendForSigningModal
+          open={!!signingDocId}
+          onClose={() => setSigningDocId(null)}
+          documentId={signingDocId}
+          documentName={signingDocName}
+          onSuccess={() => setSigningDocId(null)}
+        />
+      )}
     </div>
   );
 }

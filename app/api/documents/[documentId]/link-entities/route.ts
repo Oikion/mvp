@@ -162,7 +162,7 @@ export async function DELETE(
     const disconnectData: Record<string, unknown> = {};
 
     if (clientIds.length > 0) {
-      disconnectData.Clients = { disconnect: clientIds.map((id) => ({ id })) };
+      disconnectData.Contacts = { disconnect: clientIds.map((id) => ({ id })) };
     }
     if (propertyIds.length > 0) {
       disconnectData.Properties = { disconnect: propertyIds.map((id) => ({ id })) };
@@ -171,10 +171,10 @@ export async function DELETE(
       disconnectData.Requests = { disconnect: requestIds.map((id) => ({ id })) };
     }
 
-    // Update legacy array fields by removing the IDs
+    // Update array fields by removing the IDs
     const updateArrays: Record<string, string[]> = {};
     if (clientIds.length > 0) {
-      updateArrays.accountsIDs = (document.accountsIDs || []).filter(
+      updateArrays.contactsIDs = (document.contactsIDs || []).filter(
         (id) => !clientIds.includes(id)
       );
     }

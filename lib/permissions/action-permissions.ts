@@ -287,6 +287,11 @@ export type ArchiveAction =
 // UNION TYPE - ALL ACTION PERMISSIONS
 // =============================================================================
 
+export type SigningAction =
+  | "signing:create_envelope"
+  | "signing:read_envelope"
+  | "signing:cancel_envelope";
+
 export type ActionPermission =
   | PropertyAction
   | ClientAction
@@ -308,7 +313,8 @@ export type ActionPermission =
   | NotificationAction
   | ReferralAction
   | ImportAction
-  | ArchiveAction;
+  | ArchiveAction
+  | SigningAction;
 
 // =============================================================================
 // ACTION CATEGORIES BY MODULE
@@ -508,6 +514,11 @@ export const ACTION_MODULES = {
     "archive:view",
     "archive:restore",
     "archive:purge",
+  ] as const,
+  signing: [
+    "signing:create_envelope",
+    "signing:read_envelope",
+    "signing:cancel_envelope",
   ] as const,
 } as const;
 
@@ -743,6 +754,9 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "archive:view": "View archived (soft-deleted) entities",
   "archive:restore": "Restore archived entities back to active state",
   "archive:purge": "Permanently delete archived entities (irreversible)",
+  "signing:create_envelope": "Send a document for electronic signing",
+  "signing:read_envelope": "View signing envelope status and signer details",
+  "signing:cancel_envelope": "Cancel an active signing request",
 };
 
 /**

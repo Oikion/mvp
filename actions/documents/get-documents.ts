@@ -34,7 +34,7 @@ export async function getDocuments(filters?: DocumentFilters) {
   const additionalFilters: any = {};
 
   if (filters?.clientId) {
-    additionalFilters.accountsIDs = {
+    additionalFilters.contactsIDs = {
       has: filters.clientId,
     };
   }

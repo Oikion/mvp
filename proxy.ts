@@ -685,8 +685,13 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   // CRITICAL: Return NextResponse.next() to preserve Clerk's auth headers
   // Then copy locale-related cookies from intlResponse
   // This ensures both Clerk auth context AND locale context are preserved
-  const response = NextResponse.next();
-  
+  // Also forward the current pathname as a request header so Server Component
+  // layouts can read it via headers() without needing usePathname.
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-pathname', pathname);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
   // Copy locale cookies from intlResponse to preserve locale context
   if (intlResponse) {
     intlResponse.cookies.getAll().forEach((cookie) => {
@@ -698,7 +703,7 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
       response.headers.set('x-middleware-request-x-next-intl-locale', localeHeader);
     }
   }
-  
+
   return response;
 });
 

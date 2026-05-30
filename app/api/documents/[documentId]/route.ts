@@ -93,7 +93,7 @@ export async function PUT(
         document_type: document_type || existingDocument.document_type,
         assigned_user: assigned_user || existingDocument.assigned_user,
         mentions: mergedMentions as unknown as Prisma.InputJsonValue,
-        accountsIDs: mergedMentions.clients.map((c) => c.id),
+        contactsIDs: mergedMentions.clients.map((c) => c.id),
         linkedPropertiesIds: mergedMentions.properties.map((p) => p.id),
         linkedCalendarEventsIds: mergedMentions.events.map((e) => e.id),
         linkedTasksIds: mergedMentions.tasks.map((t) => t.id),

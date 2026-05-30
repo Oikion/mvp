@@ -115,7 +115,8 @@ export function QuickAddRequest({
         </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 space-y-4 mt-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden mt-6">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             {/* Title — required, first field so it's the most prominent */}
             <FormField
               control={form.control}
@@ -269,8 +270,7 @@ export function QuickAddRequest({
               )}
             />
 
-            {/* Spacer pushes footer to bottom */}
-            <div className="flex-1" />
+            </div>
 
             {/* Footer — matches QuickAddContact pattern */}
             <div className="flex justify-between gap-4 pt-4 border-t">

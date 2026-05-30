@@ -265,7 +265,9 @@
     "searchAddress": "Search for address...",
     "additionalNotes": "Additional notes about the client",
     "usefulInfo": "Useful information about the contact",
-    "shareMessage": "Add a note about why you're sharing this..."
+    "shareMessage": "Add a note about why you're sharing this...",
+    "searchContacts": "Search contacts...",
+    "searchRequests": "Search requests..."
   },
   "emptyStates": {
     "noResults": "No results found",
@@ -288,7 +290,9 @@
     "noMandatesAvailable": "No mandates available. Create mandates first.",
     "noDocumentsAvailable": "No documents available. Upload documents first.",
     "loadFailed": "Failed to load. Please refresh the page.",
-    "noOptionFound": "No option found."
+    "noOptionFound": "No option found.",
+    "noContactsAvailable": "No contacts available. Create contacts first.",
+    "noRequestsAvailable": "No requests available. Create requests first."
   },
   "tableColumns": {
     "name": "Name",
@@ -386,7 +390,9 @@
     "linkDocuments": "Link Documents",
     "shareWithAgents": "Share with Agents",
     "feedback": "Feedback",
-    "sidebar": "Sidebar"
+    "sidebar": "Sidebar",
+    "linkContacts": "Link Contacts",
+    "linkRequests": "Link Requests"
   },
   "cards": {
     "comments": "Comments",
@@ -911,4 +917,3 @@
     "contactSupport": "If this error persists, please contact support with the Error ID."
   }
 }
-

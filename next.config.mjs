@@ -212,7 +212,7 @@ const nextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://img.clerk.com https://images.clerk.dev https://lh3.googleusercontent.com https://res.cloudinary.com https://*.public.blob.vercel-storage.com",
       "font-src 'self' data:",
-      `frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com${devLocalhost5678Frame}`,
+      `frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com https://*.public.blob.vercel-storage.com${devLocalhost5678Frame}`,
       // Ably WebSocket connections for real-time messaging
       // Ably uses multiple domains: *.ably.io, *.ably.net (realtime), *.ably-realtime.com (fallbacks)
       // In dev mode, also allow localhost connections for debugging and Next.js devtools

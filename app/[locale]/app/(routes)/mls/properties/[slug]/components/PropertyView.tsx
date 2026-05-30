@@ -35,9 +35,11 @@ import {
   ExternalLink,
   Copy,
   Check,
+  FileSignature,
 } from "lucide-react";
 import Link from "next/link";
 import { EditPropertyForm } from "./EditPropertyForm";
+import { SendForSigningModal } from "@/components/signing/SendForSigningModal";
 import { LinkedEntitiesPanel, LinkEntityDialog } from "@/components/linking";
 import { EventCreateForm } from "@/components/calendar/EventCreateForm";
 import { EntityQuickActions } from "@/components/entity-actions/EntityQuickActions";
@@ -155,6 +157,9 @@ export default function PropertyView({
   const [createClientOpen, setCreateClientOpen] = useState(false);
   const [autoLinkNewClient, setAutoLinkNewClient] = useState(false);
   const [autoLinkNewRequest, setAutoLinkNewRequest] = useState(false);
+  const [signingDocId, setSigningDocId] = useState<string | null>(null);
+  const [signingDocName, setSigningDocName] = useState("");
+  const tSigning = useTranslations("signing");
   const [visibility, setVisibility] = useState<ItemVisibility>(data.visibility || "PRIVATE");
   const [copied, setCopied] = useState(false);
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
@@ -626,6 +631,25 @@ export default function PropertyView({
             emptyMessage="No documents linked to this property yet."
           />
 
+          {/* Sign buttons for linked PDF documents */}
+          {(linkedDocuments as any[])
+            .filter((d: any) => d.document_file_mimeType === "application/pdf")
+            .map((doc: any) => (
+              <Button
+                key={doc.id}
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-xs w-full justify-start"
+                onClick={() => {
+                  setSigningDocId(doc.id);
+                  setSigningDocName(doc.document_name ?? "");
+                }}
+              >
+                <FileSignature className="h-3 w-3 mr-1" />
+                {tSigning("trigger.sign")} — {doc.document_name}
+              </Button>
+            ))}
+
           {/* Export History */}
           {!isReadOnly && (
             <ExportHistoryPanel
@@ -787,6 +811,16 @@ export default function PropertyView({
               await handleLinkClients([clientId]);
             }
           }}
+        />
+      )}
+
+      {signingDocId && (
+        <SendForSigningModal
+          open={!!signingDocId}
+          onClose={() => setSigningDocId(null)}
+          documentId={signingDocId}
+          documentName={signingDocName}
+          onSuccess={() => setSigningDocId(null)}
         />
       )}
     </div>

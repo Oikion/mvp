@@ -845,3 +845,41 @@ export async function decryptOrgDocumentTemplateForOrg<
   }
   return result as T;
 }
+
+// ─── SigningEnvelopeSigner ────────────────────────────────────────────────────
+// Signer PII (name, email) is encrypted at rest per org DEK to comply with GDPR
+// and prevent cross-org leakage if the signing_envelope_signers table is queried directly.
+
+const SIGNING_SIGNER_ENCRYPTED_STRING_FIELDS = ["name", "email"] as const;
+
+export async function encryptSigningEnvelopeSignerForOrg<
+  T extends { name: string; email: string },
+>(data: T, orgId: string): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T;
+  for (const field of SIGNING_SIGNER_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        (result as Record<string, unknown>)[field] as string | null | undefined,
+        dek,
+      );
+    }
+  }
+  return result;
+}
+
+export async function decryptSigningEnvelopeSignerForOrg<
+  T extends { name: string; email: string },
+>(data: T, orgId: string): Promise<T> {
+  const deks = await getOrgDeksForDecryption(orgId);
+  const result = { ...data } as T;
+  for (const field of SIGNING_SIGNER_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
+        (result as Record<string, unknown>)[field] as string | null | undefined,
+        deks,
+      );
+    }
+  }
+  return result;
+}

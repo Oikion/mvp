@@ -1,6 +1,7 @@
 import { createTranslator } from "next-intl";
 import { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
 
 import "@/app/[locale]/globals.css";
 import Footer from "@/app/[locale]/app/(routes)/components/Footer";
@@ -49,9 +50,13 @@ const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
   const { userId } = await auth();
   const isSignedIn = !!userId;
 
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") ?? "";
+  const isAccessPage = pathname.includes("/access");
+
   return (
     <div className="relative flex flex-col h-dvh w-full overflow-hidden">
-      {isSignedIn && (
+      {isSignedIn && !isAccessPage && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
           <AlreadySignedInBanner />
         </div>

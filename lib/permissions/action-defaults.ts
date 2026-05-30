@@ -220,6 +220,11 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "archive:view": "none",
   "archive:restore": "none",
   "archive:purge": "none",
+
+  // Signing - No access for VIEWER (signing envelopes expose decrypted signer PII)
+  "signing:create_envelope": "none",
+  "signing:read_envelope": "none",
+  "signing:cancel_envelope": "none",
 };
 
 /**
@@ -420,6 +425,11 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "archive:view": "none",
   "archive:restore": "none",
   "archive:purge": "none",
+
+  // Signing - MEMBER can create, read, and cancel their own envelopes
+  "signing:create_envelope": "all",
+  "signing:read_envelope": "all",
+  "signing:cancel_envelope": "all",
 };
 
 /**
@@ -620,6 +630,11 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "archive:view": "none",
   "archive:restore": "none",
   "archive:purge": "none",
+
+  // Signing - LEAD has full signing access
+  "signing:create_envelope": "all",
+  "signing:read_envelope": "all",
+  "signing:cancel_envelope": "all",
 };
 
 /**
@@ -820,6 +835,11 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "archive:view": "all",
   "archive:restore": "all",
   "archive:purge": "all",
+
+  // Signing - OWNER has full signing access
+  "signing:create_envelope": "all",
+  "signing:read_envelope": "all",
+  "signing:cancel_envelope": "all",
 };
 
 /**

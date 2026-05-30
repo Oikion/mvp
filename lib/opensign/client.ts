@@ -67,7 +67,7 @@ export const openSignClient = {
   ): Promise<UploadDocumentResult> {
     // TODO: verify exact endpoint + multipart format against OpenSign v1.2 docs
     const form = new FormData();
-    form.append("file", new Blob([buffer], { type: "application/pdf" }), fileName);
+    form.append("file", new Blob([new Uint8Array(buffer)], { type: "application/pdf" }), fileName);
     const { apiUrl, apiKey } = getConfig();
     const res = await fetch(`${apiUrl}/documents/upload`, {
       method: "POST",

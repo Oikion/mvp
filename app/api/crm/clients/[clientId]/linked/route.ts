@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptCalendarEventForOrg, decryptMandateForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
+import { decryptCalendarEventForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/crm/clients/[clientId]/linked
- * Fetch linked properties and calendar events for a client
+ * Fetch linked properties, calendar events, requests, and documents for a contact.
+ * Route preserved under /clients/ path for backwards compatibility with usePrefetch.ts.
  */
 export async function GET(
   req: Request,
@@ -23,15 +24,15 @@ export async function GET(
       );
     }
 
-    // Verify client belongs to organization
-    const client = await prismadb.clients.findFirst({
+    // Verify contact belongs to organization
+    const client = await prismadb.contact.findFirst({
       where: {
         id: clientId,
         organizationId,
       },
       select: {
         id: true,
-        client_name: true,
+        displayName: true,
       },
     });
 
@@ -43,12 +44,12 @@ export async function GET(
     }
 
     // Fetch linked properties
-    const linkedPropertiesRaw = await prismadb.client_Properties.findMany({
+    const linkedPropertiesRaw = await prismadb.contactProperty.findMany({
       where: {
-        clientId,
+        contactId: clientId,
       },
       include: {
-        Properties: {
+        property: {
           select: {
             id: true,
             friendlyId: true,
@@ -77,12 +78,11 @@ export async function GET(
       },
     });
 
-    // Map to expected field names
     const linkedProperties = linkedPropertiesRaw.map((lp) => ({
       ...lp,
-      property: lp.Properties ? {
-        ...lp.Properties,
-        assigned_to_user: lp.Properties.Users_Properties_assigned_toToUsers,
+      property: lp.property ? {
+        ...lp.property,
+        assigned_to_user: lp.property.Users_Properties_assigned_toToUsers,
       } : null,
     }));
 
@@ -90,9 +90,9 @@ export async function GET(
     const linkedEventsRaw = await prismadb.calendarEvent.findMany({
       where: {
         organizationId,
-        Clients: {
+        EventContacts: {
           some: {
-            id: clientId,
+            contactId: clientId,
           },
         },
       },
@@ -125,7 +125,6 @@ export async function GET(
       },
     });
 
-    // Decrypt and map to expected field names
     const linkedEvents = await Promise.all(
       linkedEventsRaw.map(async (event) => {
         const decrypted = await decryptCalendarEventForOrg(event, organizationId);
@@ -137,20 +136,19 @@ export async function GET(
       })
     );
 
-    // Fetch linked mandates
-    const linkedMandatesRaw = await prismadb.mandate_Clients.findMany({
-      where: { clientId },
+    // Fetch linked requests (formerly mandates)
+    const linkedRequestsRaw = await prismadb.requestContact.findMany({
+      where: { contactId: clientId },
       include: {
-        Mandate: {
+        request: {
           select: {
             id: true,
             friendlyId: true,
-            title: true,
-            transaction_type: true,
+            requestType: true,
             status: true,
             urgency: true,
-            budget_min: true,
-            budget_max: true,
+            budgetMin: true,
+            budgetMax: true,
             organizationId: true,
           },
         },
@@ -158,22 +156,18 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    // Filter to same org and decrypt titles
-    const mandates = await Promise.all(
-      linkedMandatesRaw
-        .filter((lm) => lm.Mandate.organizationId === organizationId)
-        .map(async (lm) => {
-          const { organizationId: _, ...rest } = lm.Mandate;
-          const decrypted = await decryptMandateForOrg(rest, organizationId);
-          return decrypted;
-        })
-    );
+    const mandates = linkedRequestsRaw
+      .filter((lr) => lr.request.organizationId === organizationId)
+      .map((lr) => {
+        const { organizationId: _, ...rest } = lr.request;
+        return rest;
+      });
 
     // Fetch linked documents
     const linkedDocumentsRaw = await prismadb.documents.findMany({
       where: {
         organizationId,
-        Clients: { some: { id: clientId } },
+        Contacts: { some: { id: clientId } },
       },
       select: {
         id: true,
@@ -190,7 +184,6 @@ export async function GET(
       linkedDocumentsRaw.map((doc) => decryptDocumentForOrg(doc, organizationId))
     );
 
-    // Get upcoming events (future events)
     const now = new Date();
     const upcomingEvents = linkedEvents.filter(
       (event) => new Date(event.startTime) >= now
@@ -199,20 +192,13 @@ export async function GET(
       (event) => new Date(event.startTime) < now
     );
 
-    // Helper function to serialize Prisma objects
     const serializePrismaObject = (obj: any): any => {
-      if (obj === null || obj === undefined) {
-        return obj;
-      }
+      if (obj === null || obj === undefined) return obj;
       if (obj && typeof obj === "object" && "toNumber" in obj && typeof obj.toNumber === "function") {
         return obj.toNumber();
       }
-      if (obj instanceof Date) {
-        return obj.toISOString();
-      }
-      if (Array.isArray(obj)) {
-        return obj.map(serializePrismaObject);
-      }
+      if (obj instanceof Date) return obj.toISOString();
+      if (Array.isArray(obj)) return obj.map(serializePrismaObject);
       if (typeof obj === "object") {
         const serialized: any = {};
         for (const [key, value] of Object.entries(obj)) {
@@ -224,7 +210,7 @@ export async function GET(
     };
 
     return NextResponse.json({
-      client: serializePrismaObject(client),
+      client: serializePrismaObject({ ...client, client_name: client.displayName }),
       properties: serializePrismaObject(linkedProperties.map((lp) => lp.property)),
       mandates: serializePrismaObject(mandates),
       documents: serializePrismaObject(documents),
@@ -250,18 +236,3 @@ export async function GET(
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

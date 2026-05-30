@@ -160,8 +160,9 @@ export function QuickAddDeal({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col flex-1 space-y-4 mt-6"
+            className="flex flex-col flex-1 overflow-hidden mt-6"
           >
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             {/* Property (required) */}
             <FormField
               control={form.control}
@@ -277,8 +278,7 @@ export function QuickAddDeal({
               )}
             />
 
-            {/* Spacer pushes the action bar to the bottom */}
-            <div className="flex-1" />
+            </div>
 
             {/* Footer */}
             <div className="flex justify-between gap-4 pt-4 border-t">

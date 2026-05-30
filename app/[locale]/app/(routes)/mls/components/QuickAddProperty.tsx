@@ -131,7 +131,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onSuccess, onConti
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[500px]">
+      <SheetContent className="sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{t("QuickAdd.property.title")}</SheetTitle>
           <SheetDescription>

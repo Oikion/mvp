@@ -50,6 +50,7 @@ import type activitiesEn from "./locales/en/activities.json";
 import type documentTemplatesEn from "./locales/en/document-templates.json";
 import type archiveEn from "./locales/en/archive.json";
 import type billingEn from "./locales/en/billing.json";
+import type signingEn from "./locales/en/signing.json";
 
 // Mirrors the runtime shape built by loadMessages() in i18n.ts and
 // getLocales() in app/[locale]/layout.tsx.
@@ -110,6 +111,7 @@ type AppMessages = typeof commonEn &
     "document-templates": typeof documentTemplatesEn;
     archive: typeof archiveEn;
     billing: typeof billingEn;
+    signing: typeof signingEn;
   };
 
 declare module "next-intl" {

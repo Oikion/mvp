@@ -40,8 +40,11 @@ import {
   GitBranch,
   Loader2,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { advanceDealStage, setDealStage } from "@/actions/deals";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { SendForSigningModal } from "@/components/signing/SendForSigningModal";
+import { FileSignature, FileText } from "lucide-react";
 import {
   DEAL_STAGE_ORDER,
   getDealStageIndex,
@@ -50,6 +53,62 @@ import {
 } from "@/lib/validations/status-transitions";
 import { DEAL_STATUS } from "@/lib/status-mappings";
 import { cn } from "@/lib/utils";
+
+const SIGNING_STAGES = ["PRELIMINARY_AGREEMENT", "DUE_DILIGENCE", "SIGNING"] as const;
+
+function StagePDFDocuments({ dealId }: { dealId: string }) {
+  const t = useTranslations("signing");
+  const [docs, setDocs] = useState<
+    { id: string; document_name: string; document_file_mimeType: string }[]
+  >([]);
+  const [signingDocId, setSigningDocId] = useState<string | null>(null);
+  const [signingDocName, setSigningDocName] = useState("");
+
+  useEffect(() => {
+    fetch(`/api/documents?dealId=${dealId}`)
+      .then((r) => r.json())
+      .then((data) => setDocs(data.documents ?? []))
+      .catch(() => {});
+  }, [dealId]);
+
+  const pdfs = docs.filter((d) => d.document_file_mimeType === "application/pdf");
+  if (pdfs.length === 0) return null;
+
+  return (
+    <div className="mt-3 space-y-2">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        Documents
+      </p>
+      {pdfs.map((doc) => (
+        <div key={doc.id} className="flex items-center gap-2 text-sm">
+          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+          <span className="flex-1 truncate">{doc.document_name}</span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-2 text-xs"
+            onClick={() => {
+              setSigningDocId(doc.id);
+              setSigningDocName(doc.document_name);
+            }}
+          >
+            <FileSignature className="h-3 w-3 mr-1" />
+            {t("trigger.sign")}
+          </Button>
+        </div>
+      ))}
+      {signingDocId && (
+        <SendForSigningModal
+          open={!!signingDocId}
+          onClose={() => setSigningDocId(null)}
+          documentId={signingDocId}
+          documentName={signingDocName}
+          onSuccess={() => setSigningDocId(null)}
+        />
+      )}
+    </div>
+  );
+}
 
 interface DealStageLogEntry {
   readonly fromStage: DealStage;
@@ -351,6 +410,9 @@ export default function DealStagePipeline({
             <p className="text-sm text-muted-foreground">
               {t(`stageDescription.${currentStage}`)}
             </p>
+            {SIGNING_STAGES.includes(currentStage as typeof SIGNING_STAGES[number]) && (
+              <StagePDFDocuments dealId={dealId} />
+            )}
           </div>
         )}
 

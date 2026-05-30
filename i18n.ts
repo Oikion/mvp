@@ -16,6 +16,7 @@ import feedbackEn from "./locales/en/feedback.json";
 import registerEn from "./locales/en/register.json";
 import calendarEn from "./locales/en/calendar.json";
 import documentsEn from "./locales/en/documents.json";
+import signingEn from "./locales/en/signing.json";
 import notificationsEn from "./locales/en/notifications.json";
 import feedEn from "./locales/en/feed.json";
 import socialFeedEn from "./locales/en/socialFeed.json";
@@ -61,6 +62,7 @@ import feedbackEl from "./locales/el/feedback.json";
 import registerEl from "./locales/el/register.json";
 import calendarEl from "./locales/el/calendar.json";
 import documentsEl from "./locales/el/documents.json";
+import signingEl from "./locales/el/signing.json";
 import notificationsEl from "./locales/el/notifications.json";
 import feedEl from "./locales/el/feed.json";
 import socialFeedEl from "./locales/el/socialFeed.json";
@@ -162,6 +164,7 @@ function loadMessages(locale: string) {
     messages.conversion = conversionEl;
     messages.onboarding = onboardingEl;
     messages.cookies = cookiesEl;
+    messages.signing = signingEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -223,6 +226,7 @@ function loadMessages(locale: string) {
     messages.conversion = conversionEn;
     messages.onboarding = onboardingEn;
     messages.cookies = cookiesEn;
+    messages.signing = signingEn;
   }
 
   return messages;

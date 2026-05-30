@@ -99,12 +99,12 @@ export async function createDocument(input: CreateDocumentInput) {
       expiresAt: input.expiresAt,
       mentions: mergedMentions as unknown as Prisma.InputJsonValue,
       // Link arrays
-      accountsIDs: mergedMentions.clients.map((c) => c.id),
+      contactsIDs: mergedMentions.clients.map((c) => c.id),
       linkedPropertiesIds: mergedMentions.properties.map((p) => p.id),
       linkedCalendarEventsIds: mergedMentions.events.map((e) => e.id),
       linkedTasksIds: mergedMentions.tasks.map((t) => t.id),
       // Relations
-      Clients: {
+      Contacts: {
         connect: mergedMentions.clients.map((c) => ({ id: c.id })),
       },
       Properties: {

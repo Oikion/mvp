@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Share2, Users, Edit } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Download, FileSignature, Share2, Users, Edit } from "lucide-react";
 import { useRouter, Link } from "@/navigation";
 import { ShareSettings } from "../../components/ShareSettings";
 import { ShareModal } from "@/components/social/ShareModal";
@@ -27,6 +28,8 @@ import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/Quick
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
 import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
+import { SendForSigningModal } from "@/components/signing/SendForSigningModal";
+import { SigningTab } from "./SigningTab";
 
 interface DocumentData {
   id: string;
@@ -55,6 +58,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   const router = useRouter();
   const t = useTranslations("documents");
   const tCommon = useTranslations("common");
+  const tSigning = useTranslations("signing");
   const { toast } = useAppToast();
   const [linkEnabled, setLinkEnabled] = useState(document.linkEnabled || false);
   const [passwordProtected, setPasswordProtected] = useState(document.passwordProtected || false);
@@ -73,6 +77,36 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   const [autoLinkNewRequest, setAutoLinkNewRequest] = useState(false);
 
   const { users: orgUsers } = useOrgUsers();
+
+  // Signing state
+  const [signingModalOpen, setSigningModalOpen] = useState(false);
+  const [signingEnvelope, setSigningEnvelope] = useState<{
+    id: string;
+    status: string;
+    subject: string;
+    completedAt: Date | null;
+    signedDocument: { id: string; friendlyId: string } | null;
+    signers: Array<{
+      id: string;
+      name: string;
+      email: string;
+      order: number;
+      status: string;
+      signerType: string;
+      signedAt: Date | null;
+    }>;
+  } | null>(null);
+  const [envelopeLoaded, setEnvelopeLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/documents/${document.id}/sign`)
+      .then((r) => r.json())
+      .then((data) => {
+        setSigningEnvelope(data.envelope ?? null);
+        setEnvelopeLoaded(true);
+      })
+      .catch(() => setEnvelopeLoaded(true));
+  }, [document.id]);
 
   // Linked entities data
   const { clients, properties, mandates: linkedRequests, isLoading: isLinkedLoading, mutate: mutateLinked } = useDocumentLinked(document.id);
@@ -211,14 +245,37 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
           >
             {t("download")}
           </Button>
+          {document.document_file_mimeType === "application/pdf" && envelopeLoaded && (
+            <>
+              {!signingEnvelope ||
+              ["COMPLETED", "DECLINED", "EXPIRED", "CANCELLED", "FAILED"].includes(
+                signingEnvelope.status,
+              ) ? (
+                <Button
+                  variant="outline"
+                  leftIcon={<FileSignature className="h-4 w-4" />}
+                  onClick={() => setSigningModalOpen(true)}
+                >
+                  {tSigning("trigger.send")}
+                </Button>
+              ) : (
+                <Badge variant="secondary">
+                  {tSigning(`status.${signingEnvelope.status}` as Parameters<typeof tSigning>[0])}
+                </Badge>
+              )}
+            </>
+          )}
         </div>
       </div>
 
       <Tabs defaultValue={activeTab} className="w-full">
-        <TabsList className="inline-grid grid-cols-3">
+        <TabsList className={`inline-grid ${envelopeLoaded && document.document_file_mimeType === "application/pdf" ? "grid-cols-4" : "grid-cols-3"}`}>
           <TabsTrigger value="details">{t("detail.tabs.details")}</TabsTrigger>
           <TabsTrigger value="share">{t("detail.tabs.share")}</TabsTrigger>
           <TabsTrigger value="analytics">{t("detail.tabs.analytics")}</TabsTrigger>
+          {envelopeLoaded && document.document_file_mimeType === "application/pdf" && (
+            <TabsTrigger value="signing">{tSigning("tab.title")}</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="details" className="space-y-4">
@@ -266,7 +323,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
                     url={document.document_file_url ?? ""}
                     mimeType={document.document_file_mimeType ?? ""}
                     fileName={document.document_name ?? undefined}
-                    height="600px"
+                    height="800px"
                   />
                 </CardContent>
               </Card>
@@ -395,6 +452,16 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
             </CardContent>
           </Card>
         </TabsContent>
+
+        {envelopeLoaded && document.document_file_mimeType === "application/pdf" && (
+          <TabsContent value="signing" className="space-y-4">
+            <SigningTab
+              documentId={document.id}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              initialEnvelope={signingEnvelope as any}
+            />
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Link Entity Dialogs */}
@@ -509,6 +576,22 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         entityId={document.id}
         entityName={document.document_name ?? ""}
       />
+
+      {/* Signing Modal */}
+      {document.document_file_mimeType === "application/pdf" && (
+        <SendForSigningModal
+          open={signingModalOpen}
+          onClose={() => setSigningModalOpen(false)}
+          documentId={document.id}
+          documentName={document.document_name ?? ""}
+          onSuccess={() => {
+            setSigningModalOpen(false);
+            fetch(`/api/documents/${document.id}/sign`)
+              .then((r) => r.json())
+              .then((data) => setSigningEnvelope(data.envelope ?? null));
+          }}
+        />
+      )}
     </div>
   );
 }

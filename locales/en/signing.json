@@ -1,0 +1,84 @@
+{
+  "modal": {
+    "title": "Send for Signing",
+    "steps": {
+      "signers": "Signers",
+      "message": "Message",
+      "review": "Review & Send"
+    },
+    "internalSigners": "Internal signers",
+    "externalSigners": "External signers",
+    "addOrgMember": "Add org member",
+    "addExternalSigner": "Add external signer",
+    "nameLabel": "Full name",
+    "namePlaceholder": "e.g. Maria Papadopoulou",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "email@example.com",
+    "subjectLabel": "Subject",
+    "messageLabel": "Message (optional)",
+    "expiryLabel": "Expiry date (optional)",
+    "sendButton": "Send for Signing",
+    "reviewTitle": "Signing order",
+    "emptySigners": "Add at least one signer to continue",
+    "loadingMembers": "Loading org members…",
+    "errorLoadingMembers": "Failed to load org members",
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to close?",
+    "sendError": "Failed to send for signing. Please try again.",
+    "next": "Next",
+    "back": "Back",
+    "discard": "Discard",
+    "discardTitle": "Discard changes?",
+    "keepEditing": "Keep editing",
+    "subjectPlaceholder": "e.g. Purchase Agreement — Signature Required",
+    "messagePlaceholder": "Optional note to all signers…",
+    "stepIndicatorLabel": "Signing steps",
+    "dragSigner": "Drag to reorder {name}",
+    "removeSigner": "Remove {name} from signers",
+    "dnd": {
+      "dragStart": "Picked up {name}. Use arrow keys to move.",
+      "dragOver": "Moving {dragged} over {target}.",
+      "dragEnd": "Dropped {dragged} in new position after {target}.",
+      "dragCancel": "Dragging cancelled. {name} returned to original position."
+    }
+  },
+  "status": {
+    "DRAFT": "Draft",
+    "SENT": "Sent",
+    "IN_PROGRESS": "In progress",
+    "COMPLETED": "Completed",
+    "DECLINED": "Declined",
+    "EXPIRED": "Expired",
+    "CANCELLED": "Cancelled",
+    "FAILED": "Failed"
+  },
+  "signerStatus": {
+    "PENDING": "Pending",
+    "SENT": "Sent",
+    "VIEWED": "Viewed",
+    "SIGNED": "Signed",
+    "DECLINED": "Declined"
+  },
+  "signerType": {
+    "INTERNAL": "Team member",
+    "EXTERNAL": "External"
+  },
+  "tab": {
+    "title": "Signing",
+    "noEnvelope": "No signing requests yet",
+    "sendButton": "Send for Signing",
+    "cancelButton": "Cancel signing",
+    "signedDocument": "View signed document",
+    "cancelConfirm": "Are you sure you want to cancel this signing request?"
+  },
+  "trigger": {
+    "send": "Send for Signing",
+    "inProgress": "Signing in progress",
+    "sign": "Sign"
+  },
+  "errors": {
+    "notPdf": "Only PDF documents can be sent for signing",
+    "activeEnvelope": "A signing request is already active for this document",
+    "sendFailed": "Failed to initiate signing. Please try again.",
+    "cancelFailed": "Failed to cancel signing request."
+  }
+}
