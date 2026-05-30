@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getNotifications, getUnreadCount, getTotalNotificationsCount } from "@/actions/notifications/get-notifications";
-import { createNotification } from "@/actions/notifications/create-notification";
 import { markAllNotificationsRead } from "@/actions/notifications/mark-notification-read";
 
 /**
@@ -57,28 +56,14 @@ export async function GET(req: Request) {
 }
 
 /**
- * POST /api/notifications
- * Create a new notification (admin/internal use)
- */
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const notification = await createNotification(body);
-
-    return NextResponse.json({ notification }, { status: 201 });
-  } catch (error: unknown) {
-    console.error("[NOTIFICATIONS_POST]", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to create notification";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
-  }
-}
-
-/**
  * PUT /api/notifications
  * Mark all notifications as read
+ *
+ * NOTE: There is intentionally no POST handler here. Notifications are created
+ * server-side via the `createNotification` action (invoked by other actions such
+ * as comment/watch flows). Exposing creation over HTTP allowed any authenticated
+ * caller to inject spoofed cross-tenant notifications by supplying userId /
+ * organizationId in the body, so the unguarded POST route was removed.
  */
 export async function PUT(req: Request) {
   try {

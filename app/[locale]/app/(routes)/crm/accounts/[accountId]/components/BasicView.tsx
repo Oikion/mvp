@@ -34,9 +34,18 @@ interface OppsViewProps {
 }
 
 export async function BasicView({ data }: OppsViewProps) {
-  //console.log(data, "data");
-  const users = await prismadb.users.findMany();
   if (!data) return <div>Opportunity not found</div>;
+  // Tenant isolation: the Users model has no organizationId, so resolve only
+  // the specific users this record references — never enumerate every tenant.
+  const userIds = [
+    data.createdBy,
+    data.updatedBy,
+    data.created_by,
+    data.last_activity_by,
+  ].filter(Boolean) as string[];
+  const users = userIds.length
+    ? await prismadb.users.findMany({ where: { id: { in: userIds } } })
+    : [];
   return (
     <div className="pb-3 space-y-5">
       {/*      <pre>{JSON.stringify(data, null, 2)}</pre> */}
