@@ -360,10 +360,10 @@ export async function addConversationParticipants(
   success: boolean;
   error?: string;
 }> {
-  const guard = await requireAction("messaging:manage_members");
-  if (guard) return guard;
-
   try {
+    const guard = await requireAction("messaging:manage_members");
+    if (guard) return guard;
+
     const organizationId = await getCurrentOrgId();
 
     const conversation = await prismadb.conversation.findFirst({
@@ -375,6 +375,19 @@ export async function addConversationParticipants(
 
     if (!conversation) {
       return { success: false, error: "Conversation not found" };
+    }
+
+    // SECURITY: every userId being added must belong to this org. Users carry no
+    // organizationId column, so membership is resolved via Clerk — same pattern
+    // as createGroupConversation. Blocks injecting arbitrary/foreign users.
+    const { users: orgUsers } = await getOrgMembersFromDb({ organizationId });
+    const validUserIds = new Set(orgUsers.map((u: { id: string }) => u.id));
+    const invalidIds = userIds.filter((id) => !validUserIds.has(id));
+    if (invalidIds.length > 0) {
+      return {
+        success: false,
+        error: "One or more users are not members of this organization",
+      };
     }
 
     await prismadb.conversationParticipant.createMany({

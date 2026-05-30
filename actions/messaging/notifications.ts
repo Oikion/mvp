@@ -2,7 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { createNotification, createNotificationsForUsers } from "@/actions/notifications/create-notification";
-import { getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { clerkClient } from "@clerk/nextjs/server";
 
 /**
@@ -183,10 +183,15 @@ export async function notifyChannelInvite(params: {
 }
 
 /**
- * Get unread message count for a user
+ * Get unread message count for the authenticated caller.
+ *
+ * SECURITY: identity is resolved server-side via getCurrentUser() — never
+ * accept a userId from the client, or any caller could read another user's count.
  */
-export async function getUnreadMessageCount(userId: string): Promise<number> {
+export async function getUnreadMessageCount(): Promise<number> {
   try {
+    const currentUser = await getCurrentUser();
+    const userId = currentUser.id;
     const organizationId = await getCurrentOrgId();
 
     // Get channels user is a member of
@@ -223,62 +228,6 @@ export async function getUnreadMessageCount(userId: string): Promise<number> {
   } catch (error) {
     console.error("[MESSAGING] Get unread count error:", error);
     return 0;
-  }
-}
-
-/**
- * Mark messages as read in a channel or conversation
- */
-export async function markAsRead(params: {
-  userId: string;
-  channelId?: string;
-  conversationId?: string;
-}): Promise<boolean> {
-  try {
-    // Get all unread messages
-    const unreadMessages = await prismadb.message.findMany({
-      where: {
-        channelId: params.channelId,
-        conversationId: params.conversationId,
-        isDeleted: false,
-        senderId: { not: params.userId },
-        readReceipts: {
-          none: { userId: params.userId },
-        },
-      },
-      select: { id: true },
-    });
-
-    if (unreadMessages.length === 0) {
-      return true;
-    }
-
-    // Create read receipts
-    await prismadb.messageRead.createMany({
-      data: unreadMessages.map(msg => ({
-        messageId: msg.id,
-        userId: params.userId,
-      })),
-      skipDuplicates: true,
-    });
-
-    // Update last read time for conversation participant
-    if (params.conversationId) {
-      await prismadb.conversationParticipant.update({
-        where: {
-          conversationId_userId: {
-            conversationId: params.conversationId,
-            userId: params.userId,
-          },
-        },
-        data: { lastReadAt: new Date() },
-      });
-    }
-
-    return true;
-  } catch (error) {
-    console.error("[MESSAGING] Mark as read error:", error);
-    return false;
   }
 }
 

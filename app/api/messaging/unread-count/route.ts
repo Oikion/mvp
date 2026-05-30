@@ -29,7 +29,8 @@ export async function GET() {
       return NextResponse.json({ count: 0 });
     }
 
-    const count = await getUnreadMessageCount(user.id);
+    // userId is resolved inside the action via getCurrentUser() — never passed in.
+    const count = await getUnreadMessageCount();
 
     return NextResponse.json({ count });
   } catch (error) {

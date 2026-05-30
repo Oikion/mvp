@@ -597,8 +597,11 @@ export async function GET(req: Request) {
     // If fetching thread replies, get parent message context
     let parentMessage = null;
     if (parentId) {
-      parentMessage = await prismadb.message.findUnique({
-        where: { id: parentId },
+      // SECURITY: scope the parent fetch to the caller's org. Without this an
+      // authenticated user could derive a foreign org's thread (channel/
+      // conversation IDs are read from the parent below) by guessing a parentId.
+      parentMessage = await prismadb.message.findFirst({
+        where: { id: parentId, organizationId },
         include: {
           sender: {
             select: {
@@ -647,6 +650,40 @@ export async function GET(req: Request) {
     // For thread replies, use parent's channelId/conversationId if not provided
     const effectiveChannelId = channelId || parentMessage?.channelId;
     const effectiveConversationId = conversationId || parentMessage?.conversationId;
+
+    // SECURITY: a thread-only request (parentId with no channelId/conversationId)
+    // skipped the membership gates above — those key off the URL params. Enforce
+    // membership here on the IDs derived from the parent so a caller can't read a
+    // private channel's thread (or a foreign conversation's) just by parentId.
+    if (!channelId && !conversationId) {
+      if (effectiveChannelId) {
+        const membership = await prismadb.channelMember.findFirst({
+          where: { channelId: effectiveChannelId, userId: currentUser.id, channel: { organizationId } },
+          select: { channelId: true },
+        });
+        if (!membership) {
+          return NextResponse.json(
+            { error: "Channel not found or access denied" },
+            { status: 403 }
+          );
+        }
+      } else if (effectiveConversationId) {
+        const participant = await prismadb.conversationParticipant.findFirst({
+          where: { conversationId: effectiveConversationId, userId: currentUser.id, leftAt: null },
+          select: { conversationId: true },
+        });
+        if (!participant) {
+          return NextResponse.json(
+            { error: "Conversation not found or access denied" },
+            { status: 403 }
+          );
+        }
+        // Participant membership is now the access gate, so drop the org filter
+        // (mirrors skipOrgFilterForMessages): cross-org DM thread replies carry
+        // the sender's org and would otherwise be filtered out to an empty list.
+        delete whereClause.organizationId;
+      }
+    }
 
     if (effectiveChannelId) {
       whereClause.channelId = effectiveChannelId;

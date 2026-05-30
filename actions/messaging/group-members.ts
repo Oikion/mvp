@@ -3,6 +3,8 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions";
+import { isOrgAdmin } from "@/lib/org-admin";
+import { getOrgMembersFromDb } from "@/lib/org-members";
 
 /**
  * Add an org member to an existing group conversation
@@ -12,7 +14,7 @@ export async function addGroupMember(
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const guard = await requireAction("messaging:create_dm");
+    const guard = await requireAction("messaging:manage_members");
     if (guard) return guard;
 
     const currentUser = await getCurrentUser();
@@ -34,6 +36,15 @@ export async function addGroupMember(
     );
     if (!isMember) {
       return { success: false, error: "Not a member of this conversation" };
+    }
+
+    // SECURITY: the user being added must belong to this org. Users have no
+    // organizationId column, so membership is resolved via Clerk — same check
+    // createGroupConversation uses. Prevents adding arbitrary/foreign users.
+    const { users: orgUsers } = await getOrgMembersFromDb({ organizationId });
+    const isOrgMember = orgUsers.some((u: { id: string }) => u.id === userId);
+    if (!isOrgMember) {
+      return { success: false, error: "User is not a member of this organization" };
     }
 
     // Upsert participant (handles re-add after leave)
@@ -59,7 +70,7 @@ export async function removeGroupMember(
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const guard = await requireAction("messaging:create_dm");
+    const guard = await requireAction("messaging:manage_members");
     if (guard) return guard;
 
     const currentUser = await getCurrentUser();
@@ -71,6 +82,14 @@ export async function removeGroupMember(
 
     if (!conversation) {
       return { success: false, error: "Group conversation not found" };
+    }
+
+    // Only the group creator or an org admin/owner may remove other members.
+    // Without this, any participant could evict colleagues from the group.
+    const callerIsCreator = conversation.createdById === currentUser.id;
+    const callerIsAdmin = await isOrgAdmin();
+    if (!callerIsCreator && !callerIsAdmin) {
+      return { success: false, error: "Only the group creator or an org admin can remove members" };
     }
 
     // Cannot remove the creator

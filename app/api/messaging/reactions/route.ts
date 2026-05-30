@@ -49,9 +49,20 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get message to verify it exists and get channel/conversation info
-    const message = await prismadb.message.findUnique({
-      where: { id: messageId },
+    // SECURITY: Resolve the message only if it belongs to the caller's org OR
+    // it lives in a conversation the caller participates in. The OR branch keeps
+    // cross-org PERSONAL/SHARED DMs working (those messages carry the SENDER's
+    // org, not the caller's) while still blocking foreign-org channel messages.
+    // Channel/participant membership below is the authoritative access gate.
+    const organizationId = await getCurrentOrgId();
+    const message = await prismadb.message.findFirst({
+      where: {
+        id: messageId,
+        OR: [
+          { organizationId },
+          { conversation: { participants: { some: { userId: user.id, leftAt: null } } } },
+        ],
+      },
       select: {
         id: true,
         channelId: true,
@@ -143,11 +154,13 @@ export async function POST(req: Request) {
 
     // Emit Ably event for real-time update
     try {
-      const organizationId = message.organizationId || await getCurrentOrgId();
+      // Use the message's own org for the channel name (cross-org DM messages
+      // carry the sender's org); fall back to the caller's org.
+      const ablyOrgId = message.organizationId || organizationId;
       const ablyChannelName = message.channelId
-        ? getChannelName(organizationId, message.channelId)
-        : getConversationChannelName(organizationId, message.conversationId!);
-      
+        ? getChannelName(ablyOrgId, message.channelId)
+        : getConversationChannelName(ablyOrgId, message.conversationId!);
+
       await publishToChannel(ablyChannelName, "message:reaction", {
         messageId,
         emoji,
@@ -213,10 +226,18 @@ export async function GET(req: Request) {
       );
     }
 
-    // SECURITY: Verify message belongs to the current org before returning reactions
+    // SECURITY: Resolve the message if it is in the caller's org OR in a
+    // conversation the caller participates in (cross-org DM messages carry the
+    // sender's org). Channel/participant membership below is the access gate.
     const organizationId = await getCurrentOrgId();
     const message = await prismadb.message.findFirst({
-      where: { id: messageId, organizationId },
+      where: {
+        id: messageId,
+        OR: [
+          { organizationId },
+          { conversation: { participants: { some: { userId: currentUser.id, leftAt: null } } } },
+        ],
+      },
       select: { id: true, channelId: true, conversationId: true },
     });
 
@@ -321,11 +342,20 @@ export async function DELETE(req: Request) {
       );
     }
 
-    // SECURITY: Verify message belongs to the current org before deleting reaction
+    // SECURITY: Resolve the message if it is in the caller's org OR in a
+    // conversation the caller participates in (cross-org DM messages carry the
+    // sender's org). deleteMany below is self-scoped by userId, so the caller
+    // can only ever remove their own reaction.
     const organizationId = await getCurrentOrgId();
     const messageCheck = await prismadb.message.findFirst({
-      where: { id: messageId, organizationId },
-      select: { id: true, channelId: true, conversationId: true },
+      where: {
+        id: messageId,
+        OR: [
+          { organizationId },
+          { conversation: { participants: { some: { userId: user.id, leftAt: null } } } },
+        ],
+      },
+      select: { id: true, channelId: true, conversationId: true, organizationId: true },
     });
 
     if (!messageCheck) {
@@ -341,18 +371,9 @@ export async function DELETE(req: Request) {
       },
     });
 
-    // Get message for Ably notification
-    const message = await prismadb.message.findUnique({
-      where: { id: messageId },
-      select: {
-        channelId: true,
-        conversationId: true,
-        organizationId: true,
-      },
-    });
-
-    if (message) {
-      // Get updated reactions
+    // Emit Ably event using the already-fetched (access-checked) message — no
+    // need for a second, unscoped lookup.
+    {
       const updatedReactions = await prismadb.messageReaction.findMany({
         where: { messageId },
         select: {
@@ -361,13 +382,13 @@ export async function DELETE(req: Request) {
         },
       });
 
-      // Emit Ably event
       try {
-        const organizationId = message.organizationId || await getCurrentOrgId();
-        const ablyChannelName = message.channelId
-          ? getChannelName(organizationId, message.channelId)
-          : getConversationChannelName(organizationId, message.conversationId!);
-        
+        // Cross-org DM messages carry the sender's org; fall back to caller's.
+        const ablyOrgId = messageCheck.organizationId || organizationId;
+        const ablyChannelName = messageCheck.channelId
+          ? getChannelName(ablyOrgId, messageCheck.channelId)
+          : getConversationChannelName(ablyOrgId, messageCheck.conversationId!);
+
         await publishToChannel(ablyChannelName, "message:reaction", {
           messageId,
           emoji,

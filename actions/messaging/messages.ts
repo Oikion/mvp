@@ -330,10 +330,16 @@ export async function editMessage(
   error?: string;
 }> {
   try {
-    const currentUser = await getCurrentUser();
+    const guard = await requireAction("messaging:send_message");
+    if (guard) return guard;
 
-    const message = await prismadb.message.findUnique({
-      where: { id: messageId },
+    const currentUser = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
+
+    // Scope the lookup to the caller's org so a foreign message ID cannot be
+    // probed; ownership is enforced separately below.
+    const message = await prismadb.message.findFirst({
+      where: { id: messageId, organizationId },
     });
 
     if (!message) {
@@ -373,10 +379,15 @@ export async function deleteMessage(messageId: string): Promise<{
   error?: string;
 }> {
   try {
-    const currentUser = await getCurrentUser();
+    const guard = await requireAction("messaging:send_message");
+    if (guard) return guard;
 
-    const message = await prismadb.message.findUnique({
-      where: { id: messageId },
+    const currentUser = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
+
+    // Scope the lookup to the caller's org; ownership is enforced below.
+    const message = await prismadb.message.findFirst({
+      where: { id: messageId, organizationId },
     });
 
     if (!message) {
@@ -423,9 +434,15 @@ export async function addReaction(
   error?: string;
 }> {
   try {
-    const currentUser = await getCurrentUser();
+    const guard = await requireAction("messaging:send_message");
+    if (guard) return guard;
 
-    // Verify message exists and user has access
+    const currentUser = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
+
+    // Verify message exists and user has access. The channel-membership /
+    // conversation-participant include below is the access gate (it also covers
+    // cross-org DMs, so we intentionally do not org-filter the lookup here).
     const message = await prismadb.message.findUnique({
       where: { id: messageId },
       include: {
@@ -450,10 +467,17 @@ export async function addReaction(
       return { success: false, error: "Message not found" };
     }
 
-    // Check access
-    const hasAccess = 
-      (message.channel && message.channel.members.length > 0) ||
-      (message.conversation && message.conversation.participants.length > 0);
+    // Check access:
+    // - Channel messages: caller must be a member AND the channel must belong to
+    //   the caller's org (channels are always same-org — defense-in-depth).
+    // - Conversation messages: participant membership (cross-org DM safe).
+    const hasChannelAccess =
+      !!message.channel &&
+      message.channel.organizationId === organizationId &&
+      message.channel.members.length > 0;
+    const hasConversationAccess =
+      !!message.conversation && message.conversation.participants.length > 0;
+    const hasAccess = hasChannelAccess || hasConversationAccess;
 
     if (!hasAccess) {
       return { success: false, error: "No access to this message" };
@@ -500,15 +524,28 @@ export async function removeReaction(
   error?: string;
 }> {
   try {
-    const currentUser = await getCurrentUser();
+    const guard = await requireAction("messaging:send_message");
+    if (guard) return guard;
 
-    await prismadb.messageReaction.delete({
+    const currentUser = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
+
+    // Confirm the message belongs to the caller's org before mutating reactions.
+    const message = await prismadb.message.findFirst({
+      where: { id: messageId, organizationId },
+      select: { id: true },
+    });
+
+    if (!message) {
+      return { success: false, error: "Message not found" };
+    }
+
+    // deleteMany is idempotent — no throw when the reaction was already removed.
+    await prismadb.messageReaction.deleteMany({
       where: {
-        messageId_userId_emoji: {
-          messageId,
-          userId: currentUser.id,
-          emoji,
-        },
+        messageId,
+        userId: currentUser.id,
+        emoji,
       },
     });
 
@@ -661,41 +698,53 @@ export async function getUnreadCount(): Promise<{
     });
     const conversationIds = participations.map(p => p.conversationId);
 
-    // Count unread messages
-    const unreadMessages = await prismadb.message.findMany({
-      where: {
-        organizationId,
-        isDeleted: false,
-        senderId: { not: currentUser.id },
-        readReceipts: {
-          none: { userId: currentUser.id },
-        },
-        OR: [
-          { channelId: { in: channelIds } },
-          { conversationId: { in: conversationIds } },
-        ],
-      },
-      select: {
-        channelId: true,
-        conversationId: true,
-      },
-    });
+    // Count unread messages with DB-side aggregation instead of loading every
+    // row into memory. groupBy is Accelerate-compatible (same pattern used in
+    // direct-messages.ts) and keeps the per-channel/per-conversation breakdown.
+    const baseWhere = {
+      organizationId,
+      isDeleted: false,
+      senderId: { not: currentUser.id },
+      readReceipts: { none: { userId: currentUser.id } },
+    } as const;
+
+    const [channelGroups, conversationGroups] = await Promise.all([
+      channelIds.length > 0
+        ? prismadb.message.groupBy({
+            by: ["channelId"],
+            where: { ...baseWhere, channelId: { in: channelIds } },
+            _count: { _all: true },
+          })
+        : Promise.resolve([]),
+      conversationIds.length > 0
+        ? prismadb.message.groupBy({
+            by: ["conversationId"],
+            where: { ...baseWhere, conversationId: { in: conversationIds } },
+            _count: { _all: true },
+          })
+        : Promise.resolve([]),
+    ]);
 
     const byChannel: Record<string, number> = {};
     const byConversation: Record<string, number> = {};
+    let count = 0;
 
-    unreadMessages.forEach(msg => {
-      if (msg.channelId) {
-        byChannel[msg.channelId] = (byChannel[msg.channelId] || 0) + 1;
+    for (const g of channelGroups) {
+      if (g.channelId) {
+        byChannel[g.channelId] = g._count._all;
+        count += g._count._all;
       }
-      if (msg.conversationId) {
-        byConversation[msg.conversationId] = (byConversation[msg.conversationId] || 0) + 1;
+    }
+    for (const g of conversationGroups) {
+      if (g.conversationId) {
+        byConversation[g.conversationId] = g._count._all;
+        count += g._count._all;
       }
-    });
+    }
 
     return {
       success: true,
-      count: unreadMessages.length,
+      count,
       byChannel,
       byConversation,
     };
