@@ -3,6 +3,8 @@ import { prismadb } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { z } from "zod";
+import { encryptContactForOrg } from "@/lib/model-encryption";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 const createContactSchema = z
   .object({
@@ -59,17 +61,35 @@ export async function POST(req: Request) {
   }
 
   try {
-    await prismadb.client_Contacts.create({
-      data: {
-        id: crypto.randomUUID(),
-        contact_first_name: name,
-        contact_last_name: surname,
+    const friendlyId = await generateFriendlyId(prismadb, "Contact", organizationId);
+    // Contact PII is encrypted at rest — encrypt before persisting so the
+    // remote-created contact decrypts consistently everywhere else in the app.
+    const encrypted = await encryptContactForOrg(
+      {
+        firstName: name,
+        lastName: surname,
+        displayName: `${name} ${surname}`.trim() || company,
+        companyName: company,
         email,
-        mobile_phone: phone,
-        type: "Prospect",
-        tags: [tag],
-        notes: ["Account: " + company, "Message: " + message],
+        primaryPhone: phone,
+        notes: `Account: ${company}\nMessage: ${message}`,
+      },
+      organizationId
+    );
+    await prismadb.contact.create({
+      data: {
         organizationId,
+        friendlyId,
+        displayName: encrypted.displayName!,
+        firstName: encrypted.firstName,
+        lastName: encrypted.lastName,
+        companyName: encrypted.companyName,
+        email: encrypted.email,
+        primaryPhone: encrypted.primaryPhone,
+        notes: encrypted.notes,
+        category: ["OTHER"],
+        status: "LEAD",
+        tags: [tag],
       },
     });
     return NextResponse.json({ message: "Contact created" });
