@@ -19,7 +19,7 @@ interface FeedbackSheetProps {
 const FeedbackSheet = ({ open, onOpenChange, initialFeedbackType, initialFeedback }: FeedbackSheetProps) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="min-w-[600px] sm:max-w-[600px] space-y-2 feedback-sheet">
+      <SheetContent className="w-full sm:min-w-[600px] sm:max-w-[600px] space-y-2 feedback-sheet">
         <SheetHeader>
           <SheetTitle>Feedback</SheetTitle>
         </SheetHeader>

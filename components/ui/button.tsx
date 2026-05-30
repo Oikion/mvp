@@ -64,7 +64,7 @@ const buttonVariants = cva(
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         xl: "h-12 rounded-md px-10 text-base",
-        icon: "h-10 w-10",
+        icon: "h-11 w-11",
         // WCAG 2.5.5 compliant touch targets (44px minimum)
         "icon-touch": "h-11 w-11 min-h-[44px] min-w-[44px]",
         "touch": "h-11 min-h-[44px] px-4 py-2",

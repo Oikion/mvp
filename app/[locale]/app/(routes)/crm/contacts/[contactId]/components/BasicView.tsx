@@ -60,7 +60,7 @@ export async function BasicView({ data }: OppsViewProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 w-full ">
+          <div className="grid grid-cols-1 sm:grid-cols-2 w-full ">
             <div>
               <div className="-mx-2 flex items-start space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">
                 <CoinsIcon className="mt-px h-5 w-5" />

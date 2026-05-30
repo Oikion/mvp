@@ -136,7 +136,7 @@ export function PropertyInquirySheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="min-w-[600px] sm:max-w-[600px] overflow-y-auto">
+      <SheetContent className="w-full sm:min-w-[600px] sm:max-w-[600px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{t("agentProfile.inquiryForm.title")}</SheetTitle>
           <SheetDescription>

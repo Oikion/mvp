@@ -97,7 +97,7 @@ export function TemplateEditorSheet({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent
         side="right"
-        className="w-[600px] sm:max-w-[600px] overflow-y-auto"
+        className="w-full sm:w-[600px] sm:max-w-[600px] overflow-y-auto"
       >
         <SheetHeader>
           <SheetTitle>
