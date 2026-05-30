@@ -204,6 +204,34 @@ A full-codebase grep after Stage 1 found **7 more production files** referencing
 
 ---
 
+## Stage 1c — `app/api/crm/clients/route.ts` adapter migration (TURNKEY — all decisions locked)
+
+This 470-line `@ts-nocheck` route is the last dead-ref crash. It's LIVE: `QuickAddClient` (5 render sites) POSTs to it; `CreateDealButton` + `NewPropertyForm` GET it. **Strategy: keep its legacy-shaped request/response contract** (so the 7 consumers need no changes) and make it a **compatibility adapter** over the `Contact` model — mirroring the existing `update-client.ts` shim pattern. This fixes the crash with minimal blast radius and defers the `crm.ts`/enum-drop work to Stage 4/5.
+
+⚠️ tsc CANNOT verify this file (`@ts-nocheck`) — verify by reading + a manual QuickAddClient/deal/property smoke test.
+
+**Decided enum maps (from product decisions 2026-05-31):**
+```ts
+const CLIENT_TYPE_TO_CATEGORY = { BUYER:"BUYER", SELLER:"SELLER", RENTER:"TENANT", INVESTOR:"INVESTOR", REFERRAL_PARTNER:"BROKER" } as const;
+const CLIENT_STATUS_TO_CONTACT = { LEAD:"LEAD", ACTIVE:"ACTIVE", INACTIVE:"INACTIVE", CONVERTED:"ACTIVE", LOST:"INACTIVE" } as const;
+const LEAD_SOURCE_TO_CONTACT  = { REFERRAL:"REFERRAL", WEB:"WEB", PORTAL:"PORTAL_LEAD", WALK_IN:"WALK_IN", SOCIAL:"SOCIAL_MEDIA" } as const;
+```
+
+**Field map (legacy → Contact) for POST/PUT `data`:** `client_name`→`displayName` (required; fall back to `full_name`/`company_name`), `primary_email`→`email`, `secondary_email`→`secondaryEmail`, `primary_phone`→`primaryPhone`, `secondary_phone`→`secondaryPhone`, `office_phone`→`officePhone`, `company_name`→`companyName`, `person_type`→`isCompany` (=== company-type), `language`→`languagePreference` (same `Language` enum), `afm`→`taxId`, `doy`→`doy`, `vat`→`vatNumber`, `company_gemi`→`companyGemi`, `company_id`→`companyId`, `id_doc`→`idDocument`, `gdpr_consent`→`gdprConsentGiven`, `allow_marketing`→`allowMarketing`, `communication_notes`→`communicationNotes`, `description`→`notes`, `assigned_to`→`assignedAgentId`, `client_type`→`category: [CLIENT_TYPE_TO_CATEGORY[client_type] ?? "OTHER"]`, `client_status`→`status: CLIENT_STATUS_TO_CONTACT[client_status] ?? "LEAD"`, `lead_source`→`source: LEAD_SOURCE_TO_CONTACT[lead_source]`.
+- **Addresses:** build `addresses: [{type:"billing", street:billing_street, city:billing_city, state:billing_state, postalCode:billing_postal_code, country:billing_country}, {type:"shipping", ...}]` (drop entries where all parts null). `addresses` is freeform `Json?` — key names are flexible.
+- **DROP (no Contact equivalent):** `website`, `fax`, `channels`, `draft_status`, `member_of`, `full_name` (after using it as displayName fallback). Note the drop in the commit message.
+- Wrap the mapped object in `encryptContactForOrg(mapped, organizationId)` exactly as today, then `prismadb.contact.create`/`update`.
+- Fix the 4 `.client_name` reads on `newClient`/`updatedClient` (notify + webhook calls) → `.displayName`.
+- `existingClient.assigned_to` → `existingClient.assignedAgentId`.
+
+**GET handler:**
+- minimal mode: `select: { id:true, displayName:true }`, `orderBy:{ displayName:"asc" }`, then map → `items: rows.map(r => ({ id:r.id, client_name: r.displayName }))` (preserve legacy field name). **Decrypt** `displayName` first (`decryptContactForOrg` per row, or batch) — today the route does NOT decrypt, which would show ciphertext; add decryption.
+- full mode: `where` remap (`client_status`→`status`, search `client_name`/`primary_email`→`displayName`/`email`); **remove dead includes** `Client_Contacts` and `Users_Clients_assigned_toToUsers` (use `assignedAgent: { select: { name:true } }` if a name is needed; drop the sub-contacts include); decrypt each row (`decryptContactForOrg`); map back to legacy keys consumers read (`client_name`, `primary_email`, `client_status`, `assigned_to`). Keep the `{ items, nextCursor, hasMore }` envelope unchanged.
+
+**After:** `grep -rnE "prismadb\.(clients|client_Contacts)\b" actions app lib --include="*.ts"` (excl scripts) → 0. Smoke-test QuickAddClient, deal creation, property owner dropdown.
+
+---
+
 ## Stage 2 — Repoint live mandate import edges (BLOCKING before Stage 3 deletion)
 
 Two LIVE components import `QuickAddMandate` (which calls non-existent `/api/mandates` → 404). `QuickAddRequest` exists at `app/[locale]/app/(routes)/requests/components/QuickAddRequest.tsx` with props `{ open, onOpenChange, organizationUsers: any[], onContinueToFull?: () => void }` — **different from QuickAddMandate**, so adapt props, don't just rename.
