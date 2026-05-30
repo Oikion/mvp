@@ -129,12 +129,15 @@ export function useMessagingCredentials(options?: { enabled?: boolean }) {
     options?.enabled !== false ? "/api/messaging/credentials" : null,
     fetcher,
     {
-      // Cache credentials but revalidate on window focus
-      revalidateOnFocus: true,
-      // Don't retry on auth errors
-      shouldRetryOnError: (err) => {
-        return err?.message !== "Unauthorized";
-      },
+      // Ably SDK handles token refresh internally via authCallback — no need
+      // to re-fetch on focus. Doing so causes a DB write + Ably API call on
+      // every tab switch, amplifying load when many users are active.
+      revalidateOnFocus: false,
+      // Never auto-retry credentials: transient errors (network blip) recover
+      // via the Ably authCallback; structural errors (NO_ORG, NOT_CONFIGURED)
+      // won't resolve without user action. Uncapped retries cause server floods.
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
     }
   );
 

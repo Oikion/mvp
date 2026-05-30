@@ -10,11 +10,14 @@ import { getMessagingCredentials } from "@/actions/messaging/sync-user";
  */
 export async function GET() {
   try {
-    const { userId } = await auth();
-    
-    if (!userId) {
+    const { userId, orgId } = await auth();
+
+    // Both userId AND orgId must be present — orgId is null during onboarding
+    // or org-switching, which would throw inside getMessagingCredentials and
+    // return a 500. Return 401 early so the client can handle it gracefully.
+    if (!userId || !orgId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Unauthorized", errorCode: "NO_ORG" },
         { status: 401 }
       );
     }
@@ -22,8 +25,10 @@ export async function GET() {
     const result = await getMessagingCredentials();
 
     if (!result.success) {
-      // Return appropriate status based on error code
-      const status = result.errorCode === "NOT_CONFIGURED" ? 503 : 500;
+      const status =
+        result.errorCode === "NOT_CONFIGURED" ? 503 :
+        result.errorCode === "NO_ORG" ? 401 :
+        500;
       return NextResponse.json(
         { 
           error: result.error || "Failed to get credentials",

@@ -529,11 +529,11 @@ export async function GET(req: Request) {
     const channelId = url.searchParams.get("channelId");
     const conversationId = url.searchParams.get("conversationId");
     const parentId = url.searchParams.get("parentId");
-    const limit = parseInt(url.searchParams.get("limit") || "50");
+    const limit = parseInt(url.searchParams.get("limit") ?? "50", 10);
     const before = url.searchParams.get("before");
 
-    // Validate limit to prevent abuse
-    if (limit < 1 || limit > 200) {
+    // isFinite rejects NaN/Infinity — both bypass a plain range check (NaN < 1 === false)
+    if (!Number.isFinite(limit) || limit < 1 || limit > 200) {
       return NextResponse.json(
         { error: "Limit must be between 1 and 200" },
         { status: 400 }

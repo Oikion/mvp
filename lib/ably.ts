@@ -54,7 +54,11 @@ export async function createAblyTokenRequest(
     return null;
   }
 
-  const client = getAblyClient()!;
+  const client = getAblyClient();
+  if (!client) {
+    console.error("[ABLY] getAblyClient() returned null despite ABLY_API_KEY being set");
+    return null;
+  }
 
   // Define capabilities for this user
   // They can subscribe to their org's channels and their own user channel

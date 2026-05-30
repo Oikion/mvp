@@ -33,6 +33,18 @@ export async function POST(req: Request) {
       );
     }
 
+    if (
+      messageIds !== undefined &&
+      (!Array.isArray(messageIds) ||
+        messageIds.length > 500 ||
+        !messageIds.every((id: unknown) => typeof id === "string"))
+    ) {
+      return NextResponse.json(
+        { error: "messageIds must be an array of up to 500 string IDs" },
+        { status: 400 }
+      );
+    }
+
     const result = await markAsRead({
       channelId,
       conversationId,

@@ -34,7 +34,7 @@ export async function getMessagingCredentials(): Promise<{
 
     // Generate Ably token request
     const tokenRequest = await createAblyTokenRequest(user.id, organizationId);
-    
+
     if (!tokenRequest) {
       return {
         success: false,
@@ -43,18 +43,14 @@ export async function getMessagingCredentials(): Promise<{
       };
     }
 
-    // Update user presence
-    await prismadb.userPresence.upsert({
+    // Presence upsert is best-effort — must not block or fail the token response.
+    // Fire-and-forget: a failure here should never cause a credentials 500.
+    prismadb.userPresence.upsert({
       where: { userId: user.id },
-      create: {
-        userId: user.id,
-        status: "ONLINE",
-        lastSeenAt: new Date(),
-      },
-      update: {
-        status: "ONLINE",
-        lastSeenAt: new Date(),
-      },
+      create: { userId: user.id, status: "ONLINE", lastSeenAt: new Date() },
+      update: { status: "ONLINE", lastSeenAt: new Date() },
+    }).catch((err) => {
+      console.error("[MESSAGING] Presence upsert failed (non-fatal):", err);
     });
 
     return {

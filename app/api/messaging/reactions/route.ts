@@ -31,6 +31,11 @@ export async function POST(req: Request) {
       );
     }
 
+    // Emoji must be a short string (1–10 chars covers all Unicode emoji sequences)
+    if (typeof emoji !== "string" || emoji.length === 0 || emoji.length > 10) {
+      return NextResponse.json({ error: "Invalid emoji value" }, { status: 400 });
+    }
+
     // Get user
     const user = await prismadb.users.findUnique({
       where: { clerkUserId: userId },
@@ -297,6 +302,10 @@ export async function DELETE(req: Request) {
         { error: "Message ID and emoji are required" },
         { status: 400 }
       );
+    }
+
+    if (typeof emoji !== "string" || emoji.length === 0 || emoji.length > 10) {
+      return NextResponse.json({ error: "Invalid emoji value" }, { status: 400 });
     }
 
     // Get user
