@@ -59,7 +59,7 @@ import { useOrgUsers, useCreateEvent } from "@/hooks/swr";
 import { inviteToEvent } from "@/actions/calendar/invite-to-event";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
-import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
 
 const createEventFormSchema = (t: ReturnType<typeof useTranslations<"calendar">>) => z.object({
   title: z.string().min(1, t("eventCreateForm.titleRequired")),
@@ -489,7 +489,7 @@ function EventCreateFormBody({
             }
           }}
         />
-        <QuickAddMandate
+        <QuickAddRequest
           open={quickAddMandate}
           onOpenChange={setQuickAddMandate}
           organizationUsers={orgUsers}

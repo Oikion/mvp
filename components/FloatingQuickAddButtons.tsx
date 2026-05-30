@@ -8,7 +8,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
-import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useTranslations } from "next-intl";
 import axios from "axios";
@@ -154,7 +154,7 @@ export function FloatingQuickAddButtons() {
               <span className="sr-only">{tMandates("QuickAdd.title")}</span>
             </Button>
           )}
-          <QuickAddMandate
+          <QuickAddRequest
             open={mandateOpen}
             onOpenChange={setMandateOpen}
             organizationUsers={users}
