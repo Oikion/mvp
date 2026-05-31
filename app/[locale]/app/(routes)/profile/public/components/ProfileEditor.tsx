@@ -729,7 +729,7 @@ export function ProfileEditor({
                                 variant="ghost"
                                 size="icon"
                                 aria-label={t("contactForm.removeField")}
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                                 onClick={() => removeField(field.id)}
                               >
                                 <Trash2 className="h-4 w-4" aria-hidden="true" />

@@ -301,7 +301,7 @@ export function ProductTour({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 -mr-2"
+            className="h-6 w-6 -mr-2 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onClick={onComplete}
             aria-label="Close tour"
           >

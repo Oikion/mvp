@@ -76,7 +76,7 @@ export function PaletteColorPicker({
       size="sm"
       disabled={disabled}
       className={cn(
-        "h-8 w-8 p-0 rounded-md border-2",
+        "h-8 w-8 p-0 rounded-md border-2 pointer-coarse:min-h-11 pointer-coarse:min-w-11",
         value ? `bg-palette-${value}-solid` : "bg-muted",
         className
       )}

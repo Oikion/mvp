@@ -281,7 +281,7 @@ export function TagManager({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                       onClick={() => openEditDialog(tag)}
                     >
                       <Pencil className="h-4 w-4" />
@@ -289,7 +289,7 @@ export function TagManager({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-8 w-8 text-destructive hover:text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                       onClick={() => setDeletingTag(tag)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -348,7 +348,7 @@ export function TagManager({
                     aria-pressed={formColor === color}
                     onClick={() => setFormColor(color)}
                     className={cn(
-                      "h-8 w-8 rounded-full border-2 transition-all",
+                      "h-8 w-8 rounded-full border-2 transition-all pointer-coarse:min-h-11 pointer-coarse:min-w-11",
                       formColor === color
                         ? "border-foreground scale-110"
                         : "border-transparent hover:scale-105"

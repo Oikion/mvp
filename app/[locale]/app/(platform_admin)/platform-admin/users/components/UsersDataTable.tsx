@@ -212,7 +212,7 @@ export function UsersDataTable({
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-8 w-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11">
               <span className="sr-only">{t("users.openMenu")}</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>

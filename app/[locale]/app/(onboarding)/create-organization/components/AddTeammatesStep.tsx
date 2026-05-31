@@ -356,7 +356,7 @@ export function AddTeammatesStep({
                   size="icon"
                   onClick={() => removeManualRow(index)}
                   aria-label={t("teammates.remove")}
-                  className="h-10 w-10 text-muted-foreground hover:text-destructive"
+                  className="h-10 w-10 text-muted-foreground hover:text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </Button>

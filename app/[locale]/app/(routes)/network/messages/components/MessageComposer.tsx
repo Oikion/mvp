@@ -344,7 +344,7 @@ export function MessageComposer({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 flex-shrink-0"
+            className="h-6 w-6 flex-shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onClick={onCancelReply}
             aria-label="Cancel reply"
           >

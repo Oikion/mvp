@@ -154,7 +154,7 @@ export function UploadModal({
                     variant="ghost"
                     size="icon"
                     aria-label="Remove file"
-                    className="h-6 w-6"
+                    className="h-6 w-6 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                     onClick={(e) => {
                       e.stopPropagation();
                       setFile(null);

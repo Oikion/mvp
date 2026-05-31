@@ -156,7 +156,7 @@ function PropertyCard({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           onClick={(e) => {
             e.stopPropagation();
             onUnlink();
@@ -231,7 +231,7 @@ function ClientCard({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           onClick={(e) => {
             e.stopPropagation();
             onUnlink();
@@ -299,7 +299,7 @@ function DocumentCard({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           onClick={(e) => {
             e.stopPropagation();
             onUnlink();
@@ -445,7 +445,7 @@ function ContactCard({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onClick={(e) => {
               e.stopPropagation();
               onUnlink();
@@ -517,7 +517,7 @@ function RequestCard({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onClick={(e) => {
               e.stopPropagation();
               onUnlink();
@@ -558,7 +558,7 @@ function DealCard({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           onClick={(e) => {
             e.stopPropagation();
             onUnlink();

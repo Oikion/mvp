@@ -201,7 +201,7 @@ export function ConversationSettings({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                         disabled={removingId === p.userId}
                         aria-label={tn("messagesSettings.removeMember")}
                         onClick={async () => {

@@ -192,7 +192,7 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
             variant="destructive"
             size="icon"
             aria-label={t("removePhoto")}
-            className="absolute -top-2 -right-2 h-8 w-8 rounded-full shadow-lg"
+            className="absolute -top-2 -right-2 h-8 w-8 rounded-full shadow-lg pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onClick={(e) => {
               e.stopPropagation();
               setShowRemoveDialog(true);

@@ -86,7 +86,7 @@ export function ChatAttachment({
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   onClick={() => setShowPreview(true)}
                 >
                   <Maximize2 className="h-4 w-4" />
@@ -94,7 +94,7 @@ export function ChatAttachment({
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   onClick={handleDownload}
                 >
                   <Download className="h-4 w-4" />

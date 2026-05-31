@@ -93,7 +93,7 @@ export function MiniMonthCalendar({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-7 w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           onClick={() => navigateMonth("prev")}
           aria-label={t("views.previousMonth")}
         >
@@ -105,7 +105,7 @@ export function MiniMonthCalendar({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-7 w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           onClick={() => navigateMonth("next")}
           aria-label={t("views.nextMonth")}
         >

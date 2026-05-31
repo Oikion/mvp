@@ -170,7 +170,7 @@ export function EntityCardActions({
         <Button
           variant={buttonVariant}
           size={buttonSize}
-          className={buttonSize === "icon" ? "h-8 w-8" : ""}
+          className={buttonSize === "icon" ? "h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11" : ""}
           onClick={(e) => e.stopPropagation()}
         >
           <MoreHorizontal className="h-4 w-4" />

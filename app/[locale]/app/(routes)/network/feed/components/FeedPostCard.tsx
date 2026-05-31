@@ -244,7 +244,7 @@ export function FeedPostCard({
           {post.isOwn && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Post options">
+                <Button variant="ghost" size="icon" className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11" aria-label="Post options">
                   <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>

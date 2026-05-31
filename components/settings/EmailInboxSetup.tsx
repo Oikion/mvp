@@ -317,7 +317,7 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   onClick={() => setInboxToDelete(inbox.id)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />

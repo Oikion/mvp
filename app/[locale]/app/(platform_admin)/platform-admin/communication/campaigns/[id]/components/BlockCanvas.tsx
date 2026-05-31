@@ -85,7 +85,7 @@ function SortableItem({
         <Button
           variant="ghost"
           size="icon"
-          className="mt-1 h-7 w-7 shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+          className="mt-1 h-7 w-7 shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           onClick={onDelete}
           aria-label="Delete block"
         >

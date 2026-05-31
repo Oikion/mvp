@@ -151,7 +151,7 @@ export function ContactComments({
                       variant="ghost"
                       size="sm"
                       aria-label={t("delete")}
-                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                       onClick={() => {
                         setCommentToDelete(comment.id);
                         setDeleteDialogOpen(true);

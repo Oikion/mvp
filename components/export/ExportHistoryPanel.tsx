@@ -207,7 +207,7 @@ function ExportHistoryItem({ record, locale, onReExport }: ExportHistoryItemProp
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                 onClick={() => onReExport(record)}
               >
                 <RefreshCw className="h-4 w-4" />

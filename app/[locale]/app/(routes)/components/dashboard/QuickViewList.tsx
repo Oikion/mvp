@@ -250,7 +250,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                             </Badge>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <Button variant="ghost" size="icon" className="h-7 w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11">
                                   <MoreHorizontal className="h-3.5 w-3.5" />
                                   <span className="sr-only">{tCommon("actions")}</span>
                                 </Button>
@@ -363,7 +363,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                           </Badge>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Button variant="ghost" size="icon" className="h-7 w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11">
                                 <MoreHorizontal className="h-3.5 w-3.5" />
                                 <span className="sr-only">{tCommon("actions")}</span>
                               </Button>

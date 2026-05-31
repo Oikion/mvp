@@ -289,7 +289,7 @@ export function FeedCommentThread({
                               variant="ghost"
                               size="icon"
                               aria-label="Delete comment"
-                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                               onClick={() => handleDeleteComment(comment.id)}
                             >
                               <X className="h-3 w-3" aria-hidden="true" />

@@ -184,7 +184,7 @@ function Lightbox({
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 text-white/80 hover:text-white z-10 p-2 rounded-full hover:bg-white/10 transition-colors"
+        className="absolute top-4 right-4 text-white/80 hover:text-white z-10 p-2 rounded-full hover:bg-white/10 transition-colors pointer-coarse:min-h-11 pointer-coarse:min-w-11"
         aria-label={t("close")}
       >
         <X className="h-6 w-6" />

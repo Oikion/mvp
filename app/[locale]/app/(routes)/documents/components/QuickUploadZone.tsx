@@ -170,7 +170,7 @@ export function QuickUploadZone({ className }: QuickUploadZoneProps) {
                   variant="ghost"
                   size="icon"
                   aria-label="Remove file"
-                  className="h-8 w-8 flex-shrink-0"
+                  className="h-8 w-8 flex-shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   onClick={() => {
                     setFile(null);
                     setShowNameDialog(false);

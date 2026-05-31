@@ -180,7 +180,7 @@ export function GoogleCalendarBanner({ className }: Props) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground"
+                className="h-7 w-7 text-muted-foreground pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                 onClick={handleDismiss}
                 aria-label={t("dismissLabel")}
               >
@@ -272,7 +272,7 @@ export function GoogleCalendarSyncButton() {
     <Button
       variant="outline"
       size="icon"
-      className="h-8 w-8"
+      className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
       onClick={handleSync}
       disabled={syncing}
       aria-label={t("syncNow")}

@@ -209,7 +209,7 @@ export function AttachmentList({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                     onClick={() => window.open(attachment.url, "_blank")}
                   >
                     <ExternalLink className="h-4 w-4" />
@@ -217,7 +217,7 @@ export function AttachmentList({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                     onClick={() => handleDownload(attachment)}
                   >
                     <Download className="h-4 w-4" />
@@ -226,7 +226,7 @@ export function AttachmentList({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-8 w-8 text-destructive hover:text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                       onClick={() => handleDelete(attachment)}
                     >
                       <X className="h-4 w-4" />

@@ -91,7 +91,7 @@ export function DataTableBulkActions<TData>({
         variant="ghost"
         size="icon"
         onClick={handleClearSelection}
-        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+        className="h-8 w-8 text-muted-foreground hover:text-foreground pointer-coarse:min-h-11 pointer-coarse:min-w-11"
       >
         <X className="h-4 w-4" />
         <span className="sr-only">{t("misc.clearSelection") || "Clear selection"}</span>

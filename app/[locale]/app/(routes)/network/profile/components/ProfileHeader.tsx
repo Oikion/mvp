@@ -170,7 +170,7 @@ export function ProfileHeader({
                   variant="ghost"
                   size="icon"
                   aria-label={tn("profileHeader.copyAriaLabel")}
-                  className="h-7 w-7 shrink-0"
+                  className="h-7 w-7 shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   onClick={handleCopyUrl}
                 >
                   {copied ? (

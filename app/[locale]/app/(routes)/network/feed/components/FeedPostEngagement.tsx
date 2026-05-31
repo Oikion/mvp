@@ -75,7 +75,7 @@ export function FeedPostEngagement({
         size="icon"
         onClick={handleLike}
         disabled={isLiking}
-        className={`h-8 w-8 ${
+        className={`h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11 ${
           isLiked
             ? "text-destructive hover:text-destructive"
             : "text-muted-foreground hover:text-foreground"
@@ -95,7 +95,7 @@ export function FeedPostEngagement({
         variant="ghost"
         size="icon"
         onClick={onToggleComments}
-        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+        className="h-8 w-8 text-muted-foreground hover:text-foreground pointer-coarse:min-h-11 pointer-coarse:min-w-11"
         aria-label={t?.post?.comment || "Comment"}
       >
         <MessageCircle className="h-4 w-4" aria-hidden="true" />
@@ -107,7 +107,7 @@ export function FeedPostEngagement({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+        className="h-8 w-8 text-muted-foreground hover:text-foreground pointer-coarse:min-h-11 pointer-coarse:min-w-11"
         onClick={handleShare}
         aria-label={t?.post?.share || "Share"}
       >

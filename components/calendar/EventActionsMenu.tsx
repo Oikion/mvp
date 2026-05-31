@@ -209,7 +209,7 @@ export function EventActionsMenu({
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="h-8 w-8 p-0 data-[state=open]:bg-muted"
+            className="h-8 w-8 p-0 data-[state=open]:bg-muted pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >

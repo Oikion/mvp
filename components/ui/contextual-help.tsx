@@ -125,6 +125,7 @@ export function HelpButton({
             "transition-colors focus-visible:outline-none focus-visible:ring-2",
             "focus-visible:ring-ring focus-visible:ring-offset-2",
             size === "sm" ? "h-5 w-5" : "h-6 w-6",
+            "pointer-coarse:min-h-11 pointer-coarse:min-w-11",
             triggerClassName
           )}
           aria-label="Help"

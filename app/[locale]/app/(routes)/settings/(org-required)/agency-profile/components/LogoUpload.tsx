@@ -189,7 +189,7 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
             type="button"
             variant="destructive"
             size="icon"
-            className="absolute -top-2 -right-2 h-7 w-7 rounded-full shadow-md"
+            className="absolute -top-2 -right-2 h-7 w-7 rounded-full shadow-md pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onClick={handleRemove}
             aria-label={t("removeLogo")}
           >

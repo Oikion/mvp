@@ -267,7 +267,7 @@ export function MassUploadModal({ open, onOpenChange, initialFiles }: MassUpload
                           variant="ghost"
                           size="icon"
                           aria-label="Remove file"
-                          className="h-8 w-8 flex-shrink-0"
+                          className="h-8 w-8 flex-shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                           onClick={() => removeFile(index)}
                         >
                           <X className="h-4 w-4" aria-hidden="true" />

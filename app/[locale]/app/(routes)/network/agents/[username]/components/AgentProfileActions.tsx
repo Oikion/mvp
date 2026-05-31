@@ -185,7 +185,7 @@ export function AgentProfileActions({
       {/* More */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11">
             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">{tn("agentActions.moreActions")}</span>
           </Button>

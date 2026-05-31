@@ -219,7 +219,7 @@ const FeedbackChatSheet = ({
                 size="icon"
                 aria-label={tCommon("buttons.back")}
                 onClick={handleBack}
-                className="h-8 w-8"
+                className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </Button>

@@ -537,7 +537,7 @@ export function PolisSettingsSheet({
                                       <Button
                                         size="sm"
                                         variant="ghost"
-                                        className="h-8 w-8 p-0 text-green-600"
+                                        className="h-8 w-8 p-0 text-green-600 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                                         onClick={() => handleRespond(partner.id, true)}
                                       >
                                         <Check className="h-4 w-4" />
@@ -545,7 +545,7 @@ export function PolisSettingsSheet({
                                       <Button
                                         size="sm"
                                         variant="ghost"
-                                        className="h-8 w-8 p-0 text-destructive"
+                                        className="h-8 w-8 p-0 text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                                         onClick={() => handleRespond(partner.id, false)}
                                       >
                                         <X className="h-4 w-4" />
@@ -556,7 +556,7 @@ export function PolisSettingsSheet({
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-8 w-8 p-0 text-destructive"
+                                      className="h-8 w-8 p-0 text-destructive pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                                       onClick={() => handleRevoke(partner.id)}
                                     >
                                       <X className="h-4 w-4" />

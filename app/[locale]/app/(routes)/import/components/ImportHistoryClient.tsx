@@ -416,7 +416,7 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                         aria-label={t("table.actions")}
                       >
                         <MoreHorizontal className="h-4 w-4" aria-hidden="true" />

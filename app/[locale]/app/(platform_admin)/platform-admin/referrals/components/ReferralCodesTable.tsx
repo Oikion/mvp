@@ -135,7 +135,7 @@ export function ReferralCodesTable({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-7 w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onClick={() => handleCopyCode(row.original.code)}
             aria-label="Copy code"
           >
@@ -200,7 +200,7 @@ export function ReferralCodesTable({
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-8 w-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11">
               <span className="sr-only">{t("openMenu")}</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>

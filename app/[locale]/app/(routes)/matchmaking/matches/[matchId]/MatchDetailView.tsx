@@ -655,7 +655,7 @@ function ContactRow({
           size="icon"
           aria-label={t("a11y.toggleScoreBreakdown")}
           aria-expanded={isExpanded}
-          className="h-8 w-8 shrink-0"
+          className="h-8 w-8 shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           onClick={onToggleExpand}
         >
           {isExpanded ? (

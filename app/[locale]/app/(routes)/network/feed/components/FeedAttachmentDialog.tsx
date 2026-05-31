@@ -220,7 +220,7 @@ export function FeedAttachmentDialog({
                   variant="ghost"
                   size="icon"
                   aria-label="Back"
-                  className="h-7 w-7 shrink-0"
+                  className="h-7 w-7 shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   onClick={() => {
                     setStep("type-select");
                     setSearch("");

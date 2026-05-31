@@ -375,7 +375,7 @@ export function FeedbackChatHistory({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 shrink-0"
+                  className="h-6 w-6 shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   onClick={clearPendingAttachment}
                   disabled={isAdding}
                   aria-label="Remove attachment"

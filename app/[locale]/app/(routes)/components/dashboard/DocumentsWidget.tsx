@@ -113,7 +113,7 @@ export const DocumentsWidget: React.FC<DocumentsWidgetProps> = ({ documents }) =
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                  className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   onClick={() => window.open(doc.url, "_blank")}
                 >
                   <Download className="h-4 w-4" />

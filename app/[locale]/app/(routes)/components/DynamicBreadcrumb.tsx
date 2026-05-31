@@ -201,7 +201,7 @@ export function DynamicBreadcrumb() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             onClick={handleBack}
             aria-label="Go back"
           >
