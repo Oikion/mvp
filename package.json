@@ -22,7 +22,7 @@
     "dev:clean": "pnpm clean:next && pnpm dev",
     "dev:legacy": "node server.js",
     "prebuild": "node scripts/sync-version.js",
-    "build": "prisma generate && ([ \"$VERCEL_ENV\" = 'preview' ] || (prisma migrate resolve --applied '20260515153837_add_org_subscription_org_index' 2>/dev/null; prisma migrate resolve --applied '20260515230619_rename_notification_delivery_log_table' 2>/dev/null; prisma migrate resolve --applied '20260531185819_reconcile_notification_orgsub_renames' 2>/dev/null; prisma migrate deploy)) && NODE_OPTIONS='--max-old-space-size=8192' next build --webpack",
+    "build": "prisma generate && ([ \"$VERCEL_ENV\" = 'preview' ] || (prisma migrate resolve --applied '20260515153837_add_org_subscription_org_index' 2>/dev/null; prisma migrate resolve --applied '20260515230619_rename_notification_delivery_log_table' 2>/dev/null; prisma migrate resolve --applied '20260531185819_reconcile_notification_orgsub_renames' 2>/dev/null; prisma migrate deploy)) && NODE_OPTIONS='--max-old-space-size=7168' next build --webpack",
     "_build_note": "2>/dev/null on migrate resolve is intentional: suppresses 'already applied' exit-1 on redeploys. migrate deploy runs unconditionally after and will surface real errors.",
     "prestart": "node scripts/sync-version.js",
     "start": "next start",
