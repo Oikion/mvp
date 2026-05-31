@@ -10,8 +10,88 @@ import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchClientWebhook } from "@/lib/webhooks";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 import { createClientSchema, updateClientSchema } from "@/lib/validations/crm";
-import { encryptContactForOrg } from "@/lib/model-encryption";
+import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { validateAssignedTo } from "@/lib/validate-assigned-to";
+
+// ── Legacy clients → Contact compatibility adapter ───────────────────────────
+// The legacy `clients` / `client_Contacts` Prisma models were removed in the
+// v2.0 migration. This route keeps its legacy client-shaped request/response
+// contract (so consumers — QuickAddClient, CreateDealButton, NewPropertyForm —
+// need no changes) but stores/reads via the canonical `Contact` model.
+const CLIENT_TYPE_TO_CATEGORY: Record<string, string> = {
+  BUYER: "BUYER", SELLER: "SELLER", RENTER: "TENANT", INVESTOR: "INVESTOR", REFERRAL_PARTNER: "BROKER",
+};
+const CLIENT_STATUS_TO_CONTACT: Record<string, string> = {
+  LEAD: "LEAD", ACTIVE: "ACTIVE", INACTIVE: "INACTIVE", CONVERTED: "ACTIVE", LOST: "INACTIVE",
+};
+const LEAD_SOURCE_TO_CONTACT: Record<string, string> = {
+  REFERRAL: "REFERRAL", WEB: "WEB", PORTAL: "PORTAL_LEAD", WALK_IN: "WALK_IN", SOCIAL: "SOCIAL_MEDIA",
+};
+
+function buildAddresses(f: Record<string, any>) {
+  const out: any[] = [];
+  if (f.billing_street || f.billing_city || f.billing_postal_code || f.billing_state || f.billing_country) {
+    out.push({ type: "billing", street: f.billing_street ?? null, city: f.billing_city ?? null, state: f.billing_state ?? null, postalCode: f.billing_postal_code ?? null, country: f.billing_country ?? null });
+  }
+  if (f.shipping_street || f.shipping_city || f.shipping_postal_code || f.shipping_state || f.shipping_country) {
+    out.push({ type: "shipping", street: f.shipping_street ?? null, city: f.shipping_city ?? null, state: f.shipping_state ?? null, postalCode: f.shipping_postal_code ?? null, country: f.shipping_country ?? null });
+  }
+  return out.length ? out : undefined;
+}
+
+// Maps a legacy client-shaped object to Contact fields. Only sets keys that are
+// present, so it works for both create (full) and update (partial). Legacy-only
+// fields with no Contact equivalent are intentionally dropped: website, fax,
+// channels, draft_status, member_of.
+function mapLegacyClientToContact(f: Record<string, any>) {
+  const c: Record<string, any> = {};
+  const setIf = (k: string, v: any) => { if (v !== undefined) c[k] = v; };
+  setIf("friendlyId", f.friendlyId);
+  setIf("createdBy", f.createdBy);
+  setIf("updatedBy", f.updatedBy);
+  setIf("organizationId", f.organizationId);
+  // displayName is required on Contact — fall back to full_name / company_name.
+  if (f.client_name !== undefined || f.full_name !== undefined || f.company_name !== undefined) {
+    c.displayName = f.client_name ?? f.full_name ?? f.company_name ?? "";
+  }
+  setIf("companyName", f.company_name);
+  setIf("email", f.primary_email);
+  setIf("secondaryEmail", f.secondary_email);
+  setIf("primaryPhone", f.primary_phone);
+  setIf("secondaryPhone", f.secondary_phone);
+  setIf("officePhone", f.office_phone);
+  setIf("taxId", f.afm);
+  setIf("doy", f.doy);
+  setIf("vatNumber", f.vat);
+  setIf("companyGemi", f.company_gemi);
+  setIf("companyId", f.company_id);
+  setIf("idDocument", f.id_doc);
+  setIf("notes", f.description);
+  setIf("communicationNotes", f.communication_notes);
+  setIf("languagePreference", f.language);
+  setIf("gdprConsentGiven", f.gdpr_consent);
+  setIf("allowMarketing", f.allow_marketing);
+  setIf("assignedAgentId", f.assigned_to);
+  if (f.person_type !== undefined) c.isCompany = f.person_type === "COMPANY";
+  if (f.client_type !== undefined) c.category = f.client_type ? [CLIENT_TYPE_TO_CATEGORY[f.client_type] ?? "OTHER"] : [];
+  if (f.client_status !== undefined) c.status = CLIENT_STATUS_TO_CONTACT[f.client_status] ?? "LEAD";
+  if (f.lead_source !== undefined && f.lead_source !== null) c.source = LEAD_SOURCE_TO_CONTACT[f.lead_source];
+  const addresses = buildAddresses(f);
+  if (addresses !== undefined) c.addresses = addresses;
+  return c;
+}
+
+// Maps a (decrypted) Contact row back to the legacy client shape consumers read.
+function mapContactToLegacy(c: Record<string, any>) {
+  return {
+    ...c,
+    client_name: c.displayName ?? null,
+    primary_email: c.email ?? null,
+    primary_phone: c.primaryPhone ?? null,
+    client_status: c.status ?? null,
+    assigned_to: c.assignedAgentId ?? null,
+  };
+}
 
 export async function POST(req: Request) {
   try {
@@ -88,52 +168,50 @@ export async function POST(req: Request) {
     // Validate assigned_to is a real Users.id to prevent FK violations
     const validatedAssignedTo = await validateAssignedTo(assigned_to);
 
-    const newClient = await prismadb.clients.create({
-      data: await encryptContactForOrg({
-        friendlyId,
-        createdBy: user.id,
-        updatedBy: user.id,
-        organizationId,
-        client_name,
-        primary_email,
-        primary_phone,
-        secondary_phone,
-        secondary_email,
-        person_type,
-        full_name,
-        company_name,
-        channels,
-        language,
-        afm,
-        doy,
-        id_doc,
-        company_gemi,
-        gdpr_consent,
-        allow_marketing,
-        lead_source,
-        draft_status: draft_status ?? false,
-        client_type,
-        client_status,
-        communication_notes,
-        office_phone,
-        website,
-        fax,
-        company_id,
-        vat,
-        billing_street,
-        billing_postal_code,
-        billing_city,
-        billing_state,
-        billing_country,
-        shipping_street,
-        shipping_postal_code,
-        shipping_city,
-        shipping_state,
-        shipping_country,
-        description,
-        assigned_to: validatedAssignedTo,
-        member_of,
-      }, organizationId),
+    const newClient = await prismadb.contact.create({
+      data: await encryptContactForOrg(
+        mapLegacyClientToContact({
+          friendlyId,
+          createdBy: user.id,
+          updatedBy: user.id,
+          organizationId,
+          client_name,
+          primary_email,
+          primary_phone,
+          secondary_phone,
+          secondary_email,
+          person_type,
+          full_name,
+          company_name,
+          language,
+          afm,
+          doy,
+          id_doc,
+          company_gemi,
+          gdpr_consent,
+          allow_marketing,
+          lead_source,
+          client_type,
+          client_status,
+          communication_notes,
+          office_phone,
+          company_id,
+          vat,
+          billing_street,
+          billing_postal_code,
+          billing_city,
+          billing_state,
+          billing_country,
+          shipping_street,
+          shipping_postal_code,
+          shipping_city,
+          shipping_state,
+          shipping_country,
+          description,
+          assigned_to: validatedAssignedTo,
+        }),
+        organizationId
+      ),
     });
 
     await invalidateCache(["clients:list", "dashboard:accounts-count", assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
@@ -151,7 +229,7 @@ export async function POST(req: Request) {
       });
 
       // Dispatch webhook for external integrations
-      dispatchClientWebhook(organizationId, "client.created", newClient).catch(console.error);
+      dispatchClientWebhook(organizationId, "client.created", mapContactToLegacy(newClient)).catch(console.error);
     }
 
     return NextResponse.json({ newClient }, { status: 200 });
@@ -223,7 +301,7 @@ export async function PUT(req: Request) {
     } = validationResult.data;
 
     // Verify the client belongs to the current organization before updating
-    const existingClient = await prismadb.clients.findFirst({
+    const existingClient = await prismadb.contact.findFirst({
       where: { id, organizationId },
     });
 
@@ -236,7 +314,7 @@ export async function PUT(req: Request) {
       "client:update",
       "contact",
       id,
-      existingClient.assigned_to
+      existingClient.assignedAgentId
     );
     if (!updateCheck.allowed) {
       return NextResponse.json(
@@ -246,7 +324,7 @@ export async function PUT(req: Request) {
     }
 
     // Permission check: Check if user can reassign agent
-    if (assigned_to !== undefined && assigned_to !== existingClient.assigned_to) {
+    if (assigned_to !== undefined && assigned_to !== existingClient.assignedAgentId) {
       const reassignCheck = await canPerformAction("client:reassign_agent");
       if (!reassignCheck.allowed) {
         return NextResponse.json(
@@ -261,50 +339,48 @@ export async function PUT(req: Request) {
       ? await validateAssignedTo(assigned_to)
       : undefined;
 
-    const updatedClient = await prismadb.clients.update({
+    const updatedClient = await prismadb.contact.update({
       where: { id },
-      data: await encryptContactForOrg({
-        updatedBy: user.id,
-        client_name,
-        primary_email,
-        primary_phone,
-        secondary_phone,
-        secondary_email,
-        person_type,
-        full_name,
-        company_name,
-        channels,
-        language,
-        afm,
-        doy,
-        id_doc,
-        company_gemi,
-        gdpr_consent,
-        allow_marketing,
-        lead_source,
-        draft_status: draft_status !== undefined ? draft_status : undefined,
-        client_type,
-        client_status,
-        communication_notes,
-        office_phone,
-        website,
-        fax,
-        company_id,
-        vat,
-        billing_street,
-        billing_postal_code,
-        billing_city,
-        billing_state,
-        billing_country,
-        shipping_street,
-        shipping_postal_code,
-        shipping_city,
-        shipping_state,
-        shipping_country,
-        description,
-        assigned_to: validatedAssignedTo,
-        member_of,
-      }, organizationId),
+      data: await encryptContactForOrg(
+        mapLegacyClientToContact({
+          updatedBy: user.id,
+          client_name,
+          primary_email,
+          primary_phone,
+          secondary_phone,
+          secondary_email,
+          person_type,
+          full_name,
+          company_name,
+          language,
+          afm,
+          doy,
+          id_doc,
+          company_gemi,
+          gdpr_consent,
+          allow_marketing,
+          lead_source,
+          client_type,
+          client_status,
+          communication_notes,
+          office_phone,
+          company_id,
+          vat,
+          billing_street,
+          billing_postal_code,
+          billing_city,
+          billing_state,
+          billing_country,
+          shipping_street,
+          shipping_postal_code,
+          shipping_city,
+          shipping_state,
+          shipping_country,
+          description,
+          assigned_to: validatedAssignedTo,
+        }),
+        organizationId
+      ),
     });
 
     await invalidateCache(["clients:list", `account:${id}`, assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
@@ -314,8 +390,8 @@ export async function PUT(req: Request) {
       id,
       organizationId,
       "ACCOUNT_UPDATED",
-      `Client "${updatedClient.client_name}" was updated`,
-      `${user.name || user.email} updated the client "${updatedClient.client_name}"`,
+      `Client "${updatedClient.displayName}" was updated`,
+      `${user.name || user.email} updated the client "${updatedClient.displayName}"`,
       {
         updatedBy: user.id,
         updatedByName: user.name || user.email,
@@ -323,7 +399,7 @@ export async function PUT(req: Request) {
     );
 
     // Dispatch webhook for external integrations
-    dispatchClientWebhook(organizationId, "client.updated", updatedClient).catch(console.error);
+    dispatchClientWebhook(organizationId, "client.updated", mapContactToLegacy(updatedClient)).catch(console.error);
 
     return NextResponse.json({ updatedClient }, { status: 200 });
   } catch (error: unknown) {
@@ -382,24 +458,32 @@ export async function GET(req: Request) {
     if (minimal) {
       const where: Record<string, unknown> = { organizationId };
       if (search && search.trim()) {
-        where.client_name = {
+        where.displayName = {
           contains: search.trim(),
           mode: "insensitive",
         };
       }
-      
-      const clients = await prismadb.clients.findMany({
+
+      const contacts = await prismadb.contact.findMany({
         where,
         select: {
           id: true,
-          client_name: true,
+          displayName: true,
         },
-        orderBy: { client_name: "asc" },
+        orderBy: { displayName: "asc" },
         take: 1000, // Limit for selector use cases
       });
 
+      // Decrypt displayName and return the legacy { id, client_name } shape.
+      const items = await Promise.all(
+        contacts.map(async (row) => {
+          const dec = await decryptContactForOrg(row, organizationId);
+          return { id: dec.id, client_name: dec.displayName };
+        })
+      );
+
       return NextResponse.json({
-        items: clients,
+        items,
         nextCursor: null,
         hasMore: false,
       }, { status: 200 });
@@ -416,44 +500,42 @@ export async function GET(req: Request) {
 
     // Build where clause
     const where: Record<string, unknown> = { organizationId };
-    
+
     if (status) {
-      where.client_status = status;
+      where.status = status;
     }
-    
+
     if (search && search.trim()) {
       where.OR = [
-        { client_name: { contains: search.trim(), mode: "insensitive" } },
-        { primary_email: { contains: search.trim(), mode: "insensitive" } },
+        { displayName: { contains: search.trim(), mode: "insensitive" } },
+        { email: { contains: search.trim(), mode: "insensitive" } },
       ];
     }
 
     // Fetch one extra to check if there are more items
-    const clients = await prismadb.clients.findMany({
+    const contacts = await prismadb.contact.findMany({
       where,
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0, // Skip the cursor item itself
       orderBy: { createdAt: "desc" },
       include: {
-        Users_Clients_assigned_toToUsers: { select: { name: true } },
-        Client_Contacts: {
-          select: {
-            contact_first_name: true,
-            contact_last_name: true,
-          },
-          take: 4,
-        },
+        assignedAgent: { select: { name: true } },
       },
     });
 
     // Check if there are more items
-    const hasMore = clients.length > limit;
-    const items = hasMore ? clients.slice(0, -1) : clients;
-    const nextCursor = hasMore ? items[items.length - 1]?.id : null;
+    const hasMore = contacts.length > limit;
+    const page = hasMore ? contacts.slice(0, -1) : contacts;
+    const nextCursor = hasMore ? page[page.length - 1]?.id : null;
+
+    // Decrypt each Contact and map back to the legacy client shape consumers read.
+    const items = await Promise.all(
+      page.map(async (row) => mapContactToLegacy(await decryptContactForOrg(row, organizationId)))
+    );
 
     return NextResponse.json({
-      items: JSON.parse(JSON.stringify(items)), // Serialize for client
+      items,
       nextCursor,
       hasMore,
     }, { status: 200 });
