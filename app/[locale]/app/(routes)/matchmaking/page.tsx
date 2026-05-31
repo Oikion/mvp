@@ -1,4 +1,5 @@
 import Container from "../components/ui/Container";
+import { getTranslations } from "next-intl/server";
 import { getDictionary } from "@/dictionaries";
 import { getRequestMatchAnalytics } from "@/actions/matchmaking/get-request-matches";
 import { getPersistedMatches } from "@/actions/matchmaking/get-persisted-matches";
@@ -9,6 +10,7 @@ import { MatchmakingDashboard } from "./components/MatchmakingDashboard";
 const MatchmakingPage = async ({ params }: { params: Promise<{ locale: string }> }) => {
   const { locale } = await params;
   const dict = await getDictionary(locale);
+  const t = await getTranslations("matchmaking");
 
   const [requestAnalytics, persistedMatches, networkMatches, networkSettings, networkPartners] = await Promise.all([
     getRequestMatchAnalytics(),
@@ -20,8 +22,8 @@ const MatchmakingPage = async ({ params }: { params: Promise<{ locale: string }>
 
   return (
     <Container
-      title={dict.matchmaking?.title || "Matchmaking"}
-      description={dict.matchmaking?.description || "Request-Property matching analytics"}
+      title={dict.matchmaking?.title || t("title")}
+      description={dict.matchmaking?.description || t("description")}
     >
       <MatchmakingDashboard
         locale={locale}

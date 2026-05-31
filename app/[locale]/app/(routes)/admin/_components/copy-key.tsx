@@ -3,14 +3,15 @@
 import React from "react";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 /**
  * Masks a sensitive key value, showing only a prefix and last few characters
  * Example: "sk-abc123xyz789" becomes "sk-...z789"
  */
-function maskKey(key: string | undefined): string {
-  if (!key) return "Not set";
-  
+function maskKey(key: string | undefined, notSetLabel: string): string {
+  if (!key) return notSetLabel;
+
   // If key is too short, show asterisks
   if (key.length <= 8) {
     return "****" + key.slice(-4);
@@ -33,12 +34,13 @@ const CopyKeyComponent = ({
   envValue?: string;
   message: string;
 }) => {
+  const t = useTranslations("admin.copyKey");
   const actualValue = keyValue || envValue || "";
-  
+
   const onCopy = () => {
     if (actualValue) {
       navigator.clipboard.writeText(actualValue);
-      toast.success(message + " - copied to clipboard");
+      toast.success(t("copied", { message }));
     }
   };
 
@@ -54,10 +56,10 @@ const CopyKeyComponent = ({
           onCopy();
         }
       }}
-      title="Click to copy full key"
-      aria-label="Click to copy full key"
+      title={t("clickToCopy")}
+      aria-label={t("clickToCopy")}
     >
-      {maskKey(actualValue)}
+      {maskKey(actualValue, t("notSet"))}
       <Copy className="w-4 h-4" aria-hidden="true" />
     </p>
   );

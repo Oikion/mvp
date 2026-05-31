@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ export function ShareModal({
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const t = useTranslations("admin.shareModal");
   const { toast } = useAppToast();
 
   // Use SWR for connections - only fetch when modal is open
@@ -93,14 +95,14 @@ export function ShareModal({
 
     try {
       await shareWithUser(entityType, entityId, selectedUser, permissions, message.trim() || undefined);
-      toast.success("Shared Successfully", { description: `${entityName} has been shared.`, isTranslationKey: false });
+      toast.success(t("toast.shared"), { description: t("toast.sharedDesc", { name: entityName }), isTranslationKey: false });
       onOpenChange(false);
       setSelectedUser(null);
       setMessage("");
       router.refresh();
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Failed to share";
-      toast.error("Error", { description: msg, isTranslationKey: false });
+      const msg = error instanceof Error ? error.message : t("toast.shareFailed");
+      toast.error(t("toast.error"), { description: msg, isTranslationKey: false });
     }
   };
 
@@ -115,9 +117,9 @@ export function ShareModal({
   }, [connections, existingShareIds, searchQuery]);
 
   const entityTypeLabels = {
-    PROPERTY: "property",
-    CONTACT: "contact",
-    DOCUMENT: "document",
+    PROPERTY: t("entityType.property"),
+    CONTACT: t("entityType.contact"),
+    DOCUMENT: t("entityType.document"),
   };
 
   return (
@@ -126,10 +128,10 @@ export function ShareModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5 text-primary" />
-            Share {entityTypeLabels[entityType]}
+            {t("title", { entityType: entityTypeLabels[entityType] })}
           </DialogTitle>
           <DialogDescription>
-            Share &ldquo;{entityName}&rdquo; with a connection
+            {t("description", { name: entityName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -138,7 +140,7 @@ export function ShareModal({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search connections..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -150,17 +152,17 @@ export function ShareModal({
             {isLoadingConnections ? (
               <div className="py-8 text-center">
                 <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mt-2">Loading...</p>
+                <p className="text-sm text-muted-foreground mt-2">{t("loading")}</p>
               </div>
             ) : filteredConnections.length === 0 ? (
               <div className="py-8 text-center">
                 <Users className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
                 <p className="text-sm text-muted-foreground">
                   {connections.length === 0
-                    ? "You need connections to share with"
+                    ? t("empty.noConnections")
                     : existingShareIds.size === connections.length
-                    ? "Already shared with all connections"
-                    : "No connections match your search"}
+                    ? t("empty.allShared")
+                    : t("empty.noMatch")}
                 </p>
               </div>
             ) : (
@@ -182,7 +184,7 @@ export function ShareModal({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 text-left">
-                    <p className="font-medium">{conn.name || "Unknown"}</p>
+                    <p className="font-medium">{conn.name || t("unknownUser")}</p>
                     <p className="text-sm text-muted-foreground">{conn.email}</p>
                   </div>
                   {selectedUser === conn.id && (
@@ -197,7 +199,7 @@ export function ShareModal({
           {selectedUser && (
             <>
               <div className="space-y-3">
-                <Label>Permissions</Label>
+                <Label>{t("permissions.label")}</Label>
                 <RadioGroup
                   value={permissions}
                   onValueChange={(v: string) =>
@@ -209,9 +211,9 @@ export function ShareModal({
                     <div className="flex items-center gap-2 flex-1">
                       <MessageSquare className="h-4 w-4 text-muted-foreground" />
                       <Label htmlFor="view-comment" className="cursor-pointer flex-1">
-                        <span className="font-medium">Can view & comment</span>
+                        <span className="font-medium">{t("permissions.viewComment")}</span>
                         <p className="text-xs text-muted-foreground font-normal">
-                          Can view details and add notes/comments
+                          {t("permissions.viewCommentDesc")}
                         </p>
                       </Label>
                     </div>
@@ -221,9 +223,9 @@ export function ShareModal({
                     <div className="flex items-center gap-2 flex-1">
                       <Eye className="h-4 w-4 text-muted-foreground" />
                       <Label htmlFor="view-only" className="cursor-pointer flex-1">
-                        <span className="font-medium">View only</span>
+                        <span className="font-medium">{t("permissions.viewOnly")}</span>
                         <p className="text-xs text-muted-foreground font-normal">
-                          Can only view details
+                          {t("permissions.viewOnlyDesc")}
                         </p>
                       </Label>
                     </div>
@@ -233,10 +235,10 @@ export function ShareModal({
 
               {/* Message */}
               <div className="space-y-2">
-                <Label htmlFor="message">Message (optional)</Label>
+                <Label htmlFor="message">{t("messageLabel")}</Label>
                 <Textarea
                   id="message"
-                  placeholder="Add a note about why you're sharing this..."
+                  placeholder={t("messagePlaceholder")}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={2}
@@ -248,7 +250,7 @@ export function ShareModal({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleShare} disabled={!selectedUser || isSharing}>
             {isSharing ? (
@@ -256,7 +258,7 @@ export function ShareModal({
             ) : (
               <Share2 className="h-4 w-4 mr-2" />
             )}
-            Share
+            {t("share")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -536,7 +536,7 @@ export function PropertyImageUploader({
     if (realIds.length > 0) {
       const result = await reorderPropertyImages(realIds);
       if (!result.success) {
-        toast.error("Failed to save order", { isTranslationKey: false });
+        toast.error(t("propertyImages.errors.saveOrderFailed"), { isTranslationKey: false });
         // Revert
         updateImages(() => images);
       }
@@ -559,12 +559,12 @@ export function PropertyImageUploader({
           }))
         );
       } else {
-        toast.error(result.error || "Failed to set primary", {
+        toast.error(result.error || t("propertyImages.errors.setPrimaryFailed"), {
           isTranslationKey: false,
         });
       }
     } catch {
-      toast.error("Failed to set primary image", { isTranslationKey: false });
+      toast.error(t("propertyImages.errors.setPrimaryFailed"), { isTranslationKey: false });
     } finally {
       setIsSettingPrimary(null);
     }
@@ -601,12 +601,12 @@ export function PropertyImageUploader({
           return filtered;
         });
       } else {
-        toast.error(result.error || "Failed to delete image", {
+        toast.error(result.error || t("propertyImages.errors.deleteFailed"), {
           isTranslationKey: false,
         });
       }
     } catch {
-      toast.error("Failed to delete image", { isTranslationKey: false });
+      toast.error(t("propertyImages.errors.deleteFailed"), { isTranslationKey: false });
     } finally {
       setIsDeleting(null);
     }

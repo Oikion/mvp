@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 
 import { Button } from "@/components/ui/button";
@@ -90,6 +91,8 @@ export function SocialProfileForm({
   const [newCertification, setNewCertification] = useState("");
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("profile.socialForm");
+  const tCommon = useTranslations("common");
 
   const socialLinks = profile?.socialLinks as Record<string, string> | null;
 
@@ -138,11 +141,11 @@ export function SocialProfileForm({
 
       await axios.post("/api/profile/social", payload);
 
-      toast.success("Profile Updated", { description: data.isPublic ? "Your profile is now public." : "Your profile has been updated.", isTranslationKey: false });
+      toast.success(t("toast.updated"), { description: data.isPublic ? t("toast.updatedPublic") : t("toast.updatedDesc"), isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to update profile. Please try again.", isTranslationKey: false });
+      toast.error(tCommon("toast.error"), { description: error.response?.data || t("toast.errorDesc"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -218,9 +221,9 @@ export function SocialProfileForm({
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/50">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Make Profile Public</FormLabel>
+                <FormLabel className="text-base">{t("makePublic")}</FormLabel>
                 <FormDescription>
-                  When enabled, your profile will be visible to anyone with the link
+                  {t("makePublicDescription")}
                 </FormDescription>
               </div>
               <FormControl>
@@ -240,7 +243,7 @@ export function SocialProfileForm({
           name="slug"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Profile URL *</FormLabel>
+              <FormLabel>{t("profileUrl")}</FormLabel>
               <FormControl>
                 <div className="flex items-center">
                   <span className="px-3 py-2 bg-muted border border-r-0 rounded-l-md text-sm text-muted-foreground">
@@ -249,14 +252,13 @@ export function SocialProfileForm({
                   <Input
                     {...field}
                     className="rounded-l-none"
-                    placeholder="your-name"
+                    placeholder={t("slugPlaceholder")}
                     disabled={isLoading}
                   />
                 </div>
               </FormControl>
               <FormDescription>
-                This will be your public profile URL. Use lowercase letters, numbers, and
-                hyphens only.
+                {t("profileUrlDescription")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -267,14 +269,14 @@ export function SocialProfileForm({
 
         {/* Contact Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Contact Information</h3>
+          <h3 className="text-lg font-medium">{t("contactInformation")}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="publicEmail"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Public Email</FormLabel>
+                  <FormLabel>{t("publicEmail")}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -293,7 +295,7 @@ export function SocialProfileForm({
               name="publicPhone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Public Phone</FormLabel>
+                  <FormLabel>{t("publicPhone")}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -316,17 +318,17 @@ export function SocialProfileForm({
           name="bio"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bio</FormLabel>
+              <FormLabel>{t("bio")}</FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
-                  placeholder="Tell potential clients about yourself, your experience, and what makes you unique..."
+                  placeholder={t("bioPlaceholder")}
                   rows={5}
                   disabled={isLoading}
                 />
               </FormControl>
               <FormDescription>
-                {(field.value?.length || 0)}/1000 characters
+                {t("bioCharacters", { count: field.value?.length || 0 })}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -339,7 +341,7 @@ export function SocialProfileForm({
           name="yearsExperience"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Years of Experience</FormLabel>
+              <FormLabel>{t("yearsExperience")}</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -365,9 +367,9 @@ export function SocialProfileForm({
         {/* Specializations */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-medium">Specializations</h3>
+            <h3 className="text-lg font-medium">{t("specializations")}</h3>
             <p className="text-sm text-muted-foreground">
-              Select the types of properties you specialize in
+              {t("specializationsHint")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -392,9 +394,9 @@ export function SocialProfileForm({
         {/* Service Areas */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-medium">Service Areas</h3>
+            <h3 className="text-lg font-medium">{t("serviceAreas")}</h3>
             <p className="text-sm text-muted-foreground">
-              Add the areas/neighborhoods where you operate
+              {t("serviceAreasHint")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2 mb-3">
@@ -412,7 +414,7 @@ export function SocialProfileForm({
             <Input
               value={newServiceArea}
               onChange={(e) => setNewServiceArea(e.target.value)}
-              placeholder="e.g., Κολωνάκι, Γλυφάδα"
+              placeholder={t("serviceAreaPlaceholder")}
               className="max-w-xs"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -422,7 +424,7 @@ export function SocialProfileForm({
               }}
               disabled={isLoading}
             />
-            <Button type="button" variant="outline" size="sm" aria-label="Add service area" onClick={addServiceArea}>
+            <Button type="button" variant="outline" size="sm" aria-label={t("addServiceArea")} onClick={addServiceArea}>
               <Plus className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
@@ -433,9 +435,9 @@ export function SocialProfileForm({
         {/* Languages */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-medium">Languages</h3>
+            <h3 className="text-lg font-medium">{t("languages")}</h3>
             <p className="text-sm text-muted-foreground">
-              Select the languages you speak
+              {t("languagesHint")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -460,9 +462,9 @@ export function SocialProfileForm({
         {/* Certifications */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-medium">Certifications</h3>
+            <h3 className="text-lg font-medium">{t("certifications")}</h3>
             <p className="text-sm text-muted-foreground">
-              Add your professional certifications and qualifications
+              {t("certificationsHint")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2 mb-3">
@@ -480,7 +482,7 @@ export function SocialProfileForm({
             <Input
               value={newCertification}
               onChange={(e) => setNewCertification(e.target.value)}
-              placeholder="e.g., Licensed Real Estate Agent"
+              placeholder={t("certificationPlaceholder")}
               className="max-w-sm"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -494,7 +496,7 @@ export function SocialProfileForm({
               type="button"
               variant="outline"
               size="sm"
-              aria-label="Add certification"
+              aria-label={t("addCertification")}
               onClick={addCertification}
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
@@ -507,9 +509,9 @@ export function SocialProfileForm({
         {/* Social Links */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-medium">Social Links</h3>
+            <h3 className="text-lg font-medium">{t("socialLinks")}</h3>
             <p className="text-sm text-muted-foreground">
-              Add links to your social media profiles
+              {t("socialLinksHint")}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -593,7 +595,7 @@ export function SocialProfileForm({
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Profile
+            {t("saveProfile")}
           </Button>
         </div>
       </form>

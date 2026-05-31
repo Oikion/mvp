@@ -16,20 +16,20 @@ import { RoleCell } from "./RoleCell";
 const statuses = [
   {
     value: "ACTIVE",
-    label: "Active",
+    labelKey: "employees.status.active",
     icon: PlayIcon,
   },
   {
     value: "INACTIVE",
-    label: "Inactive",
+    labelKey: "employees.status.inactive",
     icon: StopIcon,
   },
   {
     value: "PENDING",
-    label: "Pending",
+    labelKey: "employees.status.pending",
     icon: PauseIcon,
   },
-];
+] as const;
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -100,7 +100,8 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const status = row.getValue("userStatus") as string;
       const statusObj = statuses.find((s) => s.value === status);
-      
+      const tn = useTranslations("network");
+
       if (!statusObj) {
         return <Badge variant="secondary">{status}</Badge>;
       }
@@ -111,7 +112,7 @@ export const columns: ColumnDef<User>[] = [
             <statusObj.icon className="mr-2 h-4 w-4 text-muted-foreground" />
           )}
           <Badge variant={status === "ACTIVE" ? "default" : "secondary"}>
-            {statusObj.label}
+            {tn(statusObj.labelKey)}
           </Badge>
         </div>
       );

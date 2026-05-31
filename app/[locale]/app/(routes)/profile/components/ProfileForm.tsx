@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface ProfileFormProps {
   data: {
@@ -45,6 +46,8 @@ export function ProfileForm({ data }: ProfileFormProps) {
   const router = useRouter();
 
   const { toast } = useAppToast();
+  const t = useTranslations("profile.profileForm");
+  const tCommon = useTranslations("common");
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -79,8 +82,8 @@ export function ProfileForm({ data }: ProfileFormProps) {
           // Check for specific Clerk errors
           const errorResponse = usernameError as { response?: { data?: { error?: string } } };
           const errorMessage = errorResponse?.response?.data?.error || "Failed to update username";
-          
-          toast.error("Username Update Failed", { description: errorMessage, isTranslationKey: false });
+
+          toast.error(t("toast.usernameFailed"), { description: errorMessage, isTranslationKey: false });
           setIsLoading(false);
           return;
         }
@@ -93,10 +96,10 @@ export function ProfileForm({ data }: ProfileFormProps) {
         account_name: formData.account_name,
       });
       
-      toast.success("Profile updated", { description: usernameChanged ? "Note: Username changes may take a moment to reflect everywhere." : "Your profile has been saved.", isTranslationKey: false });
+      toast.success(t("toast.updated"), { description: usernameChanged ? t("toast.updatedUsernameNote") : t("toast.updatedDesc"), isTranslationKey: false });
       router.refresh();
     } catch (error) {
-      toast.error("Error", { description: "Something went wrong while updating your profile.", isTranslationKey: false });
+      toast.error(tCommon("toast.error"), { description: t("toast.errorDesc"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -113,9 +116,9 @@ export function ProfileForm({ data }: ProfileFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem className="w-1/3">
-              <FormLabel>Full name</FormLabel>
+              <FormLabel>{t("fullName")}</FormLabel>
               <FormControl>
-                <Input disabled={isLoading} placeholder="John Doe" {...field} />
+                <Input disabled={isLoading} placeholder={t("fullNamePlaceholder")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -126,12 +129,12 @@ export function ProfileForm({ data }: ProfileFormProps) {
           name="username"
           render={({ field }) => (
             <FormItem className="w-1/3">
-              <FormLabel>Username</FormLabel>
+              <FormLabel>{t("username")}</FormLabel>
               <FormControl>
-                <Input disabled={isLoading} placeholder="jdoe" {...field} />
+                <Input disabled={isLoading} placeholder={t("usernamePlaceholder")} {...field} />
               </FormControl>
               <FormDescription className="text-xs">
-                Changing your username will update your public profile URL
+                {t("usernameDescription")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -142,11 +145,11 @@ export function ProfileForm({ data }: ProfileFormProps) {
           name="account_name"
           render={({ field }) => (
             <FormItem className="w-1/3">
-              <FormLabel>Company</FormLabel>
+              <FormLabel>{t("company")}</FormLabel>
               <FormControl>
                 <Input
                   disabled={isLoading}
-                  placeholder="Tesla Inc.,"
+                  placeholder={t("companyPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -156,7 +159,7 @@ export function ProfileForm({ data }: ProfileFormProps) {
         />
 
         <Button className="w-[150px]" type="submit" disabled={isLoading}>
-          {isLoading ? "Updating..." : "Update"}
+          {isLoading ? t("updating") : t("update")}
         </Button>
       </form>
     </Form>

@@ -754,6 +754,7 @@ function AccountActionsSection() {
   const router = useRouter();
   const { signOut } = useClerk();
   const { toast } = useAppToast();
+  const t = useTranslations("profile.dataControl.accountActions");
   const success = (msg: string) =>
     toast.success(msg, { isTranslationKey: false });
   const showError = (msg: string) =>
@@ -768,19 +769,17 @@ function AccountActionsSection() {
     try {
       const result = await disableAccount();
       if (result.success) {
-        success(
-          "Account disabled successfully. You will be logged out."
-        );
+        success(t("toast.disabled"));
         setShowDisableDialog(false);
         setTimeout(async () => {
           await signOut();
           router.push("/");
         }, 1500);
       } else {
-        showError(result.error || "Failed to disable account");
+        showError(result.error || t("toast.disableFailed"));
       }
     } catch {
-      showError("Failed to disable account");
+      showError(t("toast.disableFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -788,7 +787,7 @@ function AccountActionsSection() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== "DELETE MY DATA") {
-      showError("Please type 'DELETE MY DATA' to confirm");
+      showError(t("toast.deleteConfirmRequired"));
       return;
     }
 
@@ -796,19 +795,17 @@ function AccountActionsSection() {
     try {
       const result = await deleteAccount(deleteConfirmation);
       if (result.success) {
-        success(
-          "Account deleted successfully. You will be redirected."
-        );
+        success(t("toast.deleted"));
         setShowDeleteDialog(false);
         setTimeout(async () => {
           await signOut();
           router.push("/");
         }, 1500);
       } else {
-        showError(result.error || "Failed to delete account");
+        showError(result.error || t("toast.deleteFailed"));
       }
     } catch {
-      showError("Failed to delete account");
+      showError(t("toast.deleteFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -819,10 +816,10 @@ function AccountActionsSection() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-destructive">
           <AlertTriangle className="h-5 w-5" />
-          Account Actions
+          {t("title")}
         </CardTitle>
         <CardDescription>
-          Manage your account status and data
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -830,10 +827,10 @@ function AccountActionsSection() {
           <div>
             <h4 className="font-medium flex items-center gap-2">
               <UserX className="h-4 w-4" />
-              Disable Account
+              {t("disableTitle")}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Temporarily disable your account. You can re-enable it later.
+              {t("disableHint")}
             </p>
           </div>
           <Dialog
@@ -841,15 +838,13 @@ function AccountActionsSection() {
             onOpenChange={setShowDisableDialog}
           >
             <DialogTrigger asChild>
-              <Button variant="outline">Disable</Button>
+              <Button variant="outline">{t("disable")}</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Disable Account</DialogTitle>
+                <DialogTitle>{t("disableTitle")}</DialogTitle>
                 <DialogDescription>
-                  Your account will be disabled and you will be logged out. Your
-                  data will be preserved and you can re-enable your account by
-                  contacting support.
+                  {t("disableDialogDescription")}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -857,7 +852,7 @@ function AccountActionsSection() {
                   variant="outline"
                   onClick={() => setShowDisableDialog(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -867,7 +862,7 @@ function AccountActionsSection() {
                   {isSubmitting ? (
                     <Loading variant="spinner" size="sm" />
                   ) : (
-                    "Disable Account"
+                    t("disableTitle")
                   )}
                 </Button>
               </DialogFooter>
@@ -879,11 +874,10 @@ function AccountActionsSection() {
           <div>
             <h4 className="font-medium flex items-center gap-2 text-destructive">
               <Trash2 className="h-4 w-4" />
-              Delete My Data
+              {t("deleteTitle")}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Permanently delete your account and all associated data. This
-              cannot be undone.
+              {t("deleteHint")}
             </p>
           </div>
           <Dialog
@@ -891,33 +885,34 @@ function AccountActionsSection() {
             onOpenChange={setShowDeleteDialog}
           >
             <DialogTrigger asChild>
-              <Button variant="destructive">Delete</Button>
+              <Button variant="destructive">{t("delete")}</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle className="text-destructive">
-                  Delete Account
+                  {t("deleteDialogTitle")}
                 </DialogTitle>
                 <DialogDescription>
-                  This will permanently delete your account and all data
-                  including:
+                  {t("deleteDialogDescription")}
                 </DialogDescription>
               </DialogHeader>
               <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 py-2">
-                <li>All your personal information</li>
-                <li>All properties, clients, and contacts you created</li>
-                <li>All messages and documents</li>
-                <li>Your encryption access and keys</li>
+                <li>{t("deleteItem1")}</li>
+                <li>{t("deleteItem2")}</li>
+                <li>{t("deleteItem3")}</li>
+                <li>{t("deleteItem4")}</li>
               </ul>
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>This action cannot be undone</AlertTitle>
+                <AlertTitle>{t("irreversibleTitle")}</AlertTitle>
                 <AlertDescription>
-                  Type <strong>DELETE MY DATA</strong> below to confirm.
+                  {t.rich("confirmInstruction", {
+                    code: (chunks) => <strong>{chunks}</strong>,
+                  })}
                 </AlertDescription>
               </Alert>
               <Input
-                placeholder="Type DELETE MY DATA"
+                placeholder={t("deleteConfirmPlaceholder")}
                 value={deleteConfirmation}
                 onChange={(e) => setDeleteConfirmation(e.target.value)}
               />
@@ -926,7 +921,7 @@ function AccountActionsSection() {
                   variant="outline"
                   onClick={() => setShowDeleteDialog(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -938,7 +933,7 @@ function AccountActionsSection() {
                   {isSubmitting ? (
                     <Loading variant="spinner" size="sm" />
                   ) : (
-                    "Delete Account"
+                    t("deleteAccountButton")
                   )}
                 </Button>
               </DialogFooter>

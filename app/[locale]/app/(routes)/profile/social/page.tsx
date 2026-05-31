@@ -6,11 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Globe, Eye, EyeOff, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export default async function SocialProfilePage() {
-  const [profile, userData] = await Promise.all([
+  const [profile, userData, t] = await Promise.all([
     getMyAgentProfile(),
     getUser(),
+    getTranslations("profile.socialPage"),
   ]);
 
   // Generate a suggested slug if the user doesn't have a profile yet
@@ -23,8 +25,8 @@ export default async function SocialProfilePage() {
 
   return (
     <Container
-      title="Public Profile"
-      description="Manage your public agent profile visible to the world"
+      title={t("title")}
+      description={t("description")}
     >
       <div className="space-y-6">
         {/* Status Card */}
@@ -34,9 +36,9 @@ export default async function SocialProfilePage() {
               <div className="flex items-center gap-3">
                 <Globe className="h-5 w-5 text-primary" />
                 <div>
-                  <CardTitle>Profile Status</CardTitle>
+                  <CardTitle>{t("statusTitle")}</CardTitle>
                   <CardDescription>
-                    Control your public presence
+                    {t("statusDescription")}
                   </CardDescription>
                 </div>
               </div>
@@ -44,12 +46,12 @@ export default async function SocialProfilePage() {
                 {profile?.visibility === "PUBLIC" ? (
                   <Badge className="bg-success/10 text-success hover:bg-success/10">
                     <Eye className="h-3 w-3 mr-1" />
-                    Public
+                    {t("public")}
                   </Badge>
                 ) : (
                   <Badge variant="secondary">
                     <EyeOff className="h-3 w-3 mr-1" />
-                    Private
+                    {t("private")}
                   </Badge>
                 )}
                 {profile?.slug && profile?.visibility === "PUBLIC" && (
@@ -58,7 +60,7 @@ export default async function SocialProfilePage() {
                     target="_blank"
                     className="flex items-center gap-1 text-sm text-primary hover:underline"
                   >
-                    View Profile
+                    {t("viewProfile")}
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 )}
@@ -68,7 +70,7 @@ export default async function SocialProfilePage() {
           {profile?.slug && (
             <CardContent>
               <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Your profile URL:</span>
+                <span className="text-sm text-muted-foreground">{t("yourProfileUrl")}</span>
                 <code className="text-sm bg-white px-2 py-1 rounded border">
                   {`${process.env.NEXT_PUBLIC_APP_URL || ""}/agent/${profile.slug}`}
                 </code>
@@ -80,9 +82,9 @@ export default async function SocialProfilePage() {
         {/* Profile Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
+            <CardTitle>{t("profileInfoTitle")}</CardTitle>
             <CardDescription>
-              This information will be displayed publicly on your agent profile page
+              {t("profileInfoDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>

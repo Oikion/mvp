@@ -1,12 +1,14 @@
+import { getTranslations } from "next-intl/server";
 import Container from "../components/ui/Container";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-export default function MatchmakingLoading() {
+export default async function MatchmakingLoading() {
+  const t = await getTranslations("matchmaking");
   return (
     <Container
-      title="Matchmaking"
-      description="Loading match analytics..."
+      title={t("loading.title")}
+      description={t("loading.description")}
     >
       <div className="space-y-6">
         {/* Stats Cards */}

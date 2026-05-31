@@ -1,6 +1,7 @@
 "use client";
 
 import { Users } from "@prisma/client";
+import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { User } from "lucide-react";
 
@@ -12,6 +13,7 @@ interface ProfileTabProps {
 }
 
 export function ProfileTab({ user }: ProfileTabProps) {
+  const t = useTranslations("profile.profileTab");
   return (
     <div className="space-y-6">
       {/* Profile Photo */}
@@ -22,9 +24,9 @@ export function ProfileTab({ user }: ProfileTabProps) {
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>Profile Photo</CardTitle>
+              <CardTitle>{t("photoTitle")}</CardTitle>
               <CardDescription>
-                Upload a photo to personalize your profile
+                {t("photoDescription")}
               </CardDescription>
             </div>
           </div>
@@ -37,9 +39,9 @@ export function ProfileTab({ user }: ProfileTabProps) {
       {/* Basic Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
+          <CardTitle>{t("personalInfoTitle")}</CardTitle>
           <CardDescription>
-            Update your name and account details
+            {t("personalInfoDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>

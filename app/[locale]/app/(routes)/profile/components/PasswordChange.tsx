@@ -6,6 +6,7 @@ import * as z from "zod";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff, Loader2, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -38,9 +39,11 @@ const FormSchema = z
     path: ["cpassword"],
   });
 
+type StrengthLevel = "weak" | "fair" | "good" | "strong";
+
 function getPasswordStrength(password: string): {
   score: number;
-  label: string;
+  level: StrengthLevel;
   color: string;
 } {
   let score = 0;
@@ -51,10 +54,10 @@ function getPasswordStrength(password: string): {
   if (/[0-9]/.test(password)) score += 15;
   if (/[^A-Za-z0-9]/.test(password)) score += 15;
 
-  if (score < 40) return { score, label: "Weak", color: "bg-destructive" };
-  if (score < 70) return { score, label: "Fair", color: "bg-warning" };
-  if (score < 90) return { score, label: "Good", color: "bg-primary" };
-  return { score: 100, label: "Strong", color: "bg-success" };
+  if (score < 40) return { score, level: "weak", color: "bg-destructive" };
+  if (score < 70) return { score, level: "fair", color: "bg-warning" };
+  if (score < 90) return { score, level: "good", color: "bg-primary" };
+  return { score: 100, level: "strong", color: "bg-success" };
 }
 
 export function PasswordChangeForm({ userId }: { userId: string }) {
@@ -64,6 +67,15 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
 
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("profile.passwordChange");
+  const tCommon = useTranslations("common");
+
+  const STRENGTH_LABELS: Record<StrengthLevel, string> = {
+    weak: t("strengthWeak"),
+    fair: t("strengthFair"),
+    good: t("strengthGood"),
+    strong: t("strengthStrong"),
+  };
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -81,13 +93,13 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
     try {
       setIsLoading(true);
       await axios.put(`/api/user/${userId}/setnewpass`, data);
-      toast.success("Password changed successfully", { description: "Your password has been updated.", isTranslationKey: false });
+      toast.success(t("toast.success"), { description: t("toast.successDesc"), isTranslationKey: false });
       form.reset();
       router.refresh();
     } catch (error: unknown) {
       const errorResponse = error as { response?: { data?: string } };
-      toast.error("Error", { description: errorResponse.response?.data ||
-          "Something went wrong while changing your password.", isTranslationKey: false });
+      toast.error(tCommon("toast.error"), { description: errorResponse.response?.data ||
+          t("toast.errorDesc"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -102,20 +114,20 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>{t("newPassword")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       disabled={isLoading}
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter new password"
+                      placeholder={t("newPasswordPlaceholder")}
                       {...field}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                       className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -132,20 +144,20 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
                   <div className="space-y-2 mt-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">
-                        Password strength:
+                        {t("strength")}
                       </span>
                       <span
                         className={`font-medium ${
-                          passwordStrength.label === "Weak"
+                          passwordStrength.level === "weak"
                             ? "text-destructive"
-                            : passwordStrength.label === "Fair"
+                            : passwordStrength.level === "fair"
                             ? "text-warning"
-                            : passwordStrength.label === "Good"
+                            : passwordStrength.level === "good"
                             ? "text-primary"
                             : "text-success"
                         }`}
                       >
-                        {passwordStrength.label}
+                        {STRENGTH_LABELS[passwordStrength.level]}
                       </span>
                     </div>
                     <Progress
@@ -163,20 +175,20 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
             name="cpassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>{t("confirmPassword")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       disabled={isLoading}
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm new password"
+                      placeholder={t("confirmPasswordPlaceholder")}
                       {...field}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
                       className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
@@ -197,8 +209,7 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
         </div>
 
         <FormDescription className="text-xs">
-          Password must be at least 8 characters with uppercase, lowercase, and
-          numbers.
+          {t("requirements")}
         </FormDescription>
 
         <div className="flex justify-end">
@@ -209,12 +220,12 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Changing...
+                {t("changing")}
               </>
             ) : (
               <>
                 <Check className="mr-2 h-4 w-4" />
-                Change Password
+                {t("changePassword")}
               </>
             )}
           </Button>

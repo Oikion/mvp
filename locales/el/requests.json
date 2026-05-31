@@ -263,7 +263,9 @@
     "deleteCommentTitle": "Διαγραφή σχολίου;",
     "deleteCommentDescription": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
     "commentFailed": "Αποτυχία αποστολής σχολίου",
-    "deleteCommentFailed": "Αποτυχία διαγραφής σχολίου"
+    "deleteCommentFailed": "Αποτυχία διαγραφής σχολίου",
+    "deleteComment": "Διαγραφή σχολίου",
+    "unknownUser": "Άγνωστος"
   },
   "emptyState": {
     "noRequests": "Δεν υπάρχουν αιτήματα",
@@ -275,6 +277,7 @@
     "upTo": "Έως"
   },
   "table": {
+    "id": "Κωδικός",
     "title": "Όνομα",
     "requestType": "Τύπος",
     "budget": "Προϋπολογισμός",
@@ -300,6 +303,8 @@
     "title": "Επεξεργασία Αιτήματος",
     "saving": "Αποθήκευση…",
     "save": "Αποθήκευση αλλαγών",
+    "updateSuccess": "Το αίτημα ενημερώθηκε",
+    "updateFailed": "Αποτυχία ενημέρωσης αιτήματος",
     "unsavedChangesPrompt": "Έχετε μη αποθηκευμένες αλλαγές. Κλείσιμο χωρίς αποθήκευση;",
     "keyboardHint": "⌘↵ για αποθήκευση",
     "tabs": {
@@ -345,6 +350,7 @@
     "generateButton": "Δημιουργία Αιτήματος",
     "fetchPreviewError": "Αδυναμία φόρτωσης προεπισκόπησης. Δοκιμάστε ξανά.",
     "submitError": "Κάποια αιτήματα δεν δημιουργήθηκαν.",
-    "retryButton": "Επανάληψη"
+    "retryButton": "Επανάληψη",
+    "unknownError": "Άγνωστο σφάλμα"
   }
 }

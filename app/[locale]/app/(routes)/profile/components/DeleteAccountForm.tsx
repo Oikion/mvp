@@ -6,6 +6,7 @@ import * as z from "zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,8 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
   const router = useRouter();
   const { signOut } = useClerk();
   const { toast } = useAppToast();
+  const t = useTranslations("profile.deleteAccount");
+  const tCommon = useTranslations("common");
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -115,7 +118,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
 
       // Check if username exists
       if (!username) {
-        toast.error("Error", { description: "Username is not set. Please set a username in your profile first.", isTranslationKey: false });
+        toast.error(tCommon("toast.error"), { description: t("toast.noUsername"), isTranslationKey: false });
         setIsLoading(false);
         return;
       }
@@ -145,7 +148,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
       // Proceed with deletion
       await proceedWithDeletion();
     } catch (error: any) {
-      toast.error("Error", { description: error?.response?.data?.message || "Something went wrong while deleting your account.", isTranslationKey: false });
+      toast.error(tCommon("toast.error"), { description: error?.response?.data?.message || t("toast.errorDesc"), isTranslationKey: false });
       setIsLoading(false);
     }
   }
@@ -157,12 +160,12 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
 
       await axios.delete(`/api/user/${userId}/delete-account`);
 
-      toast.success("Account deleted", { description: "Your account has been successfully deleted.", isTranslationKey: false });
+      toast.success(t("toast.deleted"), { description: t("toast.deletedDesc"), isTranslationKey: false });
 
       // Sign out and redirect
       await signOut({ redirectUrl: "/" });
     } catch (error: any) {
-      toast.error("Error", { description: error?.response?.data?.message || "Something went wrong while deleting your account.", isTranslationKey: false });
+      toast.error(tCommon("toast.error"), { description: error?.response?.data?.message || t("toast.errorDesc"), isTranslationKey: false });
       setIsLoading(false);
       setStep("validation");
     }
@@ -189,7 +192,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
     <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="destructive" type="button">
-          Delete Account
+          {t("trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
@@ -198,10 +201,10 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
-                Delete Account
+                {t("title")}
               </DialogTitle>
               <DialogDescription>
-                This action cannot be undone. This will permanently delete your account and remove all associated data.
+                {t("description")}
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -209,7 +212,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                 <div className="space-y-4 py-4">
                   <div className="rounded-md bg-destructive/10 p-4">
                     <p className="text-sm text-destructive font-medium">
-                      Warning: Your personal organization will be deleted along with all stored clients, properties, tasks, and other data.
+                      {t("warning")}
                     </p>
                   </div>
 
@@ -218,7 +221,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Enter your username</FormLabel>
+                        <FormLabel>{t("enterUsername")}</FormLabel>
                         {username && (
                           <div className="relative">
                             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-t-md text-sm -mb-px relative z-10">
@@ -240,7 +243,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                             <FormControl>
                               <Input
                                 disabled={isLoading}
-                                placeholder="Enter your username"
+                                placeholder={t("usernamePlaceholder")}
                                 className="rounded-tl-none"
                                 {...field}
                               />
@@ -251,13 +254,13 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                           <FormControl>
                             <Input
                               disabled={isLoading}
-                              placeholder="Enter your username"
+                              placeholder={t("usernamePlaceholder")}
                               {...field}
                             />
                           </FormControl>
                         )}
                         <FormDescription>
-                          Please enter your username to confirm account deletion.
+                          {t("usernameDescription")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -269,7 +272,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                     name="confirmText"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Type &quot;delete my account&quot;</FormLabel>
+                        <FormLabel>{t("typeConfirm")}</FormLabel>
                         <div className="relative">
                           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-t-md text-sm -mb-px relative z-10">
                             <code className="font-mono text-primary font-medium">delete my account</code>
@@ -297,7 +300,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                           </FormControl>
                         </div>
                         <FormDescription>
-                          Type &quot;delete my account&quot; to confirm.
+                          {t("confirmDescription")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -312,14 +315,14 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                     onClick={handleCancel}
                     disabled={isLoading}
                   >
-                    Cancel
+                    {t("cancel")}
                   </Button>
-                  <Button 
-                    type="submit" 
-                    variant="destructive" 
+                  <Button
+                    type="submit"
+                    variant="destructive"
                     disabled={isLoading || !isFormValid}
                   >
-                    {isLoading ? "Checking..." : "Delete Account"}
+                    {isLoading ? t("checking") : t("title")}
                   </Button>
                 </DialogFooter>
               </form>
@@ -332,16 +335,16 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
-                Additional Organizations Will Be Deleted
+                {t("orgWarningTitle")}
               </DialogTitle>
               <DialogDescription>
-                You are the only admin of the following organization(s). Deleting your account will also delete these organizations and remove all members.
+                {t("orgWarningDescription")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="rounded-md bg-destructive/10 p-4">
                 <p className="text-sm text-destructive font-medium mb-2">
-                  The following organizations will be deleted:
+                  {t("orgsToDelete")}
                 </p>
                 <ul className="list-disc list-inside space-y-1">
                   {orgCheckResult.orgsToDelete.map((org) => (
@@ -351,7 +354,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                   ))}
                 </ul>
                 <p className="text-sm text-destructive font-medium mt-4">
-                  This will also remove all properties, clients, tasks, and other data associated with these organizations, and kick all members.
+                  {t("orgWarningFooter")}
                 </p>
               </div>
             </div>
@@ -362,7 +365,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                 onClick={handleCancel}
                 disabled={isLoading}
               >
-                Cancel Deletion
+                {t("cancelDeletion")}
               </Button>
               <Button
                 type="button"
@@ -370,7 +373,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                 onClick={proceedWithDeletion}
                 disabled={isLoading}
               >
-                {isLoading ? "Deleting..." : "Delete Anyway"}
+                {isLoading ? t("deleting") : t("deleteAnyway")}
               </Button>
             </DialogFooter>
           </>
@@ -378,9 +381,9 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
 
         {step === "deleting" && (
           <DialogHeader>
-            <DialogTitle>Deleting Account...</DialogTitle>
+            <DialogTitle>{t("deletingTitle")}</DialogTitle>
             <DialogDescription>
-              Please wait while we delete your account and associated data.
+              {t("deletingDescription")}
             </DialogDescription>
           </DialogHeader>
         )}

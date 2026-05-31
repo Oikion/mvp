@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
@@ -31,6 +32,7 @@ export function DataTableRowActions<TData>({
   const task = taskSchema.parse(row.original);
 
   const { toast } = useAppToast();
+  const t = useTranslations("crm");
 
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,10 +46,10 @@ export function DataTableRowActions<TData>({
           section: task?.section,
         },
       });
-      toast.success("Task deleted", { description: "Task deleted successfully", isTranslationKey: false });
+      toast.success(t("tasks.toast.taskDeleted"), { description: t("tasks.toast.taskDeletedDesc"), isTranslationKey: false });
       setOpen(false);
     } catch (error) {
-      toast.error("Task deletion failed", { description: "Something went wrong while deleting the task", isTranslationKey: false });
+      toast.error(t("tasks.toast.taskDeleteFailed"), { description: t("tasks.toast.taskDeleteFailedDesc"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
       router.refresh();
@@ -59,13 +61,13 @@ export function DataTableRowActions<TData>({
       <ConfirmationDialog
         open={open}
         onOpenChange={setOpen}
-        title="Delete Task"
-        description="This action cannot be undone. The task will be permanently deleted."
+        title={t("tasks.rowActions.deleteTaskTitle")}
+        description={t("tasks.rowActions.deleteTaskDescription")}
         onConfirm={onDelete}
         isLoading={isLoading}
         variant="danger"
-        confirmLabel="Delete"
-        loadingLabel="Deleting..."
+        confirmLabel={t("tasks.rowActions.deleteConfirm")}
+        loadingLabel={t("tasks.rowActions.deleting")}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -74,14 +76,14 @@ export function DataTableRowActions<TData>({
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
             <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t("tasks.rowActions.openMenu")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
           <DropdownMenuItem
             onClick={() => router.push(`/app/crm/tasks/viewtask/${task?.id}`)}
           >
-            View
+            {t("tasks.rowActions.view")}
           </DropdownMenuItem>
           {/*           <DropdownMenuItem>Make a copy</DropdownMenuItem>
           <DropdownMenuItem>Favorite</DropdownMenuItem> */}
@@ -100,7 +102,7 @@ export function DataTableRowActions<TData>({
         </DropdownMenuSub> */}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setOpen(true)}>
-            Delete
+            {t("tasks.rowActions.delete")}
             <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>

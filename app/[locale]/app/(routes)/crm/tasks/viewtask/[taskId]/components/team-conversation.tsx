@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useTranslations } from "next-intl";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -55,6 +56,7 @@ export function TeamConversations({
   const router = useRouter();
 
   const { toast } = useAppToast();
+  const t = useTranslations("crm");
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -64,9 +66,9 @@ export function TeamConversations({
     try {
       setIsLoading(true);
       await axios.post(`/api/crm/tasks/addCommentToTask/${taskId}`, data);
-      toast.success("Success, comment added.", { isTranslationKey: false });
+      toast.success(t("tasks.toast.commentAdded"), { isTranslationKey: false });
     } catch (error) {
-      toast.error("Error", { description: "Something went wrong while sending comment to the DB", isTranslationKey: false });
+      toast.error(t("tasks.toast.commentError"), { description: t("tasks.toast.commentErrorDesc"), isTranslationKey: false });
     } finally {
       form.reset({
         comment: "",
@@ -91,7 +93,7 @@ export function TeamConversations({
                 <FormControl>
                   <Input
                     disabled={isLoading}
-                    placeholder="Your comment ..."
+                    placeholder={t("tasks.conversation.commentPlaceholder")}
                     {...field}
                   />
                 </FormControl>
@@ -101,15 +103,15 @@ export function TeamConversations({
           />
 
           <Button className="w-[80px]" disabled={isLoading} type="submit">
-            Add
+            {t("tasks.conversation.add")}
           </Button>
         </form>
       </Form>
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Team conversation</CardTitle>
+          <CardTitle>{t("tasks.conversation.teamConversation")}</CardTitle>
           <CardDescription>
-            Invite your team members to collaborate.
+            {t("tasks.conversation.teamConversationDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">

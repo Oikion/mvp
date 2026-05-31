@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,7 @@ export function ProfileHeader({
   const [copied, setCopied] = useState(false);
   const { toast } = useAppToast();
   const t = dict?.profile;
+  const tn = useTranslations("network");
 
   // Set full URL after mount to avoid hydration mismatch
   useEffect(() => {
@@ -91,10 +93,10 @@ export function ProfileHeader({
     try {
       await navigator.clipboard.writeText(fullProfileUrl);
       setCopied(true);
-      toast.success("Copied!", { description: "Profile URL copied to clipboard", isTranslationKey: false });
+      toast.success(tn("profileHeader.copied"), { description: tn("profileHeader.copiedDesc"), isTranslationKey: false });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Error", { description: "Failed to copy URL", isTranslationKey: false });
+      toast.error(tn("profileHeader.copyError"), { description: tn("profileHeader.copyFailedDesc"), isTranslationKey: false });
     }
   };
 
@@ -105,27 +107,26 @@ export function ProfileHeader({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-warning dark:text-warning">
             <AlertCircle className="h-5 w-5" />
-            Username Required
+            {tn("profileHeader.usernameRequiredTitle")}
           </CardTitle>
           <CardDescription className="text-warning dark:text-warning">
-            You need to set a username before you can create your public profile
+            {tn("profileHeader.usernameRequiredDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Your username will be your public profile URL. For example, if your username is
-            <code className="mx-1 px-1.5 py-0.5 bg-muted rounded text-xs">john-doe</code>
-            your profile will be at
-            <code className="mx-1 px-1.5 py-0.5 bg-muted rounded text-xs">/agent/john-doe</code>
+            {tn("profileHeader.usernameExplainer", {
+              example: "john-doe",
+              path: "/agent/john-doe",
+            })}
           </p>
           <p className="text-sm text-muted-foreground">
-            You can change your username at any time in your account settings. When you change it,
-            your profile URL will automatically update.
+            {tn("profileHeader.usernameChangeNote")}
           </p>
           <Button asChild>
             <Link href="/app/profile">
               <User className="h-4 w-4 mr-2" />
-              Set Username in Settings
+              {tn("profileHeader.setUsernameButton")}
             </Link>
           </Button>
         </CardContent>
@@ -168,7 +169,7 @@ export function ProfileHeader({
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Copy profile URL"
+                  aria-label={tn("profileHeader.copyAriaLabel")}
                   className="h-7 w-7 shrink-0"
                   onClick={handleCopyUrl}
                 >

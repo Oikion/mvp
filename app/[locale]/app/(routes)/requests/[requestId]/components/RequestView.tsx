@@ -118,9 +118,9 @@ export default function RequestView({ request, isReadOnly = false, sharePermissi
     const result = await updateRequestVisibility(request.id, newVisibility);
     if (!result.success) {
       setVisibility(prev);
-      toast.error("updateFailed");
+      toast.error(t("edit.updateFailed"), { isTranslationKey: false });
     } else {
-      toast.success("updateSuccess");
+      toast.success(t("edit.updateSuccess"), { isTranslationKey: false });
     }
   };
 

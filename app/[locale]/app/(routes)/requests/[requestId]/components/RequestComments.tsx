@@ -73,8 +73,9 @@ export default function RequestComments({ requestId }: Readonly<RequestCommentsP
       await addComment(content);
       setNewComment("");
     } catch (err) {
-      toast.error("commentFailed", {
+      toast.error(t("view.commentFailed"), {
         description: err instanceof Error ? err.message : t("view.commentFailed"),
+        isTranslationKey: false,
       });
     } finally {
       setIsAdding(false);
@@ -87,8 +88,9 @@ export default function RequestComments({ requestId }: Readonly<RequestCommentsP
     try {
       await deleteComment(deleteTarget);
     } catch (err) {
-      toast.error("deleteCommentFailed", {
+      toast.error(t("view.deleteCommentFailed"), {
         description: err instanceof Error ? err.message : t("view.deleteCommentFailed"),
+        isTranslationKey: false,
       });
     } finally {
       setIsDeleting(false);
@@ -171,7 +173,7 @@ export default function RequestComments({ requestId }: Readonly<RequestCommentsP
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium truncate">
-                      {commentUser?.name ?? commentUser?.email ?? "Unknown"}
+                      {commentUser?.name ?? commentUser?.email ?? t("view.unknownUser")}
                     </span>
                     <span className="text-xs text-muted-foreground shrink-0">
                       {format(new Date(comment.createdAt), "dd/MM/yyyy HH:mm")}
@@ -179,7 +181,7 @@ export default function RequestComments({ requestId }: Readonly<RequestCommentsP
                     {isOwn && (
                       <button
                         type="button"
-                        aria-label="Delete comment"
+                        aria-label={t("view.deleteComment")}
                         onClick={() => setDeleteTarget(comment.id)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
                         disabled={isDeleting}

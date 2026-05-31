@@ -62,6 +62,23 @@
     "COMPLETED": "Ολοκληρωμένη",
     "CANCELLED": "Ακυρωμένη"
   },
+  "tableHeaders": {
+    "id": "Κωδικός",
+    "title": "Τίτλος",
+    "stage": "Στάδιο",
+    "type": "Τύπος",
+    "price": "Τιμή",
+    "property": "Ακίνητο"
+  },
+  "cell": {
+    "priceUpdated": "Η τιμή ενημερώθηκε",
+    "stageUpdated": "Το στάδιο ενημερώθηκε",
+    "agentUpdated": "Ο σύμβουλος ενημερώθηκε",
+    "titleUpdated": "Ο τίτλος ενημερώθηκε",
+    "dealTypeUpdated": "Ο τύπος συμφωνίας ενημερώθηκε",
+    "invalidPrice": "Μη έγκυρη τιμή",
+    "unassigned": "Χωρίς ανάθεση"
+  },
   "list": {
     "empty": "Δεν βρέθηκαν συμφωνίες.",
     "emptyActive": "Δεν υπάρχουν ενεργές συμφωνίες.",
@@ -137,6 +154,8 @@
     }
   },
   "detail": {
+    "pageFallbackTitle": "Λεπτομέρειες Συμφωνίας",
+    "pageDescription": "Διαχείριση αυτής της συνεργατικής συμφωνίας",
     "overview": "Επισκόπηση",
     "pipeline": "Pipeline",
     "parties": "Μέλη",

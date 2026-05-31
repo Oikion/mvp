@@ -419,7 +419,7 @@ function DoneStep({
             .map((r) => (
               <li key={r.previewId} className="flex items-center gap-2">
                 <XCircle className="size-3.5 shrink-0 text-destructive" />
-                {r.error ?? "Unknown error"}
+                {r.error ?? t("unknownError")}
               </li>
             ))}
         </ul>

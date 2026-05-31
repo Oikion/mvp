@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import {
   DndContext,
@@ -57,6 +58,7 @@ interface SortablePropertyItemProps {
 }
 
 function SortablePropertyItem({ property, onRemove, isRemoving }: SortablePropertyItemProps) {
+  const t = useTranslations("profile.showcaseManager");
   const {
     attributes,
     listeners,
@@ -88,7 +90,7 @@ function SortablePropertyItem({ property, onRemove, isRemoving }: SortableProper
     >
       <button
         type="button"
-        aria-label="Drag to reorder"
+        aria-label={t("dragToReorder")}
         {...attributes}
         {...listeners}
         className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
@@ -131,7 +133,7 @@ function SortablePropertyItem({ property, onRemove, isRemoving }: SortableProper
 
       {property.property?.transaction_type && (
         <Badge variant="outline" className="text-xs flex-shrink-0">
-          {property.property.transaction_type === "SALE" ? "Πώληση" : "Ενοικίαση"}
+          {property.property.transaction_type === "SALE" ? t("sale") : t("rental")}
         </Badge>
       )}
 
@@ -139,7 +141,7 @@ function SortablePropertyItem({ property, onRemove, isRemoving }: SortableProper
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Remove from showcase"
+        aria-label={t("removeFromShowcase")}
         className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
         onClick={() => onRemove(property.propertyId)}
         disabled={isRemoving}
@@ -166,6 +168,8 @@ export function ShowcasePropertyManager({
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("profile.showcaseManager");
+  const tCommon = useTranslations("common");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -192,7 +196,7 @@ export function ShowcasePropertyManager({
         });
         router.refresh();
       } catch (error) {
-        toast.error("Error", { description: "Failed to save order. Please try again.", isTranslationKey: false });
+        toast.error(tCommon("toast.error"), { description: t("toast.orderFailed"), isTranslationKey: false });
         // Revert on error
         setShowcaseProperties(showcaseProperties);
       } finally {
@@ -216,11 +220,11 @@ export function ShowcasePropertyManager({
         ]);
       }
 
-      toast.success("Property Added", { description: "Property has been added to your showcase.", isTranslationKey: false });
+      toast.success(t("toast.added"), { description: t("toast.addedDesc"), isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data?.error || "Failed to add property.", isTranslationKey: false });
+      toast.error(tCommon("toast.error"), { description: error.response?.data?.error || t("toast.addFailed"), isTranslationKey: false });
     } finally {
       setIsAdding(null);
     }
@@ -238,11 +242,11 @@ export function ShowcasePropertyManager({
       }
       setShowcaseProperties(showcaseProperties.filter((p) => p.propertyId !== propertyId));
 
-      toast.success("Property Removed", { description: "Property has been removed from your showcase.", isTranslationKey: false });
+      toast.success(t("toast.removed"), { description: t("toast.removedDesc"), isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data?.error || "Failed to remove property.", isTranslationKey: false });
+      toast.error(tCommon("toast.error"), { description: error.response?.data?.error || t("toast.addFailed"), isTranslationKey: false });
     } finally {
       setIsRemoving(null);
     }
@@ -263,10 +267,10 @@ export function ShowcasePropertyManager({
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <Home className="h-4 w-4" />
-              Showcase Properties
+              {t("title")}
             </CardTitle>
             <CardDescription>
-              Select and order which properties appear on your public profile
+              {t("description")}
             </CardDescription>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -276,14 +280,14 @@ export function ShowcasePropertyManager({
                 leftIcon={<Plus className="h-4 w-4" />}
                 disabled={availableProperties.length === 0}
               >
-                Add Property
+                {t("addProperty")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Add Property to Showcase</DialogTitle>
+                <DialogTitle>{t("addDialogTitle")}</DialogTitle>
                 <DialogDescription>
-                  Select a property to display on your public profile
+                  {t("addDialogDescription")}
                 </DialogDescription>
               </DialogHeader>
               <ScrollArea className="max-h-[400px] pr-4">
@@ -336,7 +340,7 @@ export function ShowcasePropertyManager({
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <>
-                              Add <ArrowRight className="h-3 w-3 ml-1" />
+                              {t("add")} <ArrowRight className="h-3 w-3 ml-1" />
                             </>
                           )}
                         </Button>
@@ -347,10 +351,10 @@ export function ShowcasePropertyManager({
                   <div className="text-center py-8">
                     <Building2 className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
                     <p className="text-muted-foreground text-sm">
-                      No more properties available to add
+                      {t("noMoreAvailable")}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Add more properties in the MLS section
+                      {t("noMoreAvailableHint")}
                     </p>
                   </div>
                 )}
@@ -363,7 +367,7 @@ export function ShowcasePropertyManager({
         {showcaseProperties.length > 0 ? (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground mb-3">
-              Drag to reorder • Properties will appear in this order on your profile
+              {t("reorderHint")}
             </p>
             <DndContext
               sensors={sensors}
@@ -387,7 +391,7 @@ export function ShowcasePropertyManager({
             {isSavingOrder && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Saving order...
+                {t("savingOrder")}
               </p>
             )}
           </div>
@@ -395,10 +399,10 @@ export function ShowcasePropertyManager({
           <div className="text-center py-8 border rounded-lg bg-muted/20">
             <Home className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
             <p className="text-muted-foreground text-sm">
-              No properties in your showcase yet
+              {t("emptyTitle")}
             </p>
             <p className="text-xs text-muted-foreground mt-1 mb-4">
-              Add properties to display on your public profile
+              {t("emptyHint")}
             </p>
             <Button
               size="sm"
@@ -407,7 +411,7 @@ export function ShowcasePropertyManager({
               onClick={() => setIsAddDialogOpen(true)}
               disabled={availableProperties.length === 0}
             >
-              Add Your First Property
+              {t("addFirst")}
             </Button>
           </div>
         )}

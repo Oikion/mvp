@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -25,6 +26,7 @@ interface PropertyImageGalleryProps {
 // ---------------------------------------------------------------------------
 
 export function PropertyImageGallery({ images }: PropertyImageGalleryProps) {
+  const t = useTranslations("mls.propertyImages.gallery");
   const [activeIndex, setActiveIndex] = useState(() => {
     const primaryIdx = images.findIndex((img) => img.isPrimary);
     return primaryIdx >= 0 ? primaryIdx : 0;
@@ -42,7 +44,7 @@ export function PropertyImageGallery({ images }: PropertyImageGalleryProps) {
       <div
         role="button"
         tabIndex={0}
-        aria-label="Open image gallery"
+        aria-label={t("open")}
         className="relative h-[400px] md:h-[500px] w-full overflow-hidden rounded-lg bg-muted cursor-pointer group"
         onClick={() => setLightboxOpen(true)}
         onKeyDown={(e) => {
@@ -54,7 +56,7 @@ export function PropertyImageGallery({ images }: PropertyImageGalleryProps) {
       >
         <Image
           src={activeImage.url}
-          alt={activeImage.caption || "Property image"}
+          alt={activeImage.caption || t("imageAlt")}
           fill
           className="object-cover transition-opacity duration-300"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px"
@@ -86,7 +88,7 @@ export function PropertyImageGallery({ images }: PropertyImageGalleryProps) {
             >
               <Image
                 src={img.url}
-                alt={img.caption || `Thumbnail ${idx + 1}`}
+                alt={img.caption || t("thumbnailAlt", { index: idx + 1 })}
                 fill
                 className="object-cover"
                 sizes="80px"
@@ -124,6 +126,7 @@ function Lightbox({
   onClose: () => void;
   onIndexChange: (index: number) => void;
 }) {
+  const t = useTranslations("mls.propertyImages.gallery");
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const goTo = useCallback(
@@ -168,7 +171,7 @@ function Lightbox({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Image gallery"
+      aria-label={t("dialogLabel")}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
       onClick={onClose}
     >
@@ -182,7 +185,7 @@ function Lightbox({
         type="button"
         onClick={onClose}
         className="absolute top-4 right-4 text-white/80 hover:text-white z-10 p-2 rounded-full hover:bg-white/10 transition-colors"
-        aria-label="Close lightbox"
+        aria-label={t("close")}
       >
         <X className="h-6 w-6" />
       </button>
@@ -196,7 +199,7 @@ function Lightbox({
             goPrev();
           }}
           className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white z-10 p-2 rounded-full hover:bg-white/10 transition-colors"
-          aria-label="Previous image"
+          aria-label={t("previous")}
         >
           <ChevronLeft className="h-8 w-8" />
         </button>
@@ -211,7 +214,7 @@ function Lightbox({
             goNext();
           }}
           className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white z-10 p-2 rounded-full hover:bg-white/10 transition-colors"
-          aria-label="Next image"
+          aria-label={t("next")}
         >
           <ChevronRight className="h-8 w-8" />
         </button>
@@ -226,7 +229,7 @@ function Lightbox({
           <Image
             key={current.id}
             src={current.url}
-            alt={current.caption || "Property image"}
+            alt={current.caption || t("imageAlt")}
             fill
             className="object-contain transition-opacity duration-300"
             sizes="90vw"

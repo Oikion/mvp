@@ -263,7 +263,9 @@
     "deleteCommentTitle": "Delete comment?",
     "deleteCommentDescription": "This action cannot be undone.",
     "commentFailed": "Failed to post comment",
-    "deleteCommentFailed": "Failed to delete comment"
+    "deleteCommentFailed": "Failed to delete comment",
+    "deleteComment": "Delete comment",
+    "unknownUser": "Unknown"
   },
   "emptyState": {
     "noRequests": "No requests yet",
@@ -275,6 +277,7 @@
     "upTo": "Up to"
   },
   "table": {
+    "id": "ID",
     "title": "Name",
     "requestType": "Type",
     "budget": "Budget",
@@ -300,6 +303,8 @@
     "title": "Edit Request",
     "saving": "Saving…",
     "save": "Save changes",
+    "updateSuccess": "Request updated",
+    "updateFailed": "Failed to update request",
     "unsavedChangesPrompt": "You have unsaved changes. Close without saving?",
     "keyboardHint": "⌘↵ to save",
     "tabs": {
@@ -345,6 +350,7 @@
     "generateButton": "Generate Request",
     "fetchPreviewError": "Could not load preview. Please try again.",
     "submitError": "Some requests could not be created.",
-    "retryButton": "Retry"
+    "retryButton": "Retry",
+    "unknownError": "Unknown error"
   }
 }

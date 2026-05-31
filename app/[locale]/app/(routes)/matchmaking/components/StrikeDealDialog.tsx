@@ -51,10 +51,11 @@ interface PartyEntry {
 function getContactDisplayName(
   displayName: string | null,
   firstName: string | null,
-  lastName: string | null
+  lastName: string | null,
+  fallback: string
 ): string {
   if (displayName) return displayName;
-  return [firstName, lastName].filter(Boolean).join(" ") || "Unknown";
+  return [firstName, lastName].filter(Boolean).join(" ") || fallback;
 }
 
 interface Props {
@@ -90,7 +91,7 @@ export function StrikeDealDialog({ match, locale }: Props) {
     for (const rc of match.request.requestContacts) {
       parties.push({
         contactId: rc.contact.id,
-        name: getContactDisplayName(rc.contact.displayName, rc.contact.firstName, rc.contact.lastName),
+        name: getContactDisplayName(rc.contact.displayName, rc.contact.firstName, rc.contact.lastName, t("common.unknownContact")),
         role: "BUYER",
         isOwner: false,
       });
@@ -104,7 +105,8 @@ export function StrikeDealDialog({ match, locale }: Props) {
           name: getContactDisplayName(
             match.property.owner.displayName,
             match.property.owner.firstName,
-            match.property.owner.lastName
+            match.property.owner.lastName,
+            t("common.unknownContact")
           ),
           role: "SELLER",
           isOwner: true,
@@ -137,7 +139,7 @@ export function StrikeDealDialog({ match, locale }: Props) {
       });
 
       if (!result.success) {
-        toast.error(result.error ?? "Error", { isTranslationKey: false });
+        toast.error(result.error ?? t("errors.generic"), { isTranslationKey: false });
         return;
       }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "@/navigation";
-import { useFormatter } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
 import { EditableTextCell } from "@/components/ui/data-table/editable-text-cell";
@@ -17,6 +17,7 @@ interface DealPriceCellProps {
 export function DealPriceCell({ dealId, field, value, currency = "EUR" }: DealPriceCellProps) {
   const router = useRouter();
   const format = useFormatter();
+  const t = useTranslations("deals");
 
   const numeric = value !== null && value !== undefined && value !== "" ? Number(value) : null;
 
@@ -25,7 +26,7 @@ export function DealPriceCell({ dealId, field, value, currency = "EUR" }: DealPr
     await axios.put(`/api/deals/${dealId}`, {
       [field]: newValue.trim() === "" ? null : parsed,
     });
-    toast.success("Price updated");
+    toast.success(t("cell.priceUpdated"));
     router.refresh();
   };
 
@@ -42,7 +43,7 @@ export function DealPriceCell({ dealId, field, value, currency = "EUR" }: DealPr
   const validate = (val: string) => {
     if (val.trim() === "") return null;
     const parsed = parseFloat(val.replace(/,/g, ""));
-    if (isNaN(parsed)) return "Invalid price";
+    if (isNaN(parsed)) return t("cell.invalidPrice");
     return null;
   };
 

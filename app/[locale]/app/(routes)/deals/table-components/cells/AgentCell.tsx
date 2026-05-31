@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "@/navigation";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,8 +22,10 @@ interface AgentCellProps {
   nullLabel?: string;
 }
 
-export function AgentCell({ dealId, field, agent, users, nullLabel = "Unassigned" }: AgentCellProps) {
+export function AgentCell({ dealId, field, agent, users, nullLabel }: AgentCellProps) {
   const router = useRouter();
+  const t = useTranslations("deals");
+  const resolvedNullLabel = nullLabel ?? t("cell.unassigned");
 
   const options = users
     .filter((u) => u.name)
@@ -30,7 +33,7 @@ export function AgentCell({ dealId, field, agent, users, nullLabel = "Unassigned
 
   const handleSave = async (value: string | null) => {
     await axios.put(`/api/deals/${dealId}`, { [field]: value });
-    toast.success("Agent updated");
+    toast.success(t("cell.agentUpdated"));
     router.refresh();
   };
 
@@ -50,7 +53,7 @@ export function AgentCell({ dealId, field, agent, users, nullLabel = "Unassigned
         value={agent?.id ?? null}
         onSave={handleSave}
         options={options}
-        nullLabel={nullLabel}
+        nullLabel={resolvedNullLabel}
         width="160px"
       />
     </div>

@@ -65,7 +65,7 @@ export function useRequestColumns(
       {
         accessorKey: "friendlyId",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="ID" />
+          <DataTableColumnHeader column={column} title={t("table.id")} />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-muted-foreground">

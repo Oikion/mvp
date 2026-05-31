@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +73,7 @@ function ConnectionListItem({
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useAppToast();
+  const tn = useTranslations("network");
   const { removeConnection, isRemoving } = useRemoveConnection(connection.id);
   const [isStartingMessage, setIsStartingMessage] = useState(false);
   const { getUserStatus } = usePresence();
@@ -86,10 +88,10 @@ function ConnectionListItem({
       if (result.success && result.conversationId) {
         router.push(`/${locale}/app/messages?conversationId=${result.conversationId}`);
       } else {
-        toast.error(t.toast.error, { description: result.error || "Failed to start conversation", isTranslationKey: false });
+        toast.error(t.toast.error, { description: result.error || tn("connectionToast.startConversationFailed"), isTranslationKey: false });
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to start conversation";
+      const message = error instanceof Error ? error.message : tn("connectionToast.startConversationFailed");
       toast.error(t.toast.error, { description: message, isTranslationKey: false });
     } finally {
       setIsStartingMessage(false);
@@ -157,7 +159,7 @@ function ConnectionListItem({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={isRemoving || isStartingMessage} aria-label="Actions">
+            <Button variant="ghost" size="icon" disabled={isRemoving || isStartingMessage} aria-label={tn("connectionLabels.options")}>
               {isRemoving || isStartingMessage ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
@@ -177,7 +179,7 @@ function ConnectionListItem({
             {!showAsSent && (
               <DropdownMenuItem onClick={handleMessage} disabled={isStartingMessage}>
                 <MessageCircle className="h-4 w-4 mr-2" />
-                {t.actions?.message || "Message"}
+                {t.actions?.message || tn("connectionLabels.message")}
               </DropdownMenuItem>
             )}
             {!showAsSent && (

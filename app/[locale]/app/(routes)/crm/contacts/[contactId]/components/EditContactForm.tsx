@@ -150,7 +150,7 @@ export function EditContactForm({ contact, onSuccess }: EditContactFormProps) {
     try {
       const result = await updateContact(values);
       if (!result.success) {
-        toast.error(result.error ?? "Update failed", { isTranslationKey: false });
+        toast.error(result.error ?? t("contacts.toast.updateFailed"), { isTranslationKey: false });
         return;
       }
       toast.success("updateSuccess");

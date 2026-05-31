@@ -304,7 +304,7 @@ function TopRequestMatchesGrid({
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="px-2" aria-label="More actions">
+                <Button variant="outline" size="sm" className="px-2" aria-label={t("a11y.moreActions")}>
                   <ChevronDown className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>

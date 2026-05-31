@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Users } from "@prisma/client";
 import { Loader2, Upload, X, Camera } from "lucide-react";
 
@@ -41,6 +42,7 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
   
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("profile.photoUpload");
   const setAvatarStore = useAvatarStore((state) => state.setAvatar);
 
   const onDrop = useCallback(
@@ -73,19 +75,19 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
         // Update global avatar store
         setAvatarStore(data.url);
 
-        toast.success("Profile photo updated", { description: "Your new profile photo has been saved.", isTranslationKey: false });
+        toast.success(t("toast.updated"), { description: t("toast.updatedDesc"), isTranslationKey: false });
 
         router.refresh();
       } catch (error: any) {
         // Revert preview on error
         setPreview(null);
-        toast.error("Upload failed", { description: error.message || "Failed to upload profile photo.", isTranslationKey: false });
+        toast.error(t("toast.uploadFailed"), { description: error.message || t("toast.uploadFailedDesc"), isTranslationKey: false });
       } finally {
         setIsUploading(false);
         URL.revokeObjectURL(previewUrl);
       }
     },
-    [router, setAvatarStore, toast]
+    [router, setAvatarStore, toast, t]
   );
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } =
@@ -102,9 +104,9 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
     const rejection = fileRejections[0];
     const error = rejection.errors[0];
     if (error.code === "file-too-large") {
-      toast.error("File too large", { description: "Maximum file size is 5MB.", isTranslationKey: false });
+      toast.error(t("toast.fileTooLarge"), { description: t("toast.fileTooLargeDesc"), isTranslationKey: false });
     } else if (error.code === "file-invalid-type") {
-      toast.error("Invalid file type", { description: "Only JPEG, PNG, WebP, and GIF are allowed.", isTranslationKey: false });
+      toast.error(t("toast.invalidType"), { description: t("toast.invalidTypeDesc"), isTranslationKey: false });
     }
   }
 
@@ -124,11 +126,11 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
       setAvatarStore("");
       setPreview(null);
 
-      toast.success("Profile photo removed", { description: "Your profile photo has been removed.", isTranslationKey: false });
+      toast.success(t("toast.removed"), { description: t("toast.removedDesc"), isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast.error("Remove failed", { description: error.message || "Failed to remove profile photo.", isTranslationKey: false });
+      toast.error(t("toast.removeFailed"), { description: error.message || t("toast.removeFailedDesc"), isTranslationKey: false });
     } finally {
       setIsRemoving(false);
       setShowRemoveDialog(false);
@@ -172,7 +174,7 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
           ) : (
             <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-2 text-muted-foreground">
               <Upload className="h-8 w-8" />
-              <span className="text-xs">Upload</span>
+              <span className="text-xs">{t("upload")}</span>
             </div>
           )}
 
@@ -189,7 +191,7 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
           <Button
             variant="destructive"
             size="icon"
-            aria-label="Remove photo"
+            aria-label={t("removePhoto")}
             className="absolute -top-2 -right-2 h-8 w-8 rounded-full shadow-lg"
             onClick={(e) => {
               e.stopPropagation();
@@ -204,12 +206,10 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
       {/* Instructions */}
       <div className="text-center space-y-1">
         <p className="text-sm text-muted-foreground">
-          {isDragActive
-            ? "Drop your photo here..."
-            : "Click or drag to upload a new photo"}
+          {isDragActive ? t("dropHere") : t("clickOrDrag")}
         </p>
         <p className="text-xs text-muted-foreground/70">
-          JPEG, PNG, WebP, or GIF. Max 5MB.
+          {t("fileHint")}
         </p>
       </div>
 
@@ -217,14 +217,13 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
       <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove profile photo?</AlertDialogTitle>
+            <AlertDialogTitle>{t("removeDialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Your profile photo will be permanently removed. You can upload a
-              new one at any time.
+              {t("removeDialogDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isRemoving}>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveAvatar}
               disabled={isRemoving}
@@ -233,10 +232,10 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
               {isRemoving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Removing...
+                  {t("removing")}
                 </>
               ) : (
-                "Remove"
+                t("remove")
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

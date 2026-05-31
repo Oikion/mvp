@@ -781,8 +781,8 @@ export function AgencyProfileEditor({
           <TabsContent value="social" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Social Media Links</CardTitle>
-                <CardDescription>Connect your social media profiles</CardDescription>
+                <CardTitle className="text-base">{t("social.title")}</CardTitle>
+                <CardDescription>{t("social.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

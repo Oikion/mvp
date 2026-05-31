@@ -45,6 +45,7 @@ export function AgentProfileActions({
   locale,
 }: AgentProfileActionsProps) {
   const t = useTranslations("profile");
+  const tn = useTranslations("network");
   const router = useRouter();
   const { toast } = useAppToast();
   const [connectionStatus, setConnectionStatus] = useState(initialConnectionStatus);
@@ -59,7 +60,7 @@ export function AgentProfileActions({
         setConnectionStatus("PENDING");
         toast.success(t("inAppProfile.followSent"), { isTranslationKey: false });
       } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : "Failed to send request";
+        const msg = error instanceof Error ? error.message : tn("agentActions.sendRequestFailed");
         // Handle "already connected" gracefully
         if (msg.includes("already")) {
           setConnectionStatus("ACCEPTED");
@@ -77,7 +78,7 @@ export function AgentProfileActions({
         setConnectionStatus("NONE");
         toast.success(t("inAppProfile.connectionRemoved"), { isTranslationKey: false });
       } catch {
-        toast.error("Failed to remove connection", { isTranslationKey: false });
+        toast.error(tn("agentActions.removeConnectionFailed"), { isTranslationKey: false });
       }
     });
   };
@@ -90,7 +91,7 @@ export function AgentProfileActions({
           router.push(`/${locale}/app/network/messages?conversationId=${result.conversationId}`);
         }
       } catch {
-        toast.error("Failed to start conversation", { isTranslationKey: false });
+        toast.error(tn("agentActions.startConversationFailed"), { isTranslationKey: false });
       }
     });
   };
@@ -186,7 +187,7 @@ export function AgentProfileActions({
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-            <span className="sr-only">More actions</span>
+            <span className="sr-only">{tn("agentActions.moreActions")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

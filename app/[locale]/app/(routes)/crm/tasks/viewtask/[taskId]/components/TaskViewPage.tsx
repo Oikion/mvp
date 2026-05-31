@@ -20,11 +20,13 @@ import {
 import { format } from 'date-fns';
 import { EditTaskForm } from '@/components/tasks/EditTaskForm';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useTranslations } from "next-intl";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useTask } from '@/hooks/swr';
 
 export function TaskViewPage({ taskId }: { taskId: string }) {
   const router = useRouter();
+  const t = useTranslations("crm");
   const { toast } = useAppToast();
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -34,10 +36,10 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
   // Handle 404 redirect
   useEffect(() => {
     if (isNotFound) {
-      toast.error("Task not found", { description: "The task you are looking for does not exist.", isTranslationKey: false });
+      toast.error(t("tasks.toast.taskNotFound"), { description: t("tasks.toast.taskNotFoundDesc"), isTranslationKey: false });
       router.push('/crm/tasks');
     }
-  }, [isNotFound, router, toast]);
+  }, [isNotFound, router, toast, t]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
@@ -56,7 +58,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
   const handleTaskUpdated = () => {
     setIsEditOpen(false);
     mutate(); // Revalidate SWR cache
-    toast.info("Task updated", { description: "The task has been updated successfully.", isTranslationKey: false });
+    toast.info(t("tasks.toast.taskUpdated"), { description: t("tasks.toast.taskUpdatedDesc"), isTranslationKey: false });
   };
 
   if (isLoading) {
@@ -75,7 +77,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
         <Card>
           <CardContent className="py-8 text-center">
             <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Task not found</p>
+            <p className="text-muted-foreground">{t("tasks.view.notFound")}</p>
           </CardContent>
         </Card>
       </div>
@@ -95,21 +97,21 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Back"
+              aria-label={t("tasks.view.back")}
               onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Task Details</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("tasks.view.pageTitle")}</h1>
               <p className="text-muted-foreground">
-                View and manage task information
+                {t("tasks.view.pageSubtitle")}
               </p>
             </div>
           </div>
           <Button onClick={() => setIsEditOpen(true)}>
             <Edit className="h-4 w-4 mr-2" />
-            Edit Task
+            {t("tasks.view.editTask")}
           </Button>
         </div>
 
@@ -129,7 +131,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
             <CardContent className="space-y-4">
               {task.content && (
                 <div>
-                  <h3 className="text-sm font-semibold mb-2">Description</h3>
+                  <h3 className="text-sm font-semibold mb-2">{t("tasks.view.description")}</h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                     {task.content}
                   </p>
@@ -142,7 +144,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                 {dueDate && (
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Due Date:</span>
+                    <span className="text-muted-foreground">{t("tasks.view.dueDate")}</span>
                     <span className="font-medium">
                       {format(dueDate, 'PPP p')}
                     </span>
@@ -152,7 +154,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                 {task.assigned_user && (
                   <div className="flex items-center gap-2 text-sm">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Assigned to:</span>
+                    <span className="text-muted-foreground">{t("tasks.view.assignedTo")}</span>
                     <span className="font-medium">
                       {task.assigned_user.name || task.assigned_user.email}
                     </span>
@@ -162,7 +164,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                 {task.crm_accounts && (
                   <div className="flex items-center gap-2 text-sm">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Account:</span>
+                    <span className="text-muted-foreground">{t("tasks.view.account")}</span>
                     <Button
                       variant="link"
                       className="h-auto p-0 font-medium"
@@ -176,7 +178,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                 {createdDate && (
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Created:</span>
+                    <span className="text-muted-foreground">{t("tasks.view.created")}</span>
                     <span className="font-medium">
                       {format(createdDate, 'PPP p')}
                     </span>
@@ -186,7 +188,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                 {updatedDate && updatedDate.getTime() !== createdDate?.getTime() && (
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Last updated:</span>
+                    <span className="text-muted-foreground">{t("tasks.view.lastUpdated")}</span>
                     <span className="font-medium">
                       {format(updatedDate, 'PPP p')}
                     </span>
@@ -198,9 +200,9 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                 <>
                   <Separator />
                   <div>
-                    <h3 className="text-sm font-semibold mb-2">Linked Calendar Event</h3>
+                    <h3 className="text-sm font-semibold mb-2">{t("tasks.view.linkedCalendarEvent")}</h3>
                     <div className="text-sm text-muted-foreground">
-                      <p className="font-medium">{task.calendarEvent.title || 'Untitled Event'}</p>
+                      <p className="font-medium">{task.calendarEvent.title || t("tasks.view.untitledEvent")}</p>
                       <p>
                         {format(new Date(task.calendarEvent.startTime), 'PPP p')} - {' '}
                         {format(new Date(task.calendarEvent.endTime), 'p')}
@@ -214,12 +216,12 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Comments</CardTitle>
+              <CardTitle>{t("tasks.view.comments")}</CardTitle>
             </CardHeader>
             <CardContent>
               {comments.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  No comments yet
+                  {t("tasks.view.noComments")}
                 </p>
               ) : (
                 <div className="space-y-4">
@@ -227,7 +229,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                     <div key={comment.id} className="space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
-                          {comment.assigned_user?.name || comment.assigned_user?.email || 'Unknown'}
+                          {comment.assigned_user?.name || comment.assigned_user?.email || t("tasks.view.unknownUser")}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(comment.createdAt), 'PPP p')}
@@ -249,7 +251,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
       <Sheet open={isEditOpen} onOpenChange={setIsEditOpen}>
         <SheetContent className="sm:max-w-[540px] overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Edit Task</SheetTitle>
+            <SheetTitle>{t("tasks.view.editTaskSheetTitle")}</SheetTitle>
           </SheetHeader>
           <div className="mt-6">
             <EditTaskForm 

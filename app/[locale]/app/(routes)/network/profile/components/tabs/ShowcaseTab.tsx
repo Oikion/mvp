@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import {
   DndContext,
@@ -166,6 +167,7 @@ export function ShowcaseTab({
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const router = useRouter();
   const { toast } = useAppToast();
+  const tn = useTranslations("network");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -192,7 +194,7 @@ export function ShowcaseTab({
         });
         router.refresh();
       } catch (error) {
-        toast.error("Error", { description: "Failed to save order. Please try again.", isTranslationKey: false });
+        toast.error(tn("showcase.error"), { description: tn("showcase.saveOrderFailed"), isTranslationKey: false });
         // Revert on error
         setShowcaseProperties(showcaseProperties);
       } finally {
@@ -216,11 +218,11 @@ export function ShowcaseTab({
         ]);
       }
 
-      toast.success("Property Added", { description: "Property has been added to your showcase.", isTranslationKey: false });
+      toast.success(tn("showcase.propertyAdded"), { description: tn("showcase.propertyAddedDesc"), isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data?.error || "Failed to add property.", isTranslationKey: false });
+      toast.error(tn("showcase.error"), { description: error.response?.data?.error || tn("showcase.addPropertyFailed"), isTranslationKey: false });
     } finally {
       setIsAdding(null);
     }
@@ -238,11 +240,11 @@ export function ShowcaseTab({
       }
       setShowcaseProperties(showcaseProperties.filter((p) => p.propertyId !== propertyId));
 
-      toast.success("Property Removed", { description: "Property has been removed from your showcase.", isTranslationKey: false });
+      toast.success(tn("showcase.propertyRemoved"), { description: tn("showcase.propertyRemovedDesc"), isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data?.error || "Failed to remove property.", isTranslationKey: false });
+      toast.error(tn("showcase.error"), { description: error.response?.data?.error || tn("showcase.removePropertyFailed"), isTranslationKey: false });
     } finally {
       setIsRemoving(null);
     }
@@ -263,10 +265,10 @@ export function ShowcaseTab({
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <Home className="h-4 w-4" />
-              Showcase Properties
+              {tn("showcase.title")}
             </CardTitle>
             <CardDescription>
-              Select and order which properties appear on your public profile
+              {tn("showcase.description")}
             </CardDescription>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -276,14 +278,14 @@ export function ShowcaseTab({
                 leftIcon={<Plus className="h-4 w-4" />}
                 disabled={availableProperties.length === 0}
               >
-                Add Property
+                {tn("showcase.addProperty")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Add Property to Showcase</DialogTitle>
+                <DialogTitle>{tn("showcase.addDialogTitle")}</DialogTitle>
                 <DialogDescription>
-                  Select a property to display on your public profile
+                  {tn("showcase.addDialogDescription")}
                 </DialogDescription>
               </DialogHeader>
               <ScrollArea className="max-h-[400px] pr-4">
@@ -336,7 +338,7 @@ export function ShowcaseTab({
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <>
-                              Add <ArrowRight className="h-3 w-3 ml-1" />
+                              {tn("showcase.add")} <ArrowRight className="h-3 w-3 ml-1" />
                             </>
                           )}
                         </Button>
@@ -347,10 +349,10 @@ export function ShowcaseTab({
                   <div className="text-center py-8">
                     <Building2 className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
                     <p className="text-muted-foreground text-sm">
-                      No more properties available to add
+                      {tn("showcase.noMoreAvailable")}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Add more properties in the MLS section
+                      {tn("showcase.addMoreInMls")}
                     </p>
                   </div>
                 )}
@@ -363,7 +365,7 @@ export function ShowcaseTab({
         {showcaseProperties.length > 0 ? (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground mb-3">
-              Drag to reorder - Properties will appear in this order on your profile
+              {tn("showcase.dragToReorder")}
             </p>
             <DndContext
               sensors={sensors}
@@ -387,7 +389,7 @@ export function ShowcaseTab({
             {isSavingOrder && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Saving order...
+                {tn("showcase.savingOrder")}
               </p>
             )}
           </div>
@@ -395,10 +397,10 @@ export function ShowcaseTab({
           <div className="text-center py-8 border rounded-lg bg-muted/20">
             <Home className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
             <p className="text-muted-foreground text-sm">
-              No properties in your showcase yet
+              {tn("showcase.emptyTitle")}
             </p>
             <p className="text-xs text-muted-foreground mt-1 mb-4">
-              Add properties to display on your public profile
+              {tn("showcase.emptyHint")}
             </p>
             <Button
               size="sm"
@@ -407,7 +409,7 @@ export function ShowcaseTab({
               onClick={() => setIsAddDialogOpen(true)}
               disabled={availableProperties.length === 0}
             >
-              Add Your First Property
+              {tn("showcase.addFirstProperty")}
             </Button>
           </div>
         )}

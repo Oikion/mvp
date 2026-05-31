@@ -4,6 +4,7 @@ import { z } from "zod";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
@@ -16,23 +17,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 
 const typeOptions = [
-  { value: "RESIDENTIAL", label: "Residential" },
-  { value: "COMMERCIAL", label: "Commercial" },
-  { value: "LAND", label: "Land" },
-  { value: "RENTAL", label: "Rental" },
-  { value: "VACATION", label: "Vacation" },
-];
+  { value: "RESIDENTIAL", labelKey: "typeOptions.residential" },
+  { value: "COMMERCIAL", labelKey: "typeOptions.commercial" },
+  { value: "LAND", labelKey: "typeOptions.land" },
+  { value: "RENTAL", labelKey: "typeOptions.rental" },
+  { value: "VACATION", labelKey: "typeOptions.vacation" },
+] as const;
 
 const statusOptions = [
-  { value: "ACTIVE", label: "Active" },
-  { value: "PENDING", label: "Pending" },
-  { value: "SOLD", label: "Sold" },
-  { value: "OFF_MARKET", label: "Off market" },
-  { value: "WITHDRAWN", label: "Withdrawn" },
-];
+  { value: "ACTIVE", labelKey: "statusOptions.active" },
+  { value: "PENDING", labelKey: "statusOptions.pending" },
+  { value: "SOLD", labelKey: "statusOptions.sold" },
+  { value: "OFF_MARKET", labelKey: "statusOptions.offMarket" },
+  { value: "WITHDRAWN", labelKey: "statusOptions.withdrawn" },
+] as const;
 
 export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
   const router = useRouter();
+  const t = useTranslations("mls.NewPropertyForm");
   const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
@@ -109,9 +111,9 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
         });
       }
 
-      toast.success("Success", { description: "Property created successfully", isTranslationKey: false });
+      toast.success(t("toast.created"), { description: t("toast.createdDesc"), isTranslationKey: false });
     } catch (e) {
-      toast.error("Error", { description: "Failed to create property", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: t("toast.errorDesc"), isTranslationKey: false });
     } finally {
       form.reset();
       router.refresh();
@@ -126,9 +128,9 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
         <div className="w-full max-w-[800px] text-sm space-y-3">
           <FormField control={form.control} name="property_name" render={({ field }) => (
             <FormItem>
-              <FormLabel>Property name</FormLabel>
+              <FormLabel>{t("fields.name")}</FormLabel>
               <FormControl>
-                <Input disabled={isLoading} placeholder="123 Main St, City" {...field} />
+                <Input disabled={isLoading} placeholder={t("placeholders.name")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -136,15 +138,15 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
           <div className="flex gap-5">
             <FormField control={form.control} name="property_type" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Type</FormLabel>
+                <FormLabel>{t("fields.type")}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder={t("placeholders.type")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {typeOptions.map((t) => (<SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>))}
+                    {typeOptions.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{t(opt.labelKey)}</SelectItem>))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -152,15 +154,15 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
             )} />
             <FormField control={form.control} name="property_status" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Status</FormLabel>
+                <FormLabel>{t("fields.status")}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder={t("placeholders.status")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {statusOptions.map((t) => (<SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>))}
+                    {statusOptions.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{t(opt.labelKey)}</SelectItem>))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -170,15 +172,15 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
           <div className="flex gap-5">
             <FormField control={form.control} name="address_street" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Street</FormLabel>
-                <FormControl><Input disabled={isLoading} placeholder="123 Main St" {...field} /></FormControl>
+                <FormLabel>{t("fields.street")}</FormLabel>
+                <FormControl><Input disabled={isLoading} placeholder={t("placeholders.street")} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="address_city" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>City</FormLabel>
-                <FormControl><Input disabled={isLoading} placeholder="City" {...field} /></FormControl>
+                <FormLabel>{t("fields.city")}</FormLabel>
+                <FormControl><Input disabled={isLoading} placeholder={t("placeholders.city")} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -186,15 +188,15 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
           <div className="flex gap-5">
             <FormField control={form.control} name="address_state" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>State</FormLabel>
-                <FormControl><Input disabled={isLoading} placeholder="State" {...field} /></FormControl>
+                <FormLabel>{t("fields.state")}</FormLabel>
+                <FormControl><Input disabled={isLoading} placeholder={t("placeholders.state")} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="address_zip" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>ZIP</FormLabel>
-                <FormControl><Input disabled={isLoading} placeholder="ZIP" {...field} /></FormControl>
+                <FormLabel>{t("fields.zip")}</FormLabel>
+                <FormControl><Input disabled={isLoading} placeholder={t("placeholders.zip")} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -202,15 +204,15 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
           <div className="flex gap-5">
             <FormField control={form.control} name="price" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Price</FormLabel>
-                <FormControl><Input type="number" disabled={isLoading} placeholder="500000" {...field} /></FormControl>
+                <FormLabel>{t("fields.price")}</FormLabel>
+                <FormControl><Input type="number" disabled={isLoading} placeholder={t("placeholders.price")} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="bedrooms" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Bedrooms</FormLabel>
-                <FormControl><Input type="number" disabled={isLoading} placeholder="3" {...field} /></FormControl>
+                <FormLabel>{t("fields.bedrooms")}</FormLabel>
+                <FormControl><Input type="number" disabled={isLoading} placeholder={t("placeholders.bedrooms")} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -218,44 +220,44 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
           <div className="flex gap-5">
             <FormField control={form.control} name="bathrooms" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Bathrooms</FormLabel>
-                <FormControl><Input type="number" step="0.5" disabled={isLoading} placeholder="2" {...field} /></FormControl>
+                <FormLabel>{t("fields.bathrooms")}</FormLabel>
+                <FormControl><Input type="number" step="0.5" disabled={isLoading} placeholder={t("placeholders.bathrooms")} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="square_feet" render={({ field }) => (
               <FormItem className="w-1/2">
-                <FormLabel>Square feet</FormLabel>
-                <FormControl><Input type="number" disabled={isLoading} placeholder="1500" {...field} /></FormControl>
+                <FormLabel>{t("fields.squareFeet")}</FormLabel>
+                <FormControl><Input type="number" disabled={isLoading} placeholder={t("placeholders.squareFeet")} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
           </div>
           <FormField control={form.control} name="description" render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t("fields.description")}</FormLabel>
               <FormControl>
-                <Textarea disabled={isLoading} placeholder="Property description" {...field} value={field.value ?? ""} />
+                <Textarea disabled={isLoading} placeholder={t("placeholders.description")} {...field} value={field.value ?? ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )} />
-          
+
           <div className="pt-4 border-t">
             <div className="text-sm text-muted-foreground mb-4">
-              Link this property to clients. You can link clients later as well.
+              {t("linkClientsHint")}
             </div>
             {loadingClients ? (
-              <div className="text-sm text-muted-foreground">Loading clients...</div>
+              <div className="text-sm text-muted-foreground">{t("loadingClients")}</div>
             ) : clients.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No clients available. Create clients first.</div>
+              <div className="text-sm text-muted-foreground">{t("noClients")}</div>
             ) : (
               <FormField
                 control={form.control}
                 name="clientIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Link to Clients</FormLabel>
+                    <FormLabel>{t("fields.linkToClients")}</FormLabel>
                     <FormControl>
                       <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-4">
                         {clients.map((client) => (
@@ -295,7 +297,7 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
             )}
           </div>
         </div>
-        <div className="grid gap-2 py-5"><Button disabled={isLoading} type="submit">Create property</Button></div>
+        <div className="grid gap-2 py-5"><Button disabled={isLoading} type="submit">{t("submit")}</Button></div>
       </form>
     </Form>
   );

@@ -271,7 +271,41 @@
     "toast": {
       "statusUpdated": "Η κατάσταση ενημερώθηκε",
       "deleted": "Διαγράφηκε",
-      "notesSaved": "Οι σημειώσεις αποθηκεύτηκαν"
+      "notesSaved": "Οι σημειώσεις αποθηκεύτηκαν",
+      "genericError": "Παρουσιάστηκε σφάλμα"
+    },
+    "page": {
+      "all": "Όλα",
+      "searchPlaceholder": "Αναζήτηση...",
+      "gridView": "Προβολή πλέγματος",
+      "listView": "Προβολή λίστας",
+      "noSubmissions": "Δεν υπάρχουν υποβολές",
+      "noSubmissionsDescription": "Οι υποβολές από τη φόρμα επικοινωνίας θα εμφανιστούν εδώ.",
+      "anonymous": "Ανώνυμος",
+      "noMessage": "Χωρίς μήνυμα",
+      "sender": "Αποστολέας",
+      "email": "Email",
+      "status": "Κατάσταση",
+      "date": "Ημερομηνία",
+      "submissionActions": "Ενέργειες υποβολής",
+      "view": "Προβολή",
+      "markAsContacted": "Σημείωση ως επικοινώνησα",
+      "archive": "Αρχειοθέτηση",
+      "delete": "Διαγραφή",
+      "confirmDelete": "Είστε σίγουροι;",
+      "formDetails": "Λεπτομέρειες Φόρμας",
+      "yes": "Ναι",
+      "no": "Όχι",
+      "notes": "Σημειώσεις",
+      "notesPlaceholder": "Προσθέστε σημειώσεις...",
+      "save": "Αποθήκευση",
+      "sendEmail": "Αποστολή Email"
+    },
+    "statusLabel": {
+      "NEW": "Νέο",
+      "READ": "Διαβάστηκε",
+      "CONTACTED": "Επικοινώνησα",
+      "ARCHIVED": "Αρχειοθετημένο"
     }
   },
   "contacts": {
@@ -418,6 +452,9 @@
       "COLLEAGUE": "Συνεργάτης",
       "LEGAL_REPRESENTATIVE": "Νόμιμος Εκπρόσωπος",
       "OTHER": "Άλλο"
+    },
+    "toast": {
+      "updateFailed": "Η ενημέρωση απέτυχε"
     },
     "wizard": {
       "title": "Νέα Επαφή",
@@ -680,6 +717,47 @@
         "createSuccess": "Ο πελάτης δημιουργήθηκε με επιτυχία",
         "genericError": "Κάτι πήγε στραβά. Παρακαλώ δοκιμάστε ξανά."
       }
+    },
+    "updateForm": {
+      "noData": "Κάτι πήγε στραβά, δεν υπάρχουν δεδομένα για τη φόρμα",
+      "labels": {
+        "clientName": "Όνομα πελάτη",
+        "officePhone": "Τηλέφωνο γραφείου",
+        "email": "E-mail",
+        "website": "Ιστότοπος",
+        "accountId": "Αναγνωριστικό λογαριασμού",
+        "accountVat": "ΑΦΜ λογαριασμού",
+        "billingStreet": "Οδός χρέωσης",
+        "shippingStreet": "Οδός αποστολής",
+        "shippingPostalCode": "Ταχυδρομικός κώδικας αποστολής",
+        "shippingCity": "Πόλη αποστολής",
+        "shippingState": "Νομός αποστολής",
+        "shippingCountry": "Χώρα αποστολής",
+        "description": "Περιγραφή",
+        "annualRevenue": "Ετήσιος κύκλος εργασιών",
+        "memberOf": "Μέλος του",
+        "assignedTo": "Ανατέθηκε σε"
+      },
+      "placeholders": {
+        "officePhone": "+30 210 ....",
+        "email": "account@domain.com",
+        "website": "https://www.domain.com",
+        "accountId": "1234567890",
+        "accountVat": "EL123456789",
+        "streetAddress": "Διεύθυνση οδού",
+        "description": "Περιγραφή",
+        "annualRevenue": "1.000.000",
+        "memberOf": "Tesla Inc.",
+        "assignUser": "Επιλέξτε χρήστη για ανάθεση του λογαριασμού"
+      },
+      "buttons": {
+        "update": "Ενημέρωση λογαριασμού"
+      },
+      "toast": {
+        "updateSuccess": "Επιτυχία",
+        "updateSuccessDesc": "Ο πελάτης ενημερώθηκε με επιτυχία",
+        "updateError": "Σφάλμα"
+      }
     }
   },
   "tasks": {
@@ -727,6 +805,59 @@
       "medium": "Μεσαία",
       "high": "Υψηλή",
       "critical": "Κρίσιμη"
+    },
+    "view": {
+      "openMenu": "Άνοιγμα μενού",
+      "back": "Πίσω",
+      "pageTitle": "Λεπτομέρειες Εργασίας",
+      "pageSubtitle": "Προβολή και διαχείριση πληροφοριών εργασίας",
+      "editTask": "Επεξεργασία Εργασίας",
+      "description": "Περιγραφή",
+      "dueDate": "Προθεσμία:",
+      "assignedTo": "Ανατέθηκε σε:",
+      "account": "Λογαριασμός:",
+      "created": "Δημιουργήθηκε:",
+      "lastUpdated": "Τελευταία ενημέρωση:",
+      "linkedCalendarEvent": "Συνδεδεμένο Συμβάν Ημερολογίου",
+      "untitledEvent": "Συμβάν χωρίς τίτλο",
+      "comments": "Σχόλια",
+      "noComments": "Δεν υπάρχουν σχόλια ακόμη",
+      "unknownUser": "Άγνωστος",
+      "notFound": "Η εργασία δεν βρέθηκε",
+      "editTaskSheetTitle": "Επεξεργασία Εργασίας"
+    },
+    "conversation": {
+      "commentPlaceholder": "Το σχόλιό σας ...",
+      "add": "Προσθήκη",
+      "teamConversation": "Συνομιλία ομάδας",
+      "teamConversationDescription": "Προσκαλέστε τα μέλη της ομάδας σας να συνεργαστούν."
+    },
+    "rowActions": {
+      "openMenu": "Άνοιγμα μενού",
+      "view": "Προβολή",
+      "connectToTask": "Σύνδεση με εργασία",
+      "disconnectFromTask": "Αποσύνδεση από εργασία",
+      "delete": "Διαγραφή",
+      "deleteTaskTitle": "Διαγραφή Εργασίας",
+      "deleteTaskDescription": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Η εργασία θα διαγραφεί οριστικά.",
+      "deleteConfirm": "Διαγραφή",
+      "deleting": "Διαγραφή..."
+    },
+    "toast": {
+      "notImplemented": "Δεν έχει υλοποιηθεί",
+      "assignNotImplementedDesc": "Η λειτουργία ανάθεσης εγγράφου πρέπει να υλοποιηθεί για τις εργασίες CRM",
+      "disconnectNotImplementedDesc": "Η λειτουργία αποσύνδεσης εγγράφου πρέπει να υλοποιηθεί για τις εργασίες CRM",
+      "commentAdded": "Επιτυχία, το σχόλιο προστέθηκε.",
+      "commentError": "Σφάλμα",
+      "commentErrorDesc": "Παρουσιάστηκε σφάλμα κατά την αποστολή του σχολίου στη βάση δεδομένων",
+      "taskNotFound": "Η εργασία δεν βρέθηκε",
+      "taskNotFoundDesc": "Η εργασία που αναζητάτε δεν υπάρχει.",
+      "taskUpdated": "Η εργασία ενημερώθηκε",
+      "taskUpdatedDesc": "Η εργασία ενημερώθηκε με επιτυχία.",
+      "taskDeleted": "Η εργασία διαγράφηκε",
+      "taskDeletedDesc": "Η εργασία διαγράφηκε με επιτυχία",
+      "taskDeleteFailed": "Η διαγραφή της εργασίας απέτυχε",
+      "taskDeleteFailedDesc": "Παρουσιάστηκε σφάλμα κατά τη διαγραφή της εργασίας"
     }
   }
 }

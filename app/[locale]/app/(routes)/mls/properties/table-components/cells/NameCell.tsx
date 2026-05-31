@@ -29,7 +29,7 @@ export const NameCell = ({ propertyId, value }: NameCellProps) => {
       value={value}
       onSave={handleSave}
       required
-      placeholder="Property name"
+      placeholder={t("MlsPropertiesTable.namePlaceholder")}
     />
   );
 };

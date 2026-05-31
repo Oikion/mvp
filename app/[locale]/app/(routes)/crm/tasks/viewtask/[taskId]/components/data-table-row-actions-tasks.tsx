@@ -25,6 +25,7 @@ import { taskSchema } from "../data/schema";
 import { useRouter } from "next/navigation";
 import DocumentViewModal from "@/components/modals/document-view-modal";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useAppToast } from "@/hooks/use-app-toast";
 
 interface DataTableRowActionsProps<TData> {
@@ -44,10 +45,11 @@ export function DataTableRowActionsTasks<TData>({
   //console.log(params, "params");
 
   const { toast } = useAppToast();
+  const t = useTranslations("crm");
 
   const onDisconnect = async () => {
     // TODO: Implement disconnect functionality for CRM tasks
-    toast.info("Not implemented", { description: "Document disconnect functionality needs to be implemented for CRM tasks", isTranslationKey: false });
+    toast.info(t("tasks.toast.notImplemented"), { description: t("tasks.toast.disconnectNotImplementedDesc"), isTranslationKey: false });
   };
 
   return (
@@ -65,15 +67,15 @@ export function DataTableRowActionsTasks<TData>({
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
             <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t("tasks.rowActions.openMenu")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[260px]">
           <DropdownMenuItem onClick={onDisconnect}>
-            Disconnect from task
+            {t("tasks.rowActions.disconnectFromTask")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpen(true)}>
-            View
+            {t("tasks.rowActions.view")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

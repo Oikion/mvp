@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Loader2, Upload, X, Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const { toast } = useAppToast();
+  const t = useTranslations("profile.logoUpload");
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -55,15 +57,15 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
           onChange(data.url);
         }
 
-        toast.success("Logo uploaded", {
-          description: "Your agency logo has been saved.",
+        toast.success(t("toast.uploaded"), {
+          description: t("toast.uploadedDesc"),
           isTranslationKey: false,
         });
       } catch (error: unknown) {
         setPreview(null);
         const message =
-          error instanceof Error ? error.message : "Failed to upload logo";
-        toast.error("Upload failed", {
+          error instanceof Error ? error.message : t("toast.uploadFailedDesc");
+        toast.error(t("toast.uploadFailed"), {
           description: message,
           isTranslationKey: false,
         });
@@ -72,7 +74,7 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
         URL.revokeObjectURL(previewUrl);
       }
     },
-    [onChange, toast]
+    [onChange, toast, t]
   );
 
   const handleRemove = async (e: React.MouseEvent) => {
@@ -108,13 +110,13 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
   if (fileRejections.length > 0) {
     const error = fileRejections[0]?.errors[0];
     if (error?.code === "file-too-large") {
-      toast.error("File too large", {
-        description: "Maximum file size is 5MB.",
+      toast.error(t("toast.fileTooLarge"), {
+        description: t("toast.fileTooLargeDesc"),
         isTranslationKey: false,
       });
     } else if (error?.code === "file-invalid-type") {
-      toast.error("Invalid file type", {
-        description: "Only JPEG, PNG, WebP, and SVG are allowed.",
+      toast.error(t("toast.invalidType"), {
+        description: t("toast.invalidTypeDesc"),
         isTranslationKey: false,
       });
     }
@@ -146,14 +148,14 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
             <>
               <Image
                 src={displayLogo}
-                alt="Agency logo preview"
+                alt={t("logoPreviewAlt")}
                 fill
                 className="object-contain p-3"
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Upload className="h-5 w-5 text-white" />
                 <span className="text-white text-sm font-medium">
-                  {isDragActive ? "Drop to replace" : "Click to replace"}
+                  {isDragActive ? t("dropToReplace") : t("clickToReplace")}
                 </span>
               </div>
             </>
@@ -162,13 +164,13 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
               {isDragActive ? (
                 <>
                   <Upload className="h-8 w-8" />
-                  <span className="text-sm">Drop logo here</span>
+                  <span className="text-sm">{t("dropHere")}</span>
                 </>
               ) : (
                 <>
                   <Building2 className="h-8 w-8" />
                   <span className="text-sm font-medium">
-                    Click or drag to upload logo
+                    {t("clickOrDrag")}
                   </span>
                 </>
               )}
@@ -189,7 +191,7 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
             size="icon"
             className="absolute -top-2 -right-2 h-7 w-7 rounded-full shadow-md"
             onClick={handleRemove}
-            aria-label="Remove logo"
+            aria-label={t("removeLogo")}
           >
             <X className="h-3 w-3" />
           </Button>
@@ -197,7 +199,7 @@ export function LogoUpload({ currentLogo, onChange, disabled }: LogoUploadProps)
       </div>
 
       <p className="text-xs text-muted-foreground">
-        JPEG, PNG, WebP, or SVG · Max 5MB · Square format recommended
+        {t("fileHint")}
       </p>
     </div>
   );

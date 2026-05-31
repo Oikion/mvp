@@ -62,6 +62,23 @@
     "COMPLETED": "Completed",
     "CANCELLED": "Cancelled"
   },
+  "tableHeaders": {
+    "id": "ID",
+    "title": "Title",
+    "stage": "Stage",
+    "type": "Type",
+    "price": "Price",
+    "property": "Property"
+  },
+  "cell": {
+    "priceUpdated": "Price updated",
+    "stageUpdated": "Stage updated",
+    "agentUpdated": "Agent updated",
+    "titleUpdated": "Title updated",
+    "dealTypeUpdated": "Deal type updated",
+    "invalidPrice": "Invalid price",
+    "unassigned": "Unassigned"
+  },
   "list": {
     "empty": "No deals found.",
     "emptyActive": "No active deals.",
@@ -137,6 +154,8 @@
     }
   },
   "detail": {
+    "pageFallbackTitle": "Deal Details",
+    "pageDescription": "Manage this collaborative deal",
     "overview": "Overview",
     "pipeline": "Pipeline",
     "parties": "Parties",

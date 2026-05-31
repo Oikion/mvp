@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -141,6 +142,7 @@ function ConnectionItem({
 }) {
   const router = useRouter();
   const { toast } = useAppToast();
+  const tn = useTranslations("network");
   const { removeConnection, isRemoving } = useRemoveConnection(connection.id);
   const [isStartingMessage, setIsStartingMessage] = useState(false);
 
@@ -151,10 +153,10 @@ function ConnectionItem({
       if (result.success && result.conversationId) {
         router.push(`/${locale}/app/network/messages?conversationId=${result.conversationId}`);
       } else {
-        toast.error(t.toast.error, { description: result.error || "Failed to start conversation", isTranslationKey: false });
+        toast.error(t.toast.error, { description: result.error || tn("connectionToast.startConversationFailed"), isTranslationKey: false });
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to start conversation";
+      const message = error instanceof Error ? error.message : tn("connectionToast.startConversationFailed");
       toast.error(t.toast.error, { description: message, isTranslationKey: false });
     } finally {
       setIsStartingMessage(false);
@@ -185,7 +187,7 @@ function ConnectionItem({
           </AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="font-medium">{connection.user?.name ?? "Deleted User"}</h4>
+          <h4 className="font-medium">{connection.user?.name ?? tn("connectionLabels.deletedUser")}</h4>
           <p className="text-sm text-muted-foreground">
             {connection.user?.email ?? ""}
           </p>
@@ -212,7 +214,7 @@ function ConnectionItem({
       <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Connection options" disabled={isRemoving || isStartingMessage}>
+            <Button variant="ghost" size="icon" aria-label={tn("connectionLabels.options")} disabled={isRemoving || isStartingMessage}>
               {isRemoving || isStartingMessage ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
@@ -232,7 +234,7 @@ function ConnectionItem({
               )}
             <DropdownMenuItem onClick={handleMessage} disabled={isStartingMessage}>
               <MessageCircle className="h-4 w-4 mr-2" />
-              {t.actions?.message || "Message"}
+              {t.actions?.message || tn("connectionLabels.message")}
             </DropdownMenuItem>
             <DropdownMenuItem disabled>
               <Share2 className="h-4 w-4 mr-2" />
@@ -265,6 +267,7 @@ function ReceivedRequestItem({
 }) {
   const router = useRouter();
   const { toast } = useAppToast();
+  const tn = useTranslations("network");
   const { acceptConnection, rejectConnection, isResponding } = useRespondToConnection(request.id);
 
   const handleAccept = async () => {
@@ -303,7 +306,7 @@ function ReceivedRequestItem({
         </Avatar>
         <div>
           <div className="flex items-center gap-2">
-            <h4 className="font-medium">{request.user?.name ?? "Deleted User"}</h4>
+            <h4 className="font-medium">{request.user?.name ?? tn("connectionLabels.deletedUser")}</h4>
             {request.user?.agentProfile?.visibility !== "PRIVATE" &&
               request.user?.agentProfile?.slug && (
                 <Link
@@ -318,10 +321,14 @@ function ReceivedRequestItem({
             {request.user?.email ?? ""}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {(t.pendingList?.sentAgo || "Sent {time} ago").replace(
-              "{time}",
-              formatDistanceToNow(new Date(request.createdAt), { locale: dateLocale })
-            )}
+            {t.pendingList?.sentAgo
+              ? t.pendingList.sentAgo.replace(
+                  "{time}",
+                  formatDistanceToNow(new Date(request.createdAt), { locale: dateLocale })
+                )
+              : tn("connectionLabels.sentAgo", {
+                  time: formatDistanceToNow(new Date(request.createdAt), { locale: dateLocale }),
+                })}
           </p>
           {request.user?.agentProfile?.specializations &&
             request.user?.agentProfile.specializations.length > 0 && (
@@ -346,7 +353,7 @@ function ReceivedRequestItem({
           onClick={handleReject}
           disabled={isResponding}
         >
-          {t.actions?.decline || "Decline"}
+          {t.actions?.decline || tn("connectionLabels.decline")}
         </Button>
         <Button
           size="sm"
@@ -354,7 +361,7 @@ function ReceivedRequestItem({
           onClick={handleAccept}
           disabled={isResponding}
         >
-          {t.actions?.accept || "Accept"}
+          {t.actions?.accept || tn("connectionLabels.accept")}
         </Button>
       </div>
     </div>
@@ -372,16 +379,17 @@ function SentRequestItem({
 }) {
   const router = useRouter();
   const { toast } = useAppToast();
+  const tn = useTranslations("network");
   const { removeConnection, isRemoving } = useRemoveConnection(connection.id);
 
   const handleCancel = async () => {
     try {
       await removeConnection();
-      toast.success(t.toast?.requestCancelled || "Request Cancelled", { isTranslationKey: false });
+      toast.success(t.toast?.requestCancelled || tn("connectionToast.requestCancelled"), { isTranslationKey: false });
       router.refresh();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : t.toast?.removeError || "Failed to cancel request";
-      toast.error(t.toast?.error || "Error", { description: message, isTranslationKey: false });
+      const message = error instanceof Error ? error.message : t.toast?.removeError || tn("connectionToast.cancelRequestFailed");
+      toast.error(t.toast?.error || tn("connectionToast.error"), { description: message, isTranslationKey: false });
     }
   };
 
@@ -398,7 +406,7 @@ function SentRequestItem({
           </AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="font-medium">{connection.user?.name ?? "Deleted User"}</h4>
+          <h4 className="font-medium">{connection.user?.name ?? tn("connectionLabels.deletedUser")}</h4>
           <p className="text-sm text-muted-foreground">
             {connection.user?.email ?? ""}
           </p>
@@ -424,11 +432,11 @@ function SentRequestItem({
 
       <div className="flex items-center gap-2">
         <Badge variant="secondary" className="text-xs">
-          {t.badges?.pending || "Pending"}
+          {t.badges?.pending || tn("connectionLabels.pending")}
         </Badge>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Connection options" disabled={isRemoving}>
+            <Button variant="ghost" size="icon" aria-label={tn("connectionLabels.options")} disabled={isRemoving}>
               {isRemoving ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
@@ -442,7 +450,7 @@ function SentRequestItem({
                 <DropdownMenuItem asChild>
                   <Link href={`/agent/${connection.user.agentProfile.slug}`}>
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    {t.actions?.viewProfile || "View Profile"}
+                    {t.actions?.viewProfile || tn("connectionLabels.viewProfile")}
                   </Link>
                 </DropdownMenuItem>
               )}
@@ -451,7 +459,7 @@ function SentRequestItem({
               onClick={handleCancel}
             >
               <X className="h-4 w-4 mr-2" />
-              {t.actions?.cancelRequest || "Cancel Request"}
+              {t.actions?.cancelRequest || tn("connectionLabels.cancelRequest")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -470,6 +478,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
   const debouncedQuery = useDebounce(query, 300);
   const router = useRouter();
   const { toast } = useAppToast();
+  const tn = useTranslations("network");
   const { sendRequest, isSending } = useSendConnectionRequest();
 
   useEffect(() => {
@@ -494,15 +503,15 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
     try {
       setConnectingId(agentId);
       await sendRequest(agentId);
-      toast.success(t.toast?.requestSent || "Request Sent", { description: t.toast?.requestSentDesc || "Your connection request has been sent.", isTranslationKey: false });
+      toast.success(t.toast?.requestSent || tn("connectionToast.requestSent"), { description: t.toast?.requestSentDesc || tn("connectionToast.requestSentDesc"), isTranslationKey: false });
       const response = await axios.get(
         `/api/connections/search?q=${encodeURIComponent(debouncedQuery)}`
       );
       setAgents(response.data);
       router.refresh();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : (t.toast?.sendError || "Failed to send request");
-      toast.error(t.toast?.error || "Error", { description: message, isTranslationKey: false });
+      const message = error instanceof Error ? error.message : (t.toast?.sendError || tn("connectionToast.sendRequestFailed"));
+      toast.error(t.toast?.error || tn("connectionToast.error"), { description: message, isTranslationKey: false });
     } finally {
       setConnectingId(null);
     }
@@ -513,7 +522,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
 
     if (connectingId === agent.id || (isSending && connectingId === agent.id)) {
       return (
-        <Button size="sm" disabled aria-label="Loading">
+        <Button size="sm" disabled aria-label={tn("connectionLabels.loading")}>
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         </Button>
       );
@@ -528,7 +537,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
             leftIcon={<Check className="h-4 w-4" />}
             disabled
           >
-            {t.actions?.connected || "Connected"}
+            {t.actions?.connected || tn("connectionLabels.connected")}
           </Button>
         );
       case "PENDING":
@@ -537,7 +546,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
             <Button size="sm" variant="outline" asChild>
               <NavLink href="/app/network/profile?tab=connections">
                 <Clock className="h-4 w-4 mr-1" />
-                {t.actions?.respond || "Respond"}
+                {t.actions?.respond || tn("connectionLabels.respond")}
               </NavLink>
             </Button>
           );
@@ -549,7 +558,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
             leftIcon={<Clock className="h-4 w-4" />}
             disabled
           >
-            {t.actions?.pending || "Pending"}
+            {t.actions?.pending || tn("connectionLabels.pending")}
           </Button>
         );
       default:
@@ -559,7 +568,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
             leftIcon={<UserPlus className="h-4 w-4" />}
             onClick={() => handleConnect(agent.id)}
           >
-            {t.actions?.connect || "Connect"}
+            {t.actions?.connect || tn("connectionLabels.connect")}
           </Button>
         );
     }
@@ -572,7 +581,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={t.search?.placeholder || "Search by name or email..."}
+          placeholder={t.search?.placeholder || tn("connectionLabels.searchPlaceholder")}
           className="pl-9"
         />
       </div>
@@ -580,13 +589,13 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
       {isLoading ? (
         <div className="py-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mt-2">{t.search?.searching || "Searching..."}</p>
+          <p className="text-sm text-muted-foreground mt-2">{t.search?.searching || tn("connectionLabels.searching")}</p>
         </div>
       ) : agents.length === 0 ? (
         <div className="py-12 text-center">
           <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground">
-            {t.search?.noResults || "No agents found matching your search."}
+            {t.search?.noResults || tn("connectionLabels.noSearchResults")}
           </p>
         </div>
       ) : (
@@ -605,7 +614,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
                 </Avatar>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-medium">{agent.name || "Unknown"}</h4>
+                    <h4 className="font-medium">{agent.name || tn("connectionLabels.unknownUser")}</h4>
                     {agent.agentProfile?.visibility !== "PRIVATE" &&
                       agent.agentProfile?.slug && (
                         <NavLink
@@ -621,7 +630,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
                     {agent._count.properties > 0 && (
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Building2 className="h-3 w-3" />
-                        {agent._count.properties} {t.search?.properties || "properties"}
+                        {agent._count.properties} {t.search?.properties || tn("connectionLabels.properties")}
                       </span>
                     )}
                   </div>
@@ -649,11 +658,11 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
 
 // ─── Section Navigation ─────────────────────────────────────────────
 
-const SECTIONS: { value: Section; icon: typeof Users; labelKey: string; fallback: string }[] = [
-  { value: "connections", icon: Users, labelKey: "yourConnections.title", fallback: "My Connections" },
-  { value: "requests", icon: Clock, labelKey: "pendingRequests.title", fallback: "Requests" },
-  { value: "find", icon: Search, labelKey: "search.title", fallback: "Find Agents" },
-];
+const SECTIONS = [
+  { value: "connections", icon: Users, labelKey: "yourConnections.title", fallbackKey: "connectionLabels.myConnectionsSection" },
+  { value: "requests", icon: Clock, labelKey: "pendingRequests.title", fallbackKey: "connectionLabels.requestsSection" },
+  { value: "find", icon: Search, labelKey: "search.title", fallbackKey: "connectionLabels.findSection" },
+] as const;
 
 function getNestedTranslation(obj: Record<string, any>, path: string): string | undefined {
   const parts = path.split(".");
@@ -674,6 +683,7 @@ export function ConnectionsTab({
   translations: t,
   locale,
 }: ConnectionsTabProps) {
+  const tn = useTranslations("network");
   const pendingCount = pendingReceived.length + pendingSent.length;
   const [activeSection, setActiveSection] = useState<Section>(
     pendingCount > 0 ? "requests" : "connections"
@@ -690,7 +700,7 @@ export function ConnectionsTab({
     <div className="space-y-6">
       {/* Section Navigation */}
       <div className="flex gap-2 p-1 bg-muted/50 rounded-lg w-fit">
-        {SECTIONS.map(({ value, icon: Icon, labelKey, fallback }) => {
+        {SECTIONS.map(({ value, icon: Icon, labelKey, fallbackKey }) => {
           const isActive = activeSection === value;
           const count =
             value === "connections" ? connections.length :
@@ -710,7 +720,7 @@ export function ConnectionsTab({
               `}
             >
               <Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{getNestedTranslation(t, labelKey) || fallback}</span>
+              <span className="hidden sm:inline">{getNestedTranslation(t, labelKey) || tn(fallbackKey)}</span>
               {count != null && count > 0 && (
                 <span className={`
                   ml-1 px-1.5 py-0.5 rounded-full text-xs
@@ -733,10 +743,10 @@ export function ConnectionsTab({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
-              {t.yourConnections?.title || "Your Connections"}
+              {t.yourConnections?.title || tn("connectionLabels.yourConnectionsTitle")}
             </CardTitle>
             <CardDescription>
-              {t.yourConnections?.description || "Agents you're connected with."}
+              {t.yourConnections?.description || tn("connectionLabels.yourConnectionsDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -744,10 +754,10 @@ export function ConnectionsTab({
               <div className="py-12 text-center">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                 <p className="text-muted-foreground">
-                  {t.connectionsList?.empty || "You don't have any connections yet."}
+                  {t.connectionsList?.empty || tn("connectionLabels.noConnections")}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {t.connectionsList?.emptyHint || "Find agents to connect with using the Find Agents section."}
+                  {t.connectionsList?.emptyHint || tn("connectionLabels.noConnectionsHint")}
                 </p>
               </div>
             ) : (
@@ -774,7 +784,7 @@ export function ConnectionsTab({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-warning" />
-                {t.pendingRequests?.title || "Received Requests"}
+                {t.pendingRequests?.title || tn("connectionLabels.receivedRequestsTitle")}
                 {pendingReceived.length > 0 && (
                   <Badge variant="secondary" className="ml-2">
                     {pendingReceived.length}
@@ -782,7 +792,7 @@ export function ConnectionsTab({
                 )}
               </CardTitle>
               <CardDescription>
-                {t.pendingRequests?.description || "Connection requests waiting for your response"}
+                {t.pendingRequests?.description || tn("connectionLabels.receivedRequestsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -790,10 +800,10 @@ export function ConnectionsTab({
                 <div className="py-8 text-center">
                   <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
                   <p className="text-muted-foreground text-sm">
-                    {t.pendingList?.empty || "No pending requests"}
+                    {t.pendingList?.empty || tn("connectionLabels.noPendingRequests")}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {t.pendingList?.emptyHint || "When someone sends you a connection request, it will appear here."}
+                    {t.pendingList?.emptyHint || tn("connectionLabels.noPendingRequestsHint")}
                   </p>
                 </div>
               ) : (
@@ -816,7 +826,7 @@ export function ConnectionsTab({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-primary" />
-                {t.sentRequests?.title || "Sent Requests"}
+                {t.sentRequests?.title || tn("connectionLabels.sentRequestsTitle")}
                 {sentConnections.length > 0 && (
                   <Badge variant="secondary" className="ml-2">
                     {sentConnections.length}
@@ -824,7 +834,7 @@ export function ConnectionsTab({
                 )}
               </CardTitle>
               <CardDescription>
-                {t.sentRequests?.description || "Connection requests you've sent that are awaiting response"}
+                {t.sentRequests?.description || tn("connectionLabels.sentRequestsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -832,7 +842,7 @@ export function ConnectionsTab({
                 <div className="py-8 text-center">
                   <Users className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
                   <p className="text-muted-foreground text-sm">
-                    {t.connectionsList?.sentEmpty || "You haven't sent any connection requests."}
+                    {t.connectionsList?.sentEmpty || tn("connectionLabels.noSentRequests")}
                   </p>
                 </div>
               ) : (
@@ -857,10 +867,10 @@ export function ConnectionsTab({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5 text-primary" />
-              {t.search?.title || "Find Agents"}
+              {t.search?.title || tn("connectionLabels.findTitle")}
             </CardTitle>
             <CardDescription>
-              {t.search?.description || "Discover agents and expand your network"}
+              {t.search?.description || tn("connectionLabels.findDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>

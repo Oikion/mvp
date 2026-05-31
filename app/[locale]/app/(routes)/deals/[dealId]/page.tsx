@@ -1,5 +1,6 @@
 import { getDeal } from "@/actions/deals";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import Container from "../../components/ui/Container";
 import { DealDetail } from "./components/DealDetail";
 
@@ -9,6 +10,7 @@ interface DealPageProps {
 
 export default async function DealPage({ params }: DealPageProps) {
   const { dealId } = await params;
+  const t = await getTranslations("deals");
 
   const result = await getDeal(dealId);
 
@@ -21,8 +23,8 @@ export default async function DealPage({ params }: DealPageProps) {
 
   return (
     <Container
-      title={deal.title || "Deal Details"}
-      description="Manage this collaborative deal"
+      title={deal.title || t("detail.pageFallbackTitle")}
+      description={t("detail.pageDescription")}
     >
       <DealDetail deal={deal} />
     </Container>

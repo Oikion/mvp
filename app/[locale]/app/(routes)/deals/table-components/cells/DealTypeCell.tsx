@@ -31,7 +31,7 @@ export function DealTypeCell({ dealId, dealType }: DealTypeCellProps) {
 
   const handleSave = async (value: string) => {
     await axios.put(`/api/deals/${dealId}`, { dealType: value });
-    toast.success("Deal type updated");
+    toast.success(t("cell.dealTypeUpdated"));
     router.refresh();
   };
 

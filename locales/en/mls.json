@@ -2,6 +2,61 @@
   "MlsPropertiesPage": {
     "description": "Manage MLS properties"
   },
+  "NewPropertyForm": {
+    "fields": {
+      "name": "Property name",
+      "type": "Type",
+      "status": "Status",
+      "street": "Street",
+      "city": "City",
+      "state": "State",
+      "zip": "ZIP",
+      "price": "Price",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "squareFeet": "Square feet",
+      "description": "Description",
+      "linkToClients": "Link to Clients"
+    },
+    "placeholders": {
+      "name": "123 Main St, City",
+      "type": "Select type",
+      "status": "Select status",
+      "street": "123 Main St",
+      "city": "City",
+      "state": "State",
+      "zip": "ZIP",
+      "price": "500000",
+      "bedrooms": "3",
+      "bathrooms": "2",
+      "squareFeet": "1500",
+      "description": "Property description"
+    },
+    "typeOptions": {
+      "residential": "Residential",
+      "commercial": "Commercial",
+      "land": "Land",
+      "rental": "Rental",
+      "vacation": "Vacation"
+    },
+    "statusOptions": {
+      "active": "Active",
+      "pending": "Pending",
+      "sold": "Sold",
+      "offMarket": "Off market",
+      "withdrawn": "Withdrawn"
+    },
+    "linkClientsHint": "Link this property to clients. You can link clients later as well.",
+    "loadingClients": "Loading clients...",
+    "noClients": "No clients available. Create clients first.",
+    "submit": "Create property",
+    "toast": {
+      "created": "Success",
+      "createdDesc": "Property created successfully",
+      "error": "Error",
+      "errorDesc": "Failed to create property"
+    }
+  },
   "PropertyForm": {
     "title": "New Property",
     "quickAddTitle": "Quick Add Property",
@@ -279,7 +334,8 @@
       "submit": "Create Property",
       "creating": "Creating...",
       "quickAdd": "Create",
-      "update": "Update property"
+      "update": "Update property",
+      "continueToFull": "Continue to full form"
     },
     "step3": {
       "noPropertyType": "Please select a property type in step 1 first.",
@@ -287,7 +343,9 @@
       "otherTypeContinue": "For parking, industrial, or other types, you can continue to the next step."
     },
     "autosave": {
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "saved": "Saved",
+      "failed": "Failed to save"
     }
   },
   "QuickAdd": {
@@ -317,6 +375,7 @@
     "scheduleEventDesc": "Schedule an appointment or event for this property",
     "share": "Share Property",
     "nameUpdated": "Name updated successfully",
+    "namePlaceholder": "Property name",
     "nameRequired": "Property name is required",
     "typeUpdated": "Type updated successfully",
     "assignmentUpdated": "Assignment updated successfully"
@@ -574,11 +633,23 @@
     "retry": "Retry",
     "dismiss": "Dismiss",
     "count": "{current} / {max} images",
+    "gallery": {
+      "open": "Open image gallery",
+      "imageAlt": "Property image",
+      "thumbnailAlt": "Thumbnail {index}",
+      "dialogLabel": "Image gallery",
+      "close": "Close lightbox",
+      "previous": "Previous image",
+      "next": "Next image"
+    },
     "errors": {
       "tooLarge": "File is too large. Maximum 10MB.",
       "invalidType": "Only image files are accepted.",
       "maxReached": "Maximum {max} images reached.",
-      "uploadFailed": "Failed to upload image."
+      "uploadFailed": "Failed to upload image.",
+      "saveOrderFailed": "Failed to save image order.",
+      "setPrimaryFailed": "Failed to set primary image.",
+      "deleteFailed": "Failed to delete image."
     }
   }
 }

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { formatDistanceToNow, format } from "date-fns";
 import { el, enUS } from "date-fns/locale";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -74,28 +75,20 @@ interface FormSubmissionsPageProps {
   locale: string;
 }
 
-const STATUS_CONFIG: Record<SubmissionStatus, { label: string; labelEl: string; color: string; icon: any }> = {
+const STATUS_CONFIG: Record<SubmissionStatus, { color: string; icon: any }> = {
   NEW: {
-    label: "New",
-    labelEl: "Νέο",
     color: "bg-primary/10 text-primary border-primary/20",
     icon: MessageSquare,
   },
   READ: {
-    label: "Read",
-    labelEl: "Διαβάστηκε",
     color: "bg-slate-500/10 text-muted-foreground border-slate-500/20",
     icon: Eye,
   },
   CONTACTED: {
-    label: "Contacted",
-    labelEl: "Επικοινώνησα",
     color: "bg-success/10 text-success border-success/20",
     icon: CheckCircle,
   },
   ARCHIVED: {
-    label: "Archived",
-    labelEl: "Αρχειοθετημένο",
     color: "bg-warning/10 text-warning border-warning/20",
     icon: Archive,
   },
@@ -110,8 +103,8 @@ export function FormSubmissionsPage({
 }: FormSubmissionsPageProps) {
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("crm");
   const dateLocale = locale === "el" ? el : enUS;
-  const t = dict?.crm?.formSubmissions || {};
 
   const [submissions, setSubmissions] = useState(initialSubmissions);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -151,15 +144,15 @@ export function FormSubmissionsPage({
         if (selectedSubmission?.id === id) {
           setSelectedSubmission((prev) => prev ? { ...prev, status } : null);
         }
-        toast.success(locale, { isTranslationKey: false });
+        toast.success(t("formSubmissions.toast.statusUpdated"), { isTranslationKey: false });
       } else {
-        toast.error(result.error || "An error occurred", { isTranslationKey: false });
+        toast.error(result.error || t("formSubmissions.toast.genericError"), { isTranslationKey: false });
       }
     });
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(locale === "el" ? "Είστε σίγουροι;" : "Are you sure?")) return;
+    if (!confirm(t("formSubmissions.page.confirmDelete"))) return;
 
     startTransition(async () => {
       const result = await deleteSubmission(id);
@@ -169,9 +162,9 @@ export function FormSubmissionsPage({
           setIsDetailOpen(false);
           setSelectedSubmission(null);
         }
-        toast.success(locale, { isTranslationKey: false });
+        toast.success(t("formSubmissions.toast.deleted"), { isTranslationKey: false });
       } else {
-        toast.error(result.error || "An error occurred", { isTranslationKey: false });
+        toast.error(result.error || t("formSubmissions.toast.genericError"), { isTranslationKey: false });
       }
     });
   };
@@ -188,9 +181,9 @@ export function FormSubmissionsPage({
           )
         );
         setSelectedSubmission((prev) => prev ? { ...prev, notes } : null);
-        toast.success(locale, { isTranslationKey: false });
+        toast.success(t("formSubmissions.toast.notesSaved"), { isTranslationKey: false });
       } else {
-        toast.error(result.error || "An error occurred", { isTranslationKey: false });
+        toast.error(result.error || t("formSubmissions.toast.genericError"), { isTranslationKey: false });
       }
     });
   };
@@ -207,7 +200,7 @@ export function FormSubmissionsPage({
   };
 
   const getStatusLabel = (status: SubmissionStatus) => {
-    return locale === "el" ? STATUS_CONFIG[status].labelEl : STATUS_CONFIG[status].label;
+    return t(`formSubmissions.statusLabel.${status}` as Parameters<typeof t>[0]);
   };
 
   return (
@@ -233,9 +226,7 @@ export function FormSubmissionsPage({
                     <p className="text-2xl font-bold">{counts[status]}</p>
                     <p className="text-xs text-muted-foreground">
                       {status === "all"
-                        ? locale === "el"
-                          ? "Όλα"
-                          : "All"
+                        ? t("formSubmissions.page.all")
                         : getStatusLabel(status)}
                     </p>
                   </div>
@@ -253,7 +244,7 @@ export function FormSubmissionsPage({
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={locale === "el" ? "Αναζήτηση..." : "Search..."}
+              placeholder={t("formSubmissions.page.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -265,7 +256,7 @@ export function FormSubmissionsPage({
           <Button
             variant={viewMode === "grid" ? "default" : "outline"}
             size="icon"
-            aria-label="Grid view"
+            aria-label={t("formSubmissions.page.gridView")}
             onClick={() => setViewMode("grid")}
           >
             <LayoutGrid className="h-4 w-4" aria-hidden="true" />
@@ -273,7 +264,7 @@ export function FormSubmissionsPage({
           <Button
             variant={viewMode === "list" ? "default" : "outline"}
             size="icon"
-            aria-label="List view"
+            aria-label={t("formSubmissions.page.listView")}
             onClick={() => setViewMode("list")}
           >
             <List className="h-4 w-4" aria-hidden="true" />
@@ -289,12 +280,10 @@ export function FormSubmissionsPage({
               <Mail className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium">
-              {locale === "el" ? "Δεν υπάρχουν υποβολές" : "No submissions"}
+              {t("formSubmissions.page.noSubmissions")}
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              {locale === "el"
-                ? "Οι υποβολές από τη φόρμα επικοινωνίας θα εμφανιστούν εδώ."
-                : "Submissions from your contact form will appear here."}
+              {t("formSubmissions.page.noSubmissionsDescription")}
             </p>
           </CardContent>
         </Card>
@@ -318,7 +307,7 @@ export function FormSubmissionsPage({
                       </div>
                       <div>
                         <CardTitle className="text-base">
-                          {submission.senderName || (locale === "el" ? "Ανώνυμος" : "Anonymous")}
+                          {submission.senderName || t("formSubmissions.page.anonymous")}
                         </CardTitle>
                         {submission.senderEmail && (
                           <p className="text-xs text-muted-foreground truncate max-w-[180px]">
@@ -339,7 +328,7 @@ export function FormSubmissionsPage({
                       Object.values(submission.formData).find(
                         (v) => typeof v === "string" && v.length > 20
                       ) ||
-                      (locale === "el" ? "Χωρίς μήνυμα" : "No message")}
+                      t("formSubmissions.page.noMessage")}
                   </p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
@@ -358,10 +347,10 @@ export function FormSubmissionsPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{locale === "el" ? "Αποστολέας" : "Sender"}</TableHead>
-                <TableHead>{locale === "el" ? "Email" : "Email"}</TableHead>
-                <TableHead>{locale === "el" ? "Κατάσταση" : "Status"}</TableHead>
-                <TableHead>{locale === "el" ? "Ημερομηνία" : "Date"}</TableHead>
+                <TableHead>{t("formSubmissions.page.sender")}</TableHead>
+                <TableHead>{t("formSubmissions.page.email")}</TableHead>
+                <TableHead>{t("formSubmissions.page.status")}</TableHead>
+                <TableHead>{t("formSubmissions.page.date")}</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -377,7 +366,7 @@ export function FormSubmissionsPage({
                     onClick={() => openDetail(submission)}
                   >
                     <TableCell className="font-medium">
-                      {submission.senderName || (locale === "el" ? "Ανώνυμος" : "Anonymous")}
+                      {submission.senderName || t("formSubmissions.page.anonymous")}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {submission.senderEmail || "-"}
@@ -396,27 +385,27 @@ export function FormSubmissionsPage({
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Submission actions">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={t("formSubmissions.page.submissionActions")}>
                             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openDetail(submission); }}>
                             <Eye className="h-4 w-4 mr-2" />
-                            {locale === "el" ? "Προβολή" : "View"}
+                            {t("formSubmissions.page.view")}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={(e) => { e.stopPropagation(); handleStatusChange(submission.id, "CONTACTED"); }}
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
-                            {locale === "el" ? "Σημείωση ως επικοινώνησα" : "Mark as contacted"}
+                            {t("formSubmissions.page.markAsContacted")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => { e.stopPropagation(); handleStatusChange(submission.id, "ARCHIVED"); }}
                           >
                             <Archive className="h-4 w-4 mr-2" />
-                            {locale === "el" ? "Αρχειοθέτηση" : "Archive"}
+                            {t("formSubmissions.page.archive")}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -424,7 +413,7 @@ export function FormSubmissionsPage({
                             onClick={(e) => { e.stopPropagation(); handleDelete(submission.id); }}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            {locale === "el" ? "Διαγραφή" : "Delete"}
+                            {t("formSubmissions.page.delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -446,7 +435,7 @@ export function FormSubmissionsPage({
                 <div className="flex items-center justify-between">
                   <DialogTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
-                    {selectedSubmission.senderName || (locale === "el" ? "Ανώνυμος" : "Anonymous")}
+                    {selectedSubmission.senderName || t("formSubmissions.page.anonymous")}
                   </DialogTitle>
                   <Badge
                     variant="outline"
@@ -488,7 +477,7 @@ export function FormSubmissionsPage({
                 {/* Form Data */}
                 <div className="space-y-4">
                   <h4 className="font-medium">
-                    {locale === "el" ? "Λεπτομέρειες Φόρμας" : "Form Details"}
+                    {t("formSubmissions.page.formDetails")}
                   </h4>
                   <div className="space-y-3">
                     {Object.entries(selectedSubmission.formData).map(([key, value]) => {
@@ -507,12 +496,8 @@ export function FormSubmissionsPage({
                           <p className="whitespace-pre-wrap">
                             {typeof value === "boolean"
                               ? value
-                                ? locale === "el"
-                                  ? "Ναι"
-                                  : "Yes"
-                                : locale === "el"
-                                ? "Όχι"
-                                : "No"
+                                ? t("formSubmissions.page.yes")
+                                : t("formSubmissions.page.no")
                               : String(value || "-")}
                           </p>
                         </div>
@@ -524,16 +509,12 @@ export function FormSubmissionsPage({
                 {/* Notes */}
                 <div className="space-y-2">
                   <h4 className="font-medium">
-                    {locale === "el" ? "Σημειώσεις" : "Notes"}
+                    {t("formSubmissions.page.notes")}
                   </h4>
                   <Textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder={
-                      locale === "el"
-                        ? "Προσθέστε σημειώσεις..."
-                        : "Add notes..."
-                    }
+                    placeholder={t("formSubmissions.page.notesPlaceholder")}
                     rows={3}
                   />
                   <Button
@@ -542,7 +523,7 @@ export function FormSubmissionsPage({
                     disabled={isPending || notes === selectedSubmission.notes}
                   >
                     {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    {locale === "el" ? "Αποθήκευση" : "Save"}
+                    {t("formSubmissions.page.save")}
                   </Button>
                 </div>
 
@@ -572,7 +553,7 @@ export function FormSubmissionsPage({
                     <Button variant="outline" asChild>
                       <a href={`mailto:${selectedSubmission.senderEmail}`}>
                         <Mail className="h-4 w-4 mr-2" />
-                        {locale === "el" ? "Αποστολή Email" : "Send Email"}
+                        {t("formSubmissions.page.sendEmail")}
                       </a>
                     </Button>
                   )}
@@ -582,7 +563,7 @@ export function FormSubmissionsPage({
                     onClick={() => handleDelete(selectedSubmission.id)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    {locale === "el" ? "Διαγραφή" : "Delete"}
+                    {t("formSubmissions.page.delete")}
                   </Button>
                 </div>
               </div>

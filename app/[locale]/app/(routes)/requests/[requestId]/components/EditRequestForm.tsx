@@ -145,19 +145,19 @@ export function EditRequestForm({ request, onSuccess, onDirtyChange }: EditReque
       }
       const result = await updateRequest(id, input);
       if (!result.success) {
-        toast.error(result.error ?? "Update failed", { isTranslationKey: false });
+        toast.error(result.error ?? t("edit.updateFailed"), { isTranslationKey: false });
         return;
       }
-      toast.success("updateSuccess");
+      toast.success(t("edit.updateSuccess"), { isTranslationKey: false });
       router.refresh();
       onSuccess?.();
     } catch (err) {
       console.error("[REQUEST_EDIT]", err);
-      toast.error("updateFailed");
+      toast.error(t("edit.updateFailed"), { isTranslationKey: false });
     } finally {
       setIsSubmitting(false);
     }
-  }, [form, router, toast, onSuccess]);
+  }, [form, router, toast, onSuccess, t]);
 
   // Cmd/Ctrl+Enter submits the form
   useEffect(() => {

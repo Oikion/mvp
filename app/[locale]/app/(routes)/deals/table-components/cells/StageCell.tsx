@@ -50,7 +50,7 @@ export function StageCell({ dealId, stage }: StageCellProps) {
 
   const handleSave = async (value: string) => {
     await axios.put(`/api/deals/${dealId}`, { toStage: value });
-    toast.success("Stage updated");
+    toast.success(t("cell.stageUpdated"));
     router.refresh();
   };
 

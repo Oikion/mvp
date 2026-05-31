@@ -98,7 +98,7 @@ export function EditDealForm({ deal, onSuccess }: EditDealFormProps) {
     try {
       const result = await updateDeal(values);
       if (!result.success) {
-        toast.error(result.error ?? "Update failed", { isTranslationKey: false });
+        toast.error(result.error ?? t("edit.updateFailed"), { isTranslationKey: false });
         return;
       }
       toast.success(t("edit.updateSuccess"));

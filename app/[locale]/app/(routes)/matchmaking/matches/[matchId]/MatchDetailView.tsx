@@ -148,7 +148,7 @@ export function MatchDetailView({ match, locale }: Props) {
       });
 
       if (!result.success) {
-        toast.error(result.error ?? "Error", { isTranslationKey: false });
+        toast.error(result.error ?? t("errors.generic"), { isTranslationKey: false });
         return;
       }
 
@@ -653,7 +653,7 @@ function ContactRow({
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Toggle score breakdown"
+          aria-label={t("a11y.toggleScoreBreakdown")}
           aria-expanded={isExpanded}
           className="h-8 w-8 shrink-0"
           onClick={onToggleExpand}

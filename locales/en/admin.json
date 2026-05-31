@@ -1,4 +1,38 @@
 {
+  "shareModal": {
+    "title": "Share {entityType}",
+    "description": "Share “{name}” with a connection",
+    "searchPlaceholder": "Search connections...",
+    "loading": "Loading...",
+    "unknownUser": "Unknown",
+    "messageLabel": "Message (optional)",
+    "messagePlaceholder": "Add a note about why you're sharing this...",
+    "cancel": "Cancel",
+    "share": "Share",
+    "entityType": {
+      "property": "property",
+      "contact": "contact",
+      "document": "document"
+    },
+    "empty": {
+      "noConnections": "You need connections to share with",
+      "allShared": "Already shared with all connections",
+      "noMatch": "No connections match your search"
+    },
+    "permissions": {
+      "label": "Permissions",
+      "viewComment": "Can view & comment",
+      "viewCommentDesc": "Can view details and add notes/comments",
+      "viewOnly": "View only",
+      "viewOnlyDesc": "Can only view details"
+    },
+    "toast": {
+      "shared": "Shared Successfully",
+      "sharedDesc": "{name} has been shared.",
+      "error": "Error",
+      "shareFailed": "Failed to share"
+    }
+  },
   "title": "Administration",
   "accessDenied": "You are not an organization admin",
   "accessNotAllowed": "Access not allowed",
@@ -50,6 +84,11 @@
   "actions": "Actions",
   "openMenu": "Open menu",
   "copyId": "Copy ID",
+  "copyKey": {
+    "clickToCopy": "Click to copy full key",
+    "copied": "{message} - copied to clipboard",
+    "notSet": "Not set"
+  },
   "copied": "Copied",
   "userIdCopied": "The user ID has been copied to your clipboard.",
   "promoteToAdmin": "Promote to Admin",

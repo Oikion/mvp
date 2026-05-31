@@ -103,9 +103,12 @@ export function MatchmakingDashboard({
     startTransition(async () => {
       const result = await triggerIntraOrgMatches();
       if (result && "error" in result) {
-        toast.error(result.error ?? "runFailed", { isTranslationKey: false });
+        toast.error(result.error ?? t("requestMatches.runNow.error"), { isTranslationKey: false });
       } else {
-        toast.success("updateSuccess");
+        toast.success(t("requestMatches.runNow.success"), {
+          description: t("requestMatches.runNow.successHint"),
+          isTranslationKey: false,
+        });
       }
     });
   }

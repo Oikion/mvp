@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DealRow } from "../components/DealsList";
@@ -22,11 +23,12 @@ export function useDealColumns(
   onRefresh?: () => void,
   _users?: { id: string; name: string | null }[]
 ): ColumnDef<DealRow>[] {
+  const t = useTranslations("deals");
   return [
     {
       accessorKey: "friendlyId",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="ID" />
+        <DataTableColumnHeader column={column} title={t("tableHeaders.id")} />
       ),
       cell: ({ row }) => (
         <span className="font-mono text-xs text-muted-foreground">
@@ -38,7 +40,7 @@ export function useDealColumns(
     {
       accessorKey: "title",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Title" />
+        <DataTableColumnHeader column={column} title={t("tableHeaders.title")} />
       ),
       cell: ({ row }) => (
         <span className="font-medium truncate max-w-[200px] block">
@@ -49,7 +51,7 @@ export function useDealColumns(
     {
       accessorKey: "stage",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Stage" />
+        <DataTableColumnHeader column={column} title={t("tableHeaders.stage")} />
       ),
       cell: ({ row }) => (
         <Badge variant="outline" className="text-xs">
@@ -60,7 +62,7 @@ export function useDealColumns(
     {
       accessorKey: "dealType",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Type" />
+        <DataTableColumnHeader column={column} title={t("tableHeaders.type")} />
       ),
       cell: ({ row }) => (
         <span className="text-sm">{row.original.dealType || "—"}</span>
@@ -69,7 +71,7 @@ export function useDealColumns(
     {
       accessorKey: "agreedPrice",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Price" />
+        <DataTableColumnHeader column={column} title={t("tableHeaders.price")} />
       ),
       cell: ({ row }) => (
         <span className="text-sm font-medium">
@@ -80,7 +82,7 @@ export function useDealColumns(
     {
       accessorKey: "property",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Property" />
+        <DataTableColumnHeader column={column} title={t("tableHeaders.property")} />
       ),
       cell: ({ row }) => {
         const prop = row.original.property;

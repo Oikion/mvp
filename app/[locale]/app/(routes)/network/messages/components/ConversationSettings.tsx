@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,7 @@ export function ConversationSettings({
   const [removingId, setRemovingId] = useState<string | null>(null);
   const { users: orgUsers } = useOrgUsers();
   const { toast } = useAppToast();
+  const tn = useTranslations("network");
 
   // Don't render if nothing is selected
   if (!channel && !conversation) {
@@ -99,7 +101,7 @@ export function ConversationSettings({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button variant="ghost" size="icon" aria-label="Conversation settings">
+          <Button variant="ghost" size="icon" aria-label={tn("messagesSettings.settingsAriaLabel")}>
             <Settings className="h-4 w-4" aria-hidden="true" />
           </Button>
         )}
@@ -109,7 +111,7 @@ export function ConversationSettings({
           <DialogTitle className="flex items-center gap-2">
             {channel ? getChannelTypeIcon(channel.channelType) : getConversationIcon()}
             <span>
-              {channel ? `#${channel.name}` : (conversation?.name || "Direct Message")}
+              {channel ? `#${channel.name}` : (conversation?.name || tn("messagesSettings.directMessage"))}
             </span>
           </DialogTitle>
           {channel?.description && (
@@ -122,25 +124,25 @@ export function ConversationSettings({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Info className="h-4 w-4" />
-              <span>Details</span>
+              <span>{tn("messagesSettings.details")}</span>
             </div>
-            
+
             {channel && (
               <div className="space-y-2 pl-6">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Type</span>
+                  <span className="text-muted-foreground">{tn("messagesSettings.type")}</span>
                   <Badge variant="secondary" className="capitalize">
                     {channel.channelType.toLowerCase()}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Members</span>
+                  <span className="text-muted-foreground">{tn("messagesSettings.members")}</span>
                   <span>{channel.memberCount || 0}</span>
                 </div>
                 {channel.isDefault && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Default channel</span>
-                    <Badge variant="outline">Yes</Badge>
+                    <span className="text-muted-foreground">{tn("messagesSettings.defaultChannel")}</span>
+                    <Badge variant="outline">{tn("messagesSettings.yes")}</Badge>
                   </div>
                 )}
               </div>
@@ -149,20 +151,20 @@ export function ConversationSettings({
             {conversation && (
               <div className="space-y-2 pl-6">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Type</span>
+                  <span className="text-muted-foreground">{tn("messagesSettings.type")}</span>
                   <Badge variant="secondary" className="capitalize">
-                    {conversation.type === "dm" ? "Direct Message" : "Group"}
+                    {conversation.type === "dm" ? tn("messagesSettings.directMessage") : tn("messagesSettings.group")}
                   </Badge>
                 </div>
                 {conversation.participants && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Participants</span>
+                    <span className="text-muted-foreground">{tn("messagesSettings.participants")}</span>
                     <span>{conversation.participants.length}</span>
                   </div>
                 )}
                 {conversation.lastMessage && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Last activity</span>
+                    <span className="text-muted-foreground">{tn("messagesSettings.lastActivity")}</span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {format(new Date(conversation.lastMessage.createdAt), "MMM d, yyyy")}
@@ -180,7 +182,7 @@ export function ConversationSettings({
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
-                <span>Members ({conversation.participants?.length ?? 0})</span>
+                <span>{tn("messagesSettings.membersCount", { count: conversation.participants?.length ?? 0 })}</span>
               </div>
 
               {/* Current participants */}
@@ -201,13 +203,13 @@ export function ConversationSettings({
                         size="icon"
                         className="h-6 w-6 text-muted-foreground hover:text-destructive"
                         disabled={removingId === p.userId}
-                        aria-label="Remove member"
+                        aria-label={tn("messagesSettings.removeMember")}
                         onClick={async () => {
                           setRemovingId(p.userId);
                           const result = await removeGroupMember(conversation.id, p.userId);
                           setRemovingId(null);
                           if (!result.success) {
-                            toast.error(result.error ?? "Could not remove member", { isTranslationKey: false });
+                            toast.error(result.error ?? tn("messagesSettings.removeMemberFailed"), { isTranslationKey: false });
                           }
                         }}
                       >
@@ -223,7 +225,7 @@ export function ConversationSettings({
                 <div className="relative">
                   <UserPlus className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
-                    placeholder="Add a team member..."
+                    placeholder={tn("messagesSettings.addMemberPlaceholder")}
                     value={addMemberSearch}
                     onChange={(e) => setAddMemberSearch(e.target.value)}
                     className="pl-7 h-7 text-sm"
@@ -261,7 +263,7 @@ export function ConversationSettings({
                               setIsAdding(false);
                               setAddMemberSearch("");
                               if (!result.success) {
-                                toast.error(result.error ?? "Could not add member", { isTranslationKey: false });
+                                toast.error(result.error ?? tn("messagesSettings.addMemberFailed"), { isTranslationKey: false });
                               }
                             }}
                           >
@@ -286,9 +288,9 @@ export function ConversationSettings({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Bell className="h-4 w-4" />
-              <span>Notifications</span>
+              <span>{tn("messagesSettings.notifications")}</span>
             </div>
-            
+
             <Button
               variant="ghost"
               className={cn(
@@ -300,12 +302,12 @@ export function ConversationSettings({
               {isMuted ? (
                 <>
                   <BellOff className="h-4 w-4" />
-                  Unmute notifications
+                  {tn("messagesSettings.unmuteNotifications")}
                 </>
               ) : (
                 <>
                   <Bell className="h-4 w-4" />
-                  Mute notifications
+                  {tn("messagesSettings.muteNotifications")}
                 </>
               )}
             </Button>
@@ -322,7 +324,7 @@ export function ConversationSettings({
                 onClick={handleLeaveChannel}
               >
                 <LogOut className="h-4 w-4" />
-                Leave channel
+                {tn("messagesSettings.leaveChannel")}
               </Button>
             )}
             
@@ -333,7 +335,7 @@ export function ConversationSettings({
                 onClick={handleLeaveConversation}
               >
                 <LogOut className="h-4 w-4" />
-                Leave conversation
+                {tn("messagesSettings.leaveConversation")}
               </Button>
             )}
           </div>

@@ -271,7 +271,41 @@
     "toast": {
       "statusUpdated": "Status updated",
       "deleted": "Deleted",
-      "notesSaved": "Notes saved"
+      "notesSaved": "Notes saved",
+      "genericError": "An error occurred"
+    },
+    "page": {
+      "all": "All",
+      "searchPlaceholder": "Search...",
+      "gridView": "Grid view",
+      "listView": "List view",
+      "noSubmissions": "No submissions",
+      "noSubmissionsDescription": "Submissions from your contact form will appear here.",
+      "anonymous": "Anonymous",
+      "noMessage": "No message",
+      "sender": "Sender",
+      "email": "Email",
+      "status": "Status",
+      "date": "Date",
+      "submissionActions": "Submission actions",
+      "view": "View",
+      "markAsContacted": "Mark as contacted",
+      "archive": "Archive",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure?",
+      "formDetails": "Form Details",
+      "yes": "Yes",
+      "no": "No",
+      "notes": "Notes",
+      "notesPlaceholder": "Add notes...",
+      "save": "Save",
+      "sendEmail": "Send Email"
+    },
+    "statusLabel": {
+      "NEW": "New",
+      "READ": "Read",
+      "CONTACTED": "Contacted",
+      "ARCHIVED": "Archived"
     }
   },
   "contacts": {
@@ -418,6 +452,9 @@
       "COLLEAGUE": "Colleague",
       "LEGAL_REPRESENTATIVE": "Legal Representative",
       "OTHER": "Other"
+    },
+    "toast": {
+      "updateFailed": "Update failed"
     },
     "wizard": {
       "title": "New Contact",
@@ -680,6 +717,47 @@
         "createSuccess": "Client created successfully",
         "genericError": "Something went wrong. Please try again."
       }
+    },
+    "updateForm": {
+      "noData": "Something went wrong, there is no data for form",
+      "labels": {
+        "clientName": "Client name",
+        "officePhone": "Office phone",
+        "email": "E-mail",
+        "website": "Website",
+        "accountId": "Account ID",
+        "accountVat": "Account VAT number",
+        "billingStreet": "Billing street",
+        "shippingStreet": "Shipping street",
+        "shippingPostalCode": "Shipping postal code",
+        "shippingCity": "Shipping City",
+        "shippingState": "Shipping state",
+        "shippingCountry": "Shipping country",
+        "description": "Description",
+        "annualRevenue": "Annual revenue",
+        "memberOf": "Is member of",
+        "assignedTo": "Assigned to"
+      },
+      "placeholders": {
+        "officePhone": "+420 ....",
+        "email": "account@domain.com",
+        "website": "https://www.domain.com",
+        "accountId": "1234567890",
+        "accountVat": "CZ1234567890",
+        "streetAddress": "Street address",
+        "description": "Description",
+        "annualRevenue": "1.0000.000",
+        "memberOf": "Tesla Inc.",
+        "assignUser": "Select a user to assign the account"
+      },
+      "buttons": {
+        "update": "Update account"
+      },
+      "toast": {
+        "updateSuccess": "Success",
+        "updateSuccessDesc": "Client updated successfully",
+        "updateError": "Error"
+      }
     }
   },
   "tasks": {
@@ -727,6 +805,59 @@
       "medium": "Medium",
       "high": "High",
       "critical": "Critical"
+    },
+    "view": {
+      "openMenu": "Open menu",
+      "back": "Back",
+      "pageTitle": "Task Details",
+      "pageSubtitle": "View and manage task information",
+      "editTask": "Edit Task",
+      "description": "Description",
+      "dueDate": "Due Date:",
+      "assignedTo": "Assigned to:",
+      "account": "Account:",
+      "created": "Created:",
+      "lastUpdated": "Last updated:",
+      "linkedCalendarEvent": "Linked Calendar Event",
+      "untitledEvent": "Untitled Event",
+      "comments": "Comments",
+      "noComments": "No comments yet",
+      "unknownUser": "Unknown",
+      "notFound": "Task not found",
+      "editTaskSheetTitle": "Edit Task"
+    },
+    "conversation": {
+      "commentPlaceholder": "Your comment ...",
+      "add": "Add",
+      "teamConversation": "Team conversation",
+      "teamConversationDescription": "Invite your team members to collaborate."
+    },
+    "rowActions": {
+      "openMenu": "Open menu",
+      "view": "View",
+      "connectToTask": "Connect to task",
+      "disconnectFromTask": "Disconnect from task",
+      "delete": "Delete",
+      "deleteTaskTitle": "Delete Task",
+      "deleteTaskDescription": "This action cannot be undone. The task will be permanently deleted.",
+      "deleteConfirm": "Delete",
+      "deleting": "Deleting..."
+    },
+    "toast": {
+      "notImplemented": "Not implemented",
+      "assignNotImplementedDesc": "Document assign functionality needs to be implemented for CRM tasks",
+      "disconnectNotImplementedDesc": "Document disconnect functionality needs to be implemented for CRM tasks",
+      "commentAdded": "Success, comment added.",
+      "commentError": "Error",
+      "commentErrorDesc": "Something went wrong while sending comment to the DB",
+      "taskNotFound": "Task not found",
+      "taskNotFoundDesc": "The task you are looking for does not exist.",
+      "taskUpdated": "Task updated",
+      "taskUpdatedDesc": "The task has been updated successfully.",
+      "taskDeleted": "Task deleted",
+      "taskDeletedDesc": "Task deleted successfully",
+      "taskDeleteFailed": "Task deletion failed",
+      "taskDeleteFailedDesc": "Something went wrong while deleting the task"
     }
   }
 }
