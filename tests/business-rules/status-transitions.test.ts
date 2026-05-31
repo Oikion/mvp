@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
-  // Client transitions
-  isValidClientTransition,
-  getClientTransitionError,
-  getValidClientNextStatuses,
-  CLIENT_STATUS_TRANSITIONS,
+  // Contact transitions
+  isValidContactTransition,
+  getContactTransitionError,
+  getValidContactNextStatuses,
+  CONTACT_STATUS_TRANSITIONS,
   // Property transitions
   isValidPropertyTransition,
   PROPERTY_STATUS_TRANSITIONS,
@@ -17,98 +17,107 @@ import {
 } from "@/lib/validations/status-transitions";
 
 describe("Status Transition Rules", () => {
-  describe("CRM-005: Client Status Transitions", () => {
+  describe("CRM-006: Contact Status Transitions", () => {
     describe("LEAD transitions", () => {
-      it("should allow LEAD -> ACTIVE", () => {
-        expect(isValidClientTransition("LEAD", "ACTIVE")).toBe(true);
+      it("should allow LEAD -> CONTACTED", () => {
+        expect(isValidContactTransition("LEAD", "CONTACTED")).toBe(true);
       });
 
-      it("should allow LEAD -> LOST", () => {
-        expect(isValidClientTransition("LEAD", "LOST")).toBe(true);
+      it("should allow LEAD -> INACTIVE", () => {
+        expect(isValidContactTransition("LEAD", "INACTIVE")).toBe(true);
       });
 
-      it("should not allow LEAD -> CONVERTED", () => {
-        expect(isValidClientTransition("LEAD", "CONVERTED")).toBe(false);
+      it("should not allow LEAD -> COMPLETED", () => {
+        expect(isValidContactTransition("LEAD", "COMPLETED")).toBe(false);
       });
 
-      it("should not allow LEAD -> INACTIVE", () => {
-        expect(isValidClientTransition("LEAD", "INACTIVE")).toBe(false);
+      it("should not allow LEAD -> ACTIVE (must qualify first)", () => {
+        expect(isValidContactTransition("LEAD", "ACTIVE")).toBe(false);
+      });
+    });
+
+    describe("QUALIFIED transitions", () => {
+      it("should allow QUALIFIED -> ACTIVE", () => {
+        expect(isValidContactTransition("QUALIFIED", "ACTIVE")).toBe(true);
+      });
+
+      it("should allow QUALIFIED -> INACTIVE", () => {
+        expect(isValidContactTransition("QUALIFIED", "INACTIVE")).toBe(true);
+      });
+
+      it("should not allow QUALIFIED -> UNDER_CONTRACT directly", () => {
+        expect(isValidContactTransition("QUALIFIED", "UNDER_CONTRACT")).toBe(false);
       });
     });
 
     describe("ACTIVE transitions", () => {
+      it("should allow ACTIVE -> UNDER_CONTRACT", () => {
+        expect(isValidContactTransition("ACTIVE", "UNDER_CONTRACT")).toBe(true);
+      });
+
+      it("should allow ACTIVE -> ON_HOLD", () => {
+        expect(isValidContactTransition("ACTIVE", "ON_HOLD")).toBe(true);
+      });
+
       it("should allow ACTIVE -> INACTIVE", () => {
-        expect(isValidClientTransition("ACTIVE", "INACTIVE")).toBe(true);
-      });
-
-      it("should allow ACTIVE -> CONVERTED", () => {
-        expect(isValidClientTransition("ACTIVE", "CONVERTED")).toBe(true);
-      });
-
-      it("should allow ACTIVE -> LOST", () => {
-        expect(isValidClientTransition("ACTIVE", "LOST")).toBe(true);
+        expect(isValidContactTransition("ACTIVE", "INACTIVE")).toBe(true);
       });
 
       it("should not allow ACTIVE -> LEAD", () => {
-        expect(isValidClientTransition("ACTIVE", "LEAD")).toBe(false);
+        expect(isValidContactTransition("ACTIVE", "LEAD")).toBe(false);
       });
     });
 
-    describe("INACTIVE transitions", () => {
-      it("should allow INACTIVE -> ACTIVE", () => {
-        expect(isValidClientTransition("INACTIVE", "ACTIVE")).toBe(true);
+    describe("UNDER_CONTRACT transitions", () => {
+      it("should allow UNDER_CONTRACT -> COMPLETED", () => {
+        expect(isValidContactTransition("UNDER_CONTRACT", "COMPLETED")).toBe(true);
       });
 
-      it("should allow INACTIVE -> LOST", () => {
-        expect(isValidClientTransition("INACTIVE", "LOST")).toBe(true);
-      });
-
-      it("should not allow INACTIVE -> CONVERTED", () => {
-        expect(isValidClientTransition("INACTIVE", "CONVERTED")).toBe(false);
+      it("should allow UNDER_CONTRACT -> ACTIVE (deal fell through)", () => {
+        expect(isValidContactTransition("UNDER_CONTRACT", "ACTIVE")).toBe(true);
       });
     });
 
-    describe("CONVERTED transitions (terminal)", () => {
-      it("should not allow CONVERTED -> any status", () => {
-        expect(isValidClientTransition("CONVERTED", "ACTIVE")).toBe(false);
-        expect(isValidClientTransition("CONVERTED", "LEAD")).toBe(false);
-        expect(isValidClientTransition("CONVERTED", "INACTIVE")).toBe(false);
-        expect(isValidClientTransition("CONVERTED", "LOST")).toBe(false);
+    describe("COMPLETED transitions (terminal)", () => {
+      it("should not allow COMPLETED -> any status", () => {
+        expect(isValidContactTransition("COMPLETED", "ACTIVE")).toBe(false);
+        expect(isValidContactTransition("COMPLETED", "LEAD")).toBe(false);
+        expect(isValidContactTransition("COMPLETED", "INACTIVE")).toBe(false);
       });
 
       it("should return empty array for valid next statuses", () => {
-        expect(getValidClientNextStatuses("CONVERTED")).toHaveLength(0);
+        expect(getValidContactNextStatuses("COMPLETED")).toHaveLength(0);
       });
     });
 
-    describe("LOST transitions (re-engagement allowed)", () => {
-      it("should allow LOST -> LEAD (re-engage)", () => {
-        expect(isValidClientTransition("LOST", "LEAD")).toBe(true);
+    describe("INACTIVE transitions (re-engagement allowed)", () => {
+      it("should allow INACTIVE -> LEAD (re-engage)", () => {
+        expect(isValidContactTransition("INACTIVE", "LEAD")).toBe(true);
       });
 
-      it("should allow LOST -> ACTIVE (re-engage)", () => {
-        expect(isValidClientTransition("LOST", "ACTIVE")).toBe(true);
+      it("should allow INACTIVE -> ACTIVE (re-engage)", () => {
+        expect(isValidContactTransition("INACTIVE", "ACTIVE")).toBe(true);
       });
     });
 
     describe("Error messages", () => {
       it("should return meaningful error for invalid transition", () => {
-        const error = getClientTransitionError("LEAD", "CONVERTED");
+        const error = getContactTransitionError("LEAD", "COMPLETED");
         expect(error).toContain("LEAD");
-        expect(error).toContain("CONVERTED");
+        expect(error).toContain("COMPLETED");
         expect(error).toContain("Valid transitions");
       });
 
-      it("should return terminal state message for CONVERTED", () => {
-        const error = getClientTransitionError("CONVERTED", "ACTIVE");
+      it("should return terminal state message for COMPLETED", () => {
+        const error = getContactTransitionError("COMPLETED", "ACTIVE");
         expect(error).toContain("terminal state");
       });
     });
 
     describe("Same status (no change)", () => {
       it("should allow staying in same status", () => {
-        expect(isValidClientTransition("ACTIVE", "ACTIVE")).toBe(true);
-        expect(isValidClientTransition("LEAD", "LEAD")).toBe(true);
+        expect(isValidContactTransition("ACTIVE", "ACTIVE")).toBe(true);
+        expect(isValidContactTransition("LEAD", "LEAD")).toBe(true);
       });
     });
   });
@@ -258,14 +267,14 @@ describe("Status Transition Rules", () => {
   });
 
   describe("Generic validateStatusTransition", () => {
-    it("should validate client transitions correctly", () => {
-      const result = validateStatusTransition("contact", "LEAD", "ACTIVE");
+    it("should validate contact transitions correctly", () => {
+      const result = validateStatusTransition("contact", "LEAD", "CONTACTED");
       expect(result.valid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it("should return error for invalid client transition", () => {
-      const result = validateStatusTransition("contact", "LEAD", "CONVERTED");
+    it("should return error for invalid contact transition", () => {
+      const result = validateStatusTransition("contact", "LEAD", "COMPLETED");
       expect(result.valid).toBe(false);
       expect(result.error).toBeDefined();
     });
@@ -281,17 +290,26 @@ describe("Status Transition Rules", () => {
     });
 
     it("should return valid next statuses", () => {
-      const result = validateStatusTransition("contact", "LEAD", "CONVERTED");
-      expect(result.validNextStatuses).toContain("ACTIVE");
-      expect(result.validNextStatuses).toContain("LOST");
+      const result = validateStatusTransition("contact", "LEAD", "COMPLETED");
+      expect(result.validNextStatuses).toContain("CONTACTED");
+      expect(result.validNextStatuses).toContain("INACTIVE");
     });
   });
 
   describe("Transition maps are complete", () => {
-    it("should have all client statuses in transition map", () => {
-      const statuses = ["LEAD", "ACTIVE", "INACTIVE", "CONVERTED", "LOST"];
+    it("should have all contact statuses in transition map", () => {
+      const statuses = [
+        "LEAD",
+        "CONTACTED",
+        "QUALIFIED",
+        "ACTIVE",
+        "UNDER_CONTRACT",
+        "COMPLETED",
+        "ON_HOLD",
+        "INACTIVE",
+      ];
       statuses.forEach(status => {
-        expect(CLIENT_STATUS_TRANSITIONS).toHaveProperty(status);
+        expect(CONTACT_STATUS_TRANSITIONS).toHaveProperty(status);
       });
     });
 

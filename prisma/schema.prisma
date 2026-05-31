@@ -1293,25 +1293,6 @@ enum CalendarEventType {
   OTHER
 }
 
-// TODO(clients-to-contacts): ClientStatus and ClientType are referenced by 6 live files
-// (app/api/v1/crm/clients/*, lib/validations/crm.ts, lib/validations/status-transitions.ts).
-// Remove these enums once those files are migrated/deleted (Tasks 8, 9, 12).
-enum ClientStatus {
-  LEAD
-  ACTIVE
-  INACTIVE
-  CONVERTED
-  LOST
-}
-
-enum ClientType {
-  BUYER
-  SELLER
-  RENTER
-  INVESTOR
-  REFERRAL_PARTNER
-}
-
 enum ConnectionStatus {
   PENDING
   ACCEPTED
@@ -1628,23 +1609,6 @@ enum EncryptionMode {
   STANDARD // Layer 1 (server-side) encryption only
   E2EE     // Full end-to-end encryption for comments, messages, files
 }
-
-enum MandateStatus {
-  DRAFT
-  ACTIVE
-  PAUSED
-  FULFILLED
-  EXPIRED
-  CANCELLED
-}
-
-enum MandateUrgency {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
 
 // ============================================
 // ATTACHMENTS - Reusable file attachments

@@ -1,8 +1,6 @@
 import { z } from "zod";
 import {
   PersonType,
-  ClientStatus,
-  ClientType,
   LeadSource,
   Language,
 } from "@prisma/client";
@@ -19,11 +17,17 @@ import {
 // Client person types — derived from Prisma PersonType enum
 export const personTypeSchema = z.nativeEnum(PersonType);
 
-// Client status values — derived from Prisma ClientStatus enum
-export const clientStatusSchema = z.nativeEnum(ClientStatus).optional();
+// Client status values — legacy clients→contacts input contract (string literals).
+// The ClientStatus Prisma enum was dropped; clients/route.ts maps these to ContactStatus.
+export const clientStatusSchema = z
+  .enum(["LEAD", "ACTIVE", "INACTIVE", "CONVERTED", "LOST"])
+  .optional();
 
-// Client type values — derived from Prisma ClientType enum
-export const clientTypeSchema = z.nativeEnum(ClientType).optional();
+// Client type values — legacy input contract (string literals).
+// The ClientType Prisma enum was dropped; clients/route.ts maps these to ContactCategory.
+export const clientTypeSchema = z
+  .enum(["BUYER", "SELLER", "RENTER", "INVESTOR", "REFERRAL_PARTNER"])
+  .optional();
 
 // Lead source values — derived from Prisma LeadSource enum
 export const leadSourceSchema = z.nativeEnum(LeadSource).optional();

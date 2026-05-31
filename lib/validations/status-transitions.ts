@@ -10,55 +10,7 @@
  * - DEAL-002: Deal status transitions
  */
 
-import type { ClientStatus, ContactStatus, PropertyStatus, DealStatus, DealStage, RequestStatus } from "@prisma/client";
-
-// =============================================================================
-// Client Status Transitions (CRM-005)
-// =============================================================================
-
-/**
- * Valid transitions for client status
- * 
- * Flow:
- * - LEAD: New client, not yet qualified
- * - ACTIVE: Actively working with client
- * - INACTIVE: Relationship paused
- * - CONVERTED: Successfully completed transaction
- * - LOST: Lost to competitor or disengaged
- */
-export const CLIENT_STATUS_TRANSITIONS: Record<ClientStatus, ClientStatus[]> = {
-  LEAD: ["ACTIVE", "LOST"],
-  ACTIVE: ["INACTIVE", "CONVERTED", "LOST"],
-  INACTIVE: ["ACTIVE", "LOST"],
-  CONVERTED: [], // Terminal state - cannot transition out
-  LOST: ["LEAD", "ACTIVE"], // Can re-engage
-};
-
-/**
- * Check if a client status transition is valid
- */
-export function isValidClientTransition(from: ClientStatus, to: ClientStatus): boolean {
-  if (from === to) return true; // No change is always valid
-  return CLIENT_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
-}
-
-/**
- * Get error message for invalid client status transition
- */
-export function getClientTransitionError(from: ClientStatus, to: ClientStatus): string {
-  const validNext = CLIENT_STATUS_TRANSITIONS[from];
-  if (validNext.length === 0) {
-    return `Client status "${from}" is a terminal state and cannot be changed`;
-  }
-  return `Cannot transition client from "${from}" to "${to}". Valid transitions: ${validNext.join(", ")}`;
-}
-
-/**
- * Get all valid next statuses for a client
- */
-export function getValidClientNextStatuses(current: ClientStatus): ClientStatus[] {
-  return CLIENT_STATUS_TRANSITIONS[current] ?? [];
-}
+import type { ContactStatus, PropertyStatus, DealStatus, DealStage, RequestStatus } from "@prisma/client";
 
 // =============================================================================
 // Contact Status Transitions (CRM-006)
@@ -362,11 +314,11 @@ export function validateStatusTransition<T extends string>(
   switch (entityType) {
     case "contact":
       return {
-        valid: isValidClientTransition(from as ClientStatus, to as ClientStatus),
-        error: isValidClientTransition(from as ClientStatus, to as ClientStatus)
+        valid: isValidContactTransition(from as ContactStatus, to as ContactStatus),
+        error: isValidContactTransition(from as ContactStatus, to as ContactStatus)
           ? undefined
-          : getClientTransitionError(from as ClientStatus, to as ClientStatus),
-        validNextStatuses: getValidClientNextStatuses(from as ClientStatus),
+          : getContactTransitionError(from as ContactStatus, to as ContactStatus),
+        validNextStatuses: getValidContactNextStatuses(from as ContactStatus),
       };
 
     case "property":
@@ -419,47 +371,6 @@ export interface StatusMetadata {
   color: string;
   isTerminal: boolean;
 }
-
-/**
- * Client status metadata for UI
- */
-export const CLIENT_STATUS_METADATA: Record<ClientStatus, StatusMetadata> = {
-  LEAD: {
-    value: "LEAD",
-    label: "Lead",
-    labelEl: "Υποψήφιος",
-    color: "blue",
-    isTerminal: false,
-  },
-  ACTIVE: {
-    value: "ACTIVE",
-    label: "Active",
-    labelEl: "Ενεργός",
-    color: "green",
-    isTerminal: false,
-  },
-  INACTIVE: {
-    value: "INACTIVE",
-    label: "Inactive",
-    labelEl: "Ανενεργός",
-    color: "gray",
-    isTerminal: false,
-  },
-  CONVERTED: {
-    value: "CONVERTED",
-    label: "Converted",
-    labelEl: "Μετατράπηκε",
-    color: "purple",
-    isTerminal: true,
-  },
-  LOST: {
-    value: "LOST",
-    label: "Lost",
-    labelEl: "Χαμένος",
-    color: "red",
-    isTerminal: false, // Can re-engage
-  },
-};
 
 /**
  * Property status metadata for UI
