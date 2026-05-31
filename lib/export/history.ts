@@ -73,11 +73,11 @@ export interface ChangeDetectionResult {
 
 const DEFAULT_CHANGE_FIELDS: Record<ExportEntityType, string[]> = {
   PROPERTY: ["price", "property_status", "square_feet", "bedrooms", "description"],
-  CONTACT: ["client_status", "budget_min", "budget_max", "primary_email", "primary_phone"],
+  CONTACT: ["status", "category", "displayName", "email", "primaryPhone"],
   CALENDAR: ["title", "startTime", "endTime", "status"],
   REPORT: [],
   BULK_PROPERTIES: ["price", "property_status"],
-  BULK_CONTACTS: ["client_status"],
+  BULK_CONTACTS: ["status"],
 };
 
 // Field labels for display
