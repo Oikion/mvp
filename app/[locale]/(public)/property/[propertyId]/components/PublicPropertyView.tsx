@@ -125,15 +125,17 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
               <>
                 <button
                   onClick={prevImage}
+                  aria-label="Previous image"
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
                 >
-                  <ChevronLeft className="h-6 w-6" />
+                  <ChevronLeft className="h-6 w-6" aria-hidden="true" />
                 </button>
                 <button
                   onClick={nextImage}
+                  aria-label="Next image"
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
                 >
-                  <ChevronRight className="h-6 w-6" />
+                  <ChevronRight className="h-6 w-6" aria-hidden="true" />
                 </button>
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                   {images.map((_: any, idx: number) => (

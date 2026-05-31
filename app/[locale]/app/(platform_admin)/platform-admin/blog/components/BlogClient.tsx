@@ -300,11 +300,12 @@ export function BlogClient({
                           variant="ghost"
                           size="icon"
                           onClick={() => setPreviewPost(post)}
+                          aria-label="Preview post"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4" aria-hidden="true" />
                         </Button>
-                        <Button variant="ghost" size="icon" disabled>
-                          <Edit className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" disabled aria-label="Edit post">
+                          <Edit className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </TableCell>

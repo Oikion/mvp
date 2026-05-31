@@ -52,8 +52,8 @@ const RightViewModal = ({
                   {title}
                 </span>
               </Dialog.Title>
-              <Dialog.Close className="flex justify-end text-right w-full pr-5 pt-5">
-                <Cross1Icon className="w-5 h-5 opacity-50 hover:opacity-100" />
+              <Dialog.Close className="flex justify-end text-right w-full pr-5 pt-5" aria-label="Close">
+                <Cross1Icon className="w-5 h-5 opacity-50 hover:opacity-100" aria-hidden="true" />
               </Dialog.Close>
             </div>
             <Dialog.Description className="text-slate-400 p-3 overflow-auto opacity-75">

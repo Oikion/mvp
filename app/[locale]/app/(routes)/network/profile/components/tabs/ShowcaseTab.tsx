@@ -88,11 +88,12 @@ function SortablePropertyItem({ property, onRemove, isRemoving }: SortableProper
     >
       <button
         type="button"
+        aria-label="Drag to reorder"
         {...attributes}
         {...listeners}
         className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
       >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
+        <GripVertical className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       </button>
 
       <div className="w-16 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
@@ -138,14 +139,15 @@ function SortablePropertyItem({ property, onRemove, isRemoving }: SortableProper
         type="button"
         variant="ghost"
         size="icon"
+        aria-label="Remove from showcase"
         className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
         onClick={() => onRemove(property.propertyId)}
         disabled={isRemoving}
       >
         {isRemoving ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         ) : (
-          <X className="h-4 w-4 text-destructive" />
+          <X className="h-4 w-4 text-destructive" aria-hidden="true" />
         )}
       </Button>
     </div>

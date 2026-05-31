@@ -120,10 +120,10 @@ export const NavigationMenu = ({ variant = 'landing', trigger = true }: Navigati
             {showMobileMenu && (
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-md text-foreground focus:outline-none"
+                className="p-2 rounded-md text-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
               </button>
             )}
           </div>

@@ -152,6 +152,18 @@ export function JobsList({
           <div
             key={job.id}
             onClick={() => onJobClick?.(job.id)}
+            {...(onJobClick
+              ? {
+                  role: "button",
+                  tabIndex: 0,
+                  onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onJobClick(job.id);
+                    }
+                  },
+                }
+              : {})}
             className={cn(
               "flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors",
               onJobClick && "cursor-pointer"

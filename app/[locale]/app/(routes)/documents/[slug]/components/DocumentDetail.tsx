@@ -208,8 +208,8 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
+        <Button variant="ghost" size="icon" aria-label={tCommon("buttons.back")} onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold">{document.document_name}</h1>

@@ -80,10 +80,18 @@ export function SentClient({
               {campaigns.map((c) => (
                 <TableRow
                   key={c.id}
+                  role="link"
+                  tabIndex={0}
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() =>
                     router.push(`/platform-admin/communication/sent/${c.id}`)
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(`/platform-admin/communication/sent/${c.id}`);
+                    }
+                  }}
                 >
                   <TableCell>
                     <p className="font-medium text-caption">{c.subject}</p>
@@ -121,7 +129,7 @@ export function SentClient({
                       : "—"}
                   </TableCell>
                   <TableCell>
-                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
                   </TableCell>
                 </TableRow>
               ))}

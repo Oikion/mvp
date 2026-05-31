@@ -137,8 +137,9 @@ export function ReferralCodesTable({
             size="icon"
             className="h-7 w-7"
             onClick={() => handleCopyCode(row.original.code)}
+            aria-label="Copy code"
           >
-            <Copy className="h-3.5 w-3.5" />
+            <Copy className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
         </div>
       ),

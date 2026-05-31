@@ -339,10 +339,11 @@ export function FeedPostComposer({
                         {!isPosting && (
                           <button
                             type="button"
+                            aria-label="Remove linked item"
                             className="ml-0.5 rounded-full p-0.5 text-primary/60 hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
                             onClick={() => setLinkedEntity(null)}
                           >
-                            <X className="h-2.5 w-2.5" />
+                            <X className="h-2.5 w-2.5" aria-hidden="true" />
                           </button>
                         )}
                       </div>
@@ -366,10 +367,11 @@ export function FeedPostComposer({
                           !isPosting && (
                             <button
                               type="button"
+                              aria-label="Remove attachment"
                               className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
                               onClick={() => handleRemoveAttachment(a.id)}
                             >
-                              <X className="h-2.5 w-2.5" />
+                              <X className="h-2.5 w-2.5" aria-hidden="true" />
                             </button>
                           )
                         )}

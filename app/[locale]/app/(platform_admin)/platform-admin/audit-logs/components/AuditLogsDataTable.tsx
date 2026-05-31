@@ -337,8 +337,9 @@ export function AuditLogsDataTable({
             size="sm"
             onClick={clearDateFilter}
             className="h-8 px-2"
+            aria-label="Clear date filter"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         )}
       </div>

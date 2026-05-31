@@ -41,13 +41,14 @@ const ModuleMenu = ({ dict, build }: Props) => {
       <Button
         variant="outline"
         size="icon"
+        aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
         className={cn(
           "absolute -right-3 top-9 size-8 rounded-full",
           !open && "rotate-180"
         )}
             onClick={() => setOpen(!open)}
           >
-        <ChevronsLeft className="size-4" />
+        <ChevronsLeft className="size-4" aria-hidden="true" />
       </Button>
       <div className="flex items-center gap-x-4">
           <h1

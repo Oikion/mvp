@@ -229,13 +229,14 @@ export function FeedCommentThread({
             />
             <Button
               size="sm"
+              aria-label="Post comment"
               onClick={handleAddComment}
               disabled={!commentInput.trim() || isAddingComment}
             >
               {isAddingComment ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4" aria-hidden="true" />
               )}
             </Button>
           </div>
@@ -287,10 +288,11 @@ export function FeedCommentThread({
                             <Button
                               variant="ghost"
                               size="icon"
+                              aria-label="Delete comment"
                               className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => handleDeleteComment(comment.id)}
                             >
-                              <X className="h-3 w-3" />
+                              <X className="h-3 w-3" aria-hidden="true" />
                             </Button>
                           )}
                         </div>
@@ -357,22 +359,24 @@ export function FeedCommentThread({
                         <Button
                           size="sm"
                           className="h-8"
+                          aria-label="Post reply"
                           onClick={() => handleAddReply(comment.id)}
                           disabled={!replyInput.trim() || isAddingReply}
                         >
                           {isAddingReply ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
                           ) : (
-                            <Send className="h-3 w-3" />
+                            <Send className="h-3 w-3" aria-hidden="true" />
                           )}
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
                           className="h-8"
+                          aria-label="Cancel reply"
                           onClick={cancelReply}
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-3 w-3" aria-hidden="true" />
                         </Button>
                       </div>
                     </div>
@@ -422,6 +426,7 @@ export function FeedCommentThread({
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  aria-label="Delete reply"
                                   className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
                                   onClick={() =>
                                     handleDeleteComment(
@@ -431,7 +436,7 @@ export function FeedCommentThread({
                                     )
                                   }
                                 >
-                                  <X className="h-3 w-3" />
+                                  <X className="h-3 w-3" aria-hidden="true" />
                                 </Button>
                               )}
                             </div>

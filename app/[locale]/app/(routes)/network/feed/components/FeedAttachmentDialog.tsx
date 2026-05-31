@@ -219,13 +219,14 @@ export function FeedAttachmentDialog({
                   type="button"
                   variant="ghost"
                   size="icon"
+                  aria-label="Back"
                   className="h-7 w-7 shrink-0"
                   onClick={() => {
                     setStep("type-select");
                     setSearch("");
                   }}
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </Button>
                 <DialogTitle className="text-base font-semibold">
                   Select a {currentType?.label}

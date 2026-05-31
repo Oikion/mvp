@@ -64,11 +64,12 @@ function SortableItem({
     >
       {!readOnly && (
         <button
+          aria-label="Drag to reorder block"
           className="mt-1 cursor-grab text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
           {...attributes}
           {...listeners}
         >
-          <GripVertical className="h-4 w-4" />
+          <GripVertical className="h-4 w-4" aria-hidden="true" />
         </button>
       )}
 
@@ -86,8 +87,9 @@ function SortableItem({
           size="icon"
           className="mt-1 h-7 w-7 shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
           onClick={onDelete}
+          aria-label="Delete block"
         >
-          <Trash2 className="h-3.5 w-3.5" />
+          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
       )}
     </div>

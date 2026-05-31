@@ -292,10 +292,18 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
                 return (
                   <div
                     key={notification.id}
+                    role="button"
+                    tabIndex={0}
                     className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors hover:bg-accent ${
                       !notification.read ? "bg-accent/50" : ""
                     }`}
                     onClick={() => handleNotificationClick(notification)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleNotificationClick(notification);
+                      }
+                    }}
                   >
                     <div className="mt-0.5">
                       <Icon className={`h-4 w-4 ${iconColor}`} />

@@ -115,13 +115,14 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                       className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                       ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                       )}
                     </Button>
                   </div>
@@ -175,15 +176,16 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                       className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                       ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                       )}
                     </Button>
                   </div>

@@ -216,10 +216,18 @@ export function InviteeSelector({
                             key={invitee.userId}
                             role="option"
                             aria-selected={false}
+                            tabIndex={0}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
                               handleSelect(invitee);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleSelect(invitee);
+                              }
                             }}
                             onMouseDown={(e) => {
                               e.preventDefault();
@@ -265,10 +273,18 @@ export function InviteeSelector({
                             key={invitee.userId}
                             role="option"
                             aria-selected={false}
+                            tabIndex={0}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
                               handleSelect(invitee);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleSelect(invitee);
+                              }
                             }}
                             onMouseDown={(e) => {
                               e.preventDefault();

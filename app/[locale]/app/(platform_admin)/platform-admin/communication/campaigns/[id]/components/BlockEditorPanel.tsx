@@ -216,8 +216,9 @@ export function BlockEditorPanel({
                       const newItems = block.props.items.filter((_, i) => i !== idx)
                       onChange({ ...block, props: { ...block.props, items: newItems } })
                     }}
+                    aria-label="Remove item"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3 w-3" aria-hidden="true" />
                   </Button>
                 )}
               </div>

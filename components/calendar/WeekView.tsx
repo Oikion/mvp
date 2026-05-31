@@ -368,9 +368,16 @@ export function WeekView({
                 isSameDay(day, selectedDate) && "bg-primary/20"
               )}
               onClick={() => onDateSelect(day)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onDateSelect(day);
+                }
+              }}
               role="button"
-              aria-label={t("accessibility.selectDate", { 
-                date: format(day, "EEEE, d MMMM", { locale: dateLocale }) 
+              tabIndex={0}
+              aria-label={t("accessibility.selectDate", {
+                date: format(day, "EEEE, d MMMM", { locale: dateLocale })
               })}
             >
               <div className="text-xs text-muted-foreground">{weekdayLabels[idx]}</div>

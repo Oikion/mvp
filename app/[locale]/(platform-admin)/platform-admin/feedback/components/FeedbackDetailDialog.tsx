@@ -684,16 +684,27 @@ export function FeedbackDetailDialog({
       {/* Full Screen Screenshot Modal */}
       {showFullScreenshot && feedback.screenshot && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full screen screenshot"
+          tabIndex={-1}
           className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
           onClick={() => setShowFullScreenshot(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setShowFullScreenshot(false);
+            }
+          }}
         >
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Close full screen view"
             className="absolute top-4 right-4 text-white hover:bg-white/20"
             onClick={() => setShowFullScreenshot(false)}
           >
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6" aria-hidden="true" />
           </Button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

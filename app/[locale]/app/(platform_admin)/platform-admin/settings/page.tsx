@@ -353,11 +353,12 @@ export default function PlatformAdminSettingsPage() {
                       size="icon"
                       className="absolute right-0 top-0 h-full"
                       onClick={() => setShowValue(!showValue)}
+                      aria-label={showValue ? "Hide value" : "Show value"}
                     >
                       {showValue ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-4 w-4" aria-hidden="true" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4" aria-hidden="true" />
                       )}
                     </Button>
                   )}

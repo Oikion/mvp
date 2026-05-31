@@ -166,12 +166,13 @@ export function ReferralsTab() {
                       <Button
                         variant="outline"
                         size="icon"
+                        aria-label={t("copyCode")}
                         onClick={handleCopyCode}
                       >
                         {copied === "code" ? (
-                          <Check className="h-4 w-4 text-success" />
+                          <Check className="h-4 w-4 text-success" aria-hidden="true" />
                         ) : (
-                          <Copy className="h-4 w-4" />
+                          <Copy className="h-4 w-4" aria-hidden="true" />
                         )}
                       </Button>
                     </TooltipTrigger>
@@ -199,12 +200,13 @@ export function ReferralsTab() {
                     <Button
                       variant="outline"
                       size="icon"
+                      aria-label={t("copyLink")}
                       onClick={handleCopyLink}
                     >
                       {copied === "link" ? (
-                        <Check className="h-4 w-4 text-success" />
+                        <Check className="h-4 w-4 text-success" aria-hidden="true" />
                       ) : (
-                        <Link2 className="h-4 w-4" />
+                        <Link2 className="h-4 w-4" aria-hidden="true" />
                       )}
                     </Button>
                   </TooltipTrigger>

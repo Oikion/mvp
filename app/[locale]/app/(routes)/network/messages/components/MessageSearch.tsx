@@ -106,8 +106,8 @@ export function MessageSearch({ locale, children }: MessageSearchProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button variant="ghost" size="icon">
-            <Search className="h-4 w-4" />
+          <Button variant="ghost" size="icon" aria-label="Search messages">
+            <Search className="h-4 w-4" aria-hidden="true" />
           </Button>
         )}
       </DialogTrigger>
@@ -132,13 +132,15 @@ export function MessageSearch({ locale, children }: MessageSearchProps) {
             />
             {query && (
               <button
+                type="button"
+                aria-label="Clear search"
                 onClick={() => {
                   setQuery("");
                   setResults([]);
                 }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
           </div>

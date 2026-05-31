@@ -653,13 +653,15 @@ function ContactRow({
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Toggle score breakdown"
+          aria-expanded={isExpanded}
           className="h-8 w-8 shrink-0"
           onClick={onToggleExpand}
         >
           {isExpanded ? (
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDown className="h-4 w-4" aria-hidden="true" />
           ) : (
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           )}
         </Button>
       </div>

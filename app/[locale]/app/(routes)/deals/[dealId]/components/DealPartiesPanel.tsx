@@ -361,7 +361,7 @@ export default function DealPartiesPanel({
                         role="option"
                         aria-selected={isSelected}
                         onClick={() => setSelectedContactId(c.value)}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-accent focus:bg-accent focus:outline-none ${
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-accent focus:bg-accent focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
                           isSelected ? "bg-accent" : ""
                         }`}
                       >

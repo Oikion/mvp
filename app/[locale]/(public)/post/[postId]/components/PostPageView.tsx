@@ -218,8 +218,16 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
                       key={attachment.id}
                       src={attachment.url}
                       alt={attachment.fileName}
+                      role="button"
+                      tabIndex={0}
                       className="rounded-lg w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
                       onClick={() => window.open(attachment.url, "_blank")}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          window.open(attachment.url, "_blank");
+                        }
+                      }}
                     />
                   ))}
               </div>

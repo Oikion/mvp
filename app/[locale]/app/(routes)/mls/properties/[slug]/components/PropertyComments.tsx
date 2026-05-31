@@ -167,6 +167,7 @@ export function PropertyComments({
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label={t("delete")}
                       className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                       onClick={() => {
                         setCommentToDelete(comment.id);
@@ -174,7 +175,7 @@ export function PropertyComments({
                       }}
                       disabled={isDeleting}
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-3 w-3" aria-hidden="true" />
                     </Button>
                   )}
                 </div>

@@ -580,8 +580,8 @@ export function ChangelogForm({ entry, categories: initialCategories, onSuccess,
                   </Select>
                   <Dialog open={showNewCategoryDialog} onOpenChange={setShowNewCategoryDialog}>
                     <DialogTrigger asChild>
-                      <Button type="button" variant="outline" size="icon">
-                        <Plus className="h-4 w-4" />
+                      <Button type="button" variant="outline" size="icon" aria-label="Add category">
+                        <Plus className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
@@ -730,9 +730,10 @@ export function ChangelogForm({ entry, categories: initialCategories, onSuccess,
                   <button
                     type="button"
                     onClick={() => removeTag(index)}
+                    aria-label="Remove tag"
                     className="ml-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-3 w-3" aria-hidden="true" />
                   </button>
                 </Badge>
               );

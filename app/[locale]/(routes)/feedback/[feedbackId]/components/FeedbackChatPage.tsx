@@ -492,11 +492,12 @@ export function FeedbackChatPage({
                 disabled={isAdding || !newMessage.trim()}
                 size="icon"
                 className="h-[60px] w-[60px] shrink-0"
+                aria-label="Send message"
               >
                 {isAdding ? (
-                  <Icons.spinner className="h-5 w-5 animate-spin" />
+                  <Icons.spinner className="h-5 w-5 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Send className="h-5 w-5" />
+                  <Send className="h-5 w-5" aria-hidden="true" />
                 )}
               </Button>
             </div>

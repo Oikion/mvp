@@ -88,12 +88,13 @@ export function ShareSettings({
               <Button
                 variant="outline"
                 size="icon"
+                aria-label="Copy link"
                 onClick={handleCopy}
               >
                 {copied ? (
-                  <Check className="h-4 w-4 text-success" />
+                  <Check className="h-4 w-4 text-success" aria-hidden="true" />
                 ) : (
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4" aria-hidden="true" />
                 )}
               </Button>
             </div>

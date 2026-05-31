@@ -494,11 +494,12 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                       {user?.name ?? id}
                       <button
                         type="button"
+                        aria-label="Remove member"
                         onClick={() =>
                           setGroupSelections((prev) => prev.filter((s) => s !== id))
                         }
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3 w-3" aria-hidden="true" />
                       </button>
                     </Badge>
                   );

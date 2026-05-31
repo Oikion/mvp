@@ -487,15 +487,16 @@ export function MentionInput({
               onChange={handleSearchInputChange}
               onKeyDown={handleSearchInputKeyDown}
               placeholder="Search clients, properties, documents, events..."
-              className="flex h-8 w-full bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-8 w-full bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm disabled:cursor-not-allowed disabled:opacity-50"
             />
             {searchQuery && (
               <button
                 type="button"
+                aria-label="Clear search"
                 onClick={handleClearSearch}
-                className="h-5 w-5 shrink-0 rounded-sm hover:bg-muted flex items-center justify-center"
+                className="h-5 w-5 shrink-0 rounded-sm hover:bg-muted flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <X className="h-3 w-3 text-muted-foreground" />
+                <X className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
               </button>
             )}
             {isLoading && (

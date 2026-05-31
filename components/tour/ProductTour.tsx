@@ -282,6 +282,8 @@ export function ProductTour({
       {/* Tooltip */}
       <div
         ref={tooltipRef}
+        role="dialog"
+        aria-modal="true"
         aria-label={`Tour step ${currentStep + 1} of ${steps.length}: ${step.title}`}
         className={cn(
           "fixed z-[9999] w-80 max-w-[calc(100vw-20px)]",

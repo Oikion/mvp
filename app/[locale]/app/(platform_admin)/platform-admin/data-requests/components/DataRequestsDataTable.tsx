@@ -166,8 +166,8 @@ export function DataRequestsDataTable({
               className="pl-9"
             />
           </div>
-          <Button variant="outline" onClick={handleSearch}>
-            <Search className="h-4 w-4" />
+          <Button variant="outline" onClick={handleSearch} aria-label="Search">
+            <Search className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 
@@ -329,8 +329,9 @@ export function DataRequestsDataTable({
               size="sm"
               disabled={page <= 1}
               onClick={() => handlePageChange(page - 1)}
+              aria-label="Previous page"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </Button>
             <span className="flex items-center text-sm px-2">
               {page} / {totalPages}
@@ -340,8 +341,9 @@ export function DataRequestsDataTable({
               size="sm"
               disabled={page >= totalPages}
               onClick={() => handlePageChange(page + 1)}
+              aria-label="Next page"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>

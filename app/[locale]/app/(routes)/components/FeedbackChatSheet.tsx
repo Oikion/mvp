@@ -115,6 +115,7 @@ const FeedbackChatSheet = ({
   currentUserName,
 }: FeedbackChatSheetProps) => {
   const t = useTranslations("feedback");
+  const tCommon = useTranslations("common");
   const [error, setError] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -216,10 +217,11 @@ const FeedbackChatSheet = ({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label={tCommon("buttons.back")}
                 onClick={handleBack}
                 className="h-8 w-8"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </Button>
             )}
             <SheetHeader className="flex-1">
@@ -411,12 +413,13 @@ const FeedbackChatSheet = ({
               onClick={handleSendMessage}
               disabled={isAdding || !newMessage.trim() || loading}
               size="icon"
+              aria-label="Send message"
               className="h-[60px] w-[60px] shrink-0"
             >
               {isAdding ? (
-                <Icons.spinner className="h-5 w-5 animate-spin" />
+                <Icons.spinner className="h-5 w-5 animate-spin" aria-hidden="true" />
               ) : (
-                <Send className="h-5 w-5" />
+                <Send className="h-5 w-5" aria-hidden="true" />
               )}
             </Button>
           </div>

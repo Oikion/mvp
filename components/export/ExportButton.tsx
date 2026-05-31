@@ -850,16 +850,25 @@ export function ExportButton({
                         </Badge>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={locale === "el" ? "Πρότυπο Εξαγωγής" : "Export Template"}>
                       {EXPORT_TEMPLATES.map((template) => (
                         <div
                           key={template.id}
+                          role="radio"
+                          aria-checked={selectedTemplate === template.id}
+                          tabIndex={0}
                           className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                             selectedTemplate === template.id
                               ? "border-primary bg-primary/5"
                               : "hover:bg-muted/50"
                           }`}
                           onClick={() => setSelectedTemplate(template.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setSelectedTemplate(template.id);
+                            }
+                          }}
                         >
                           <div className="flex-shrink-0 mt-0.5 text-muted-foreground">
                             {template.icon}
@@ -944,16 +953,25 @@ export function ExportButton({
                       </Badge>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={locale === "el" ? "Επιλέξτε Portal" : "Select Portal"}>
                     {PORTAL_TEMPLATES.map((portal) => (
                       <div
                         key={portal.id}
+                        role="radio"
+                        aria-checked={selectedPortal === portal.id}
+                        tabIndex={0}
                         className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                           selectedPortal === portal.id
                             ? "border-primary bg-primary/5"
                             : "hover:bg-muted/50"
                         }`}
                         onClick={() => setSelectedPortal(portal.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedPortal(portal.id);
+                          }
+                        }}
                       >
                         <div className="flex-shrink-0 mt-0.5 text-muted-foreground">
                           {portal.icon}
@@ -1107,16 +1125,25 @@ export function ExportButton({
                       </Badge>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={locale === "el" ? "Πρότυπο Εξαγωγής" : "Export Template"}>
                     {EXPORT_TEMPLATES.map((template) => (
                       <div
                         key={template.id}
+                        role="radio"
+                        aria-checked={selectedTemplate === template.id}
+                        tabIndex={0}
                         className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                           selectedTemplate === template.id
                             ? "border-primary bg-primary/5"
                             : "hover:bg-muted/50"
                         }`}
                         onClick={() => setSelectedTemplate(template.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedTemplate(template.id);
+                          }
+                        }}
                       >
                         <div className="flex-shrink-0 mt-0.5 text-muted-foreground">
                           {template.icon}

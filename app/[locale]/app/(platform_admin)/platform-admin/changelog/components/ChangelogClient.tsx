@@ -455,15 +455,17 @@ export function ChangelogClient({
                           variant="ghost"
                           size="icon"
                           onClick={() => setPreviewEntry(entry)}
+                          aria-label="Preview entry"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4" aria-hidden="true" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => setEditEntry(entry)}
+                          aria-label="Edit entry"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4" aria-hidden="true" />
                         </Button>
                         {entry.status === "DRAFT" && (
                           <Button
@@ -471,8 +473,9 @@ export function ChangelogClient({
                             size="icon"
                             onClick={() => handlePublish(entry.id)}
                             disabled={isPublishing === entry.id}
+                            aria-label="Publish entry"
                           >
-                            <Send className="h-4 w-4" />
+                            <Send className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         )}
                         {entry.status === "PUBLISHED" && (
@@ -491,8 +494,9 @@ export function ChangelogClient({
                           size="icon"
                           onClick={() => setDeleteConfirm(entry)}
                           disabled={entry.status === "ARCHIVED"}
+                          aria-label="Delete entry"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </TableCell>

@@ -179,11 +179,12 @@ export default function RequestComments({ requestId }: Readonly<RequestCommentsP
                     {isOwn && (
                       <button
                         type="button"
+                        aria-label="Delete comment"
                         onClick={() => setDeleteTarget(comment.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-muted-foreground hover:text-destructive"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
                         disabled={isDeleting}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
                     )}
                   </div>

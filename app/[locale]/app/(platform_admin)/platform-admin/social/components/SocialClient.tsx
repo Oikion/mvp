@@ -439,8 +439,9 @@ export function SocialClient({
                           variant="ghost"
                           size="icon"
                           onClick={() => setPreviewPost(post)}
+                          aria-label="Preview post"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4" aria-hidden="true" />
                         </Button>
                         {post.platformPostUrl && (
                           <Button variant="ghost" size="icon" asChild>
@@ -448,8 +449,9 @@ export function SocialClient({
                               href={post.platformPostUrl}
                               target="_blank"
                               rel="noopener noreferrer"
+                              aria-label="Open post on platform"
                             >
-                              <ExternalLink className="h-4 w-4" />
+                              <ExternalLink className="h-4 w-4" aria-hidden="true" />
                             </a>
                           </Button>
                         )}

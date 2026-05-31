@@ -189,13 +189,14 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
           <Button
             variant="destructive"
             size="icon"
+            aria-label="Remove photo"
             className="absolute -top-2 -right-2 h-8 w-8 rounded-full shadow-lg"
             onClick={(e) => {
               e.stopPropagation();
               setShowRemoveDialog(true);
             }}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         )}
       </div>

@@ -212,11 +212,11 @@ function ConnectionItem({
       <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={isRemoving || isStartingMessage}>
+            <Button variant="ghost" size="icon" aria-label="Connection options" disabled={isRemoving || isStartingMessage}>
               {isRemoving || isStartingMessage ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
               )}
             </Button>
           </DropdownMenuTrigger>
@@ -428,11 +428,11 @@ function SentRequestItem({
         </Badge>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={isRemoving}>
+            <Button variant="ghost" size="icon" aria-label="Connection options" disabled={isRemoving}>
               {isRemoving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
               )}
             </Button>
           </DropdownMenuTrigger>
@@ -513,8 +513,8 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
 
     if (connectingId === agent.id || (isSending && connectingId === agent.id)) {
       return (
-        <Button size="sm" disabled>
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <Button size="sm" disabled aria-label="Loading">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         </Button>
       );
     }

@@ -165,8 +165,8 @@ export function CreateReferralCodeDialog({ locale }: CreateReferralCodeDialogPro
                 <code className="flex-1 text-center font-mono text-lg">
                   {createdCode}
                 </code>
-                <Button variant="ghost" size="icon" onClick={handleCopyCode}>
-                  <Copy className="h-4 w-4" />
+                <Button variant="ghost" size="icon" onClick={handleCopyCode} aria-label="Copy code">
+                  <Copy className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             </div>

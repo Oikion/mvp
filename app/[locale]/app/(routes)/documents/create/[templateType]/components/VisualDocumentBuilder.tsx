@@ -41,6 +41,7 @@ export function VisualDocumentBuilder({
   locale,
 }: VisualDocumentBuilderProps) {
   const t = useTranslations("documents.builder");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const isGreek = locale === "el";
 
@@ -215,9 +216,10 @@ export function VisualDocumentBuilder({
           <Button
             variant="ghost"
             size="icon"
+            aria-label={tCommon("buttons.back")}
             onClick={() => router.push("/app/documents")}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
           <div>
             <h1 className="font-semibold text-lg">{templateName}</h1>

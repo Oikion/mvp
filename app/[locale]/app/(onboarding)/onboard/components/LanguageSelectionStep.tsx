@@ -113,6 +113,9 @@ export function LanguageSelectionStep({
               transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
             >
               <Card
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
                 className={cn(
                   "p-6 cursor-pointer transition-all relative overflow-hidden",
                   isSelected
@@ -121,6 +124,12 @@ export function LanguageSelectionStep({
                   isChanging && "opacity-50 cursor-not-allowed"
                 )}
                 onClick={() => handleLanguageClick(lang.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleLanguageClick(lang.value);
+                  }
+                }}
               >
                 <div className="flex flex-col items-center gap-3">
                   <span className="text-5xl">{lang.flag}</span>

@@ -153,13 +153,14 @@ export function UploadModal({
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label="Remove file"
                     className="h-6 w-6"
                     onClick={(e) => {
                       e.stopPropagation();
                       setFile(null);
                     }}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
               ) : (

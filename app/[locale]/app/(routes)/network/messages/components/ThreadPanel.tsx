@@ -229,8 +229,8 @@ function ThreadMessage({
         <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Popover open={openReactionPicker} onOpenChange={setOpenReactionPicker}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6">
-                <Smile className="h-3 w-3" />
+              <Button variant="ghost" size="icon" className="h-6 w-6" aria-label="Add reaction">
+                <Smile className="h-3 w-3" aria-hidden="true" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-2" align="start" side="top">
@@ -252,8 +252,8 @@ function ThreadMessage({
           {isCurrentUser && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <MoreHorizontal className="h-3 w-3" />
+                <Button variant="ghost" size="icon" className="h-6 w-6" aria-label="Message options">
+                  <MoreHorizontal className="h-3 w-3" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
@@ -473,23 +473,25 @@ export function ThreadPanel({
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8"
+                            aria-label="Save edit"
                             onClick={() => handleSaveEdit(reply.id)}
                             disabled={isEditing || !editContent.trim()}
                           >
                             {isEditing ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                             ) : (
-                              <Check className="h-4 w-4" />
+                              <Check className="h-4 w-4" aria-hidden="true" />
                             )}
                           </Button>
                           <Button
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8"
+                            aria-label="Cancel edit"
                             onClick={handleCancelEdit}
                             disabled={isEditing}
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

@@ -344,6 +344,8 @@ export function TagManager({
                   <button
                     key={color}
                     type="button"
+                    aria-label={`Select color ${color}`}
+                    aria-pressed={formColor === color}
                     onClick={() => setFormColor(color)}
                     className={cn(
                       "h-8 w-8 rounded-full border-2 transition-all",
@@ -354,7 +356,7 @@ export function TagManager({
                     style={{ backgroundColor: color }}
                   >
                     {formColor === color && (
-                      <Check className="h-4 w-4 text-white m-auto" />
+                      <Check className="h-4 w-4 text-white m-auto" aria-hidden="true" />
                     )}
                   </button>
                 ))}

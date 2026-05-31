@@ -99,8 +99,8 @@ export function ConversationSettings({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button variant="ghost" size="icon">
-            <Settings className="h-4 w-4" />
+          <Button variant="ghost" size="icon" aria-label="Conversation settings">
+            <Settings className="h-4 w-4" aria-hidden="true" />
           </Button>
         )}
       </DialogTrigger>
@@ -201,6 +201,7 @@ export function ConversationSettings({
                         size="icon"
                         className="h-6 w-6 text-muted-foreground hover:text-destructive"
                         disabled={removingId === p.userId}
+                        aria-label="Remove member"
                         onClick={async () => {
                           setRemovingId(p.userId);
                           const result = await removeGroupMember(conversation.id, p.userId);
@@ -210,7 +211,7 @@ export function ConversationSettings({
                           }
                         }}
                       >
-                        <UserMinus className="h-3 w-3" />
+                        <UserMinus className="h-3 w-3" aria-hidden="true" />
                       </Button>
                     </div>
                   );

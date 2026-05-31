@@ -379,8 +379,16 @@ export function ProfileEditor({
                             return (
                               <div
                                 key={option.value}
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => field.onChange(option.value)}
-                                className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    field.onChange(option.value);
+                                  }
+                                }}
+                                className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                                   isSelected
                                     ? `border-primary ${option.bgColor}`
                                     : "border-transparent bg-muted/50 hover:bg-muted"
@@ -603,8 +611,8 @@ export function ProfileEditor({
                       }}
                       disabled={isLoading}
                     />
-                    <Button type="button" variant="outline" size="icon" onClick={addServiceArea}>
-                      <Plus className="h-4 w-4" />
+                    <Button type="button" variant="outline" size="icon" aria-label="Add service area" onClick={addServiceArea}>
+                      <Plus className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>
@@ -638,8 +646,8 @@ export function ProfileEditor({
                       }}
                       disabled={isLoading}
                     />
-                    <Button type="button" variant="outline" size="icon" onClick={addCertification}>
-                      <Plus className="h-4 w-4" />
+                    <Button type="button" variant="outline" size="icon" aria-label="Add certification" onClick={addCertification}>
+                      <Plus className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>
@@ -718,10 +726,11 @@ export function ProfileEditor({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
+                                aria-label="Remove field"
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                 onClick={() => removeField(field.id)}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             </div>
                           </div>

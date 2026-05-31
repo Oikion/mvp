@@ -147,6 +147,7 @@ export default function PropertyView({
   const router = useRouter();
   const t = useTranslations("mls");
   const tActivities = useTranslations("activities");
+  const tCommon = useTranslations("common");
   const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkRequestDialogOpen, setLinkRequestDialogOpen] = useState(false);
@@ -292,9 +293,10 @@ export default function PropertyView({
           <Button
             variant="ghost"
             size="icon"
+            aria-label={tCommon("buttons.back")}
             onClick={() => router.push(`/${locale}/app/mls/properties`)}
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </Button>
           <div>
             <div className="flex items-center gap-2 flex-wrap">

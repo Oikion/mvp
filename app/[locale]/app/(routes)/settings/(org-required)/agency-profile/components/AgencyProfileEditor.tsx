@@ -673,10 +673,11 @@ export function AgencyProfileEditor({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
+                                aria-label="Remove field"
                                 onClick={() => removeField(field.id)}
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             </div>
                           </div>

@@ -114,6 +114,9 @@ export function PrivacyStep({ dict, data, onDataChange }: PrivacyStepProps) {
                 transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
               >
                 <Card
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
                   className={cn(
                     "p-3 cursor-pointer transition-all",
                     isSelected
@@ -121,6 +124,12 @@ export function PrivacyStep({ dict, data, onDataChange }: PrivacyStepProps) {
                       : "hover:bg-muted/50"
                   )}
                   onClick={() => handleVisibilityChange(option.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleVisibilityChange(option.value);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <div className={cn("p-2 rounded-lg", option.bgColor)}>
@@ -174,6 +183,7 @@ export function PrivacyStep({ dict, data, onDataChange }: PrivacyStepProps) {
                 <Switch
                   checked={data.analyticsConsent}
                   onCheckedChange={handleAnalyticsToggle}
+                  aria-label={dict.analytics.title}
                 />
               </div>
               <Label className="text-sm cursor-pointer" onClick={handleAnalyticsToggle}>

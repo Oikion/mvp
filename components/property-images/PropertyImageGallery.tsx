@@ -40,8 +40,17 @@ export function PropertyImageGallery({ images }: PropertyImageGalleryProps) {
     <>
       {/* Hero Image */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Open image gallery"
         className="relative h-[400px] md:h-[500px] w-full overflow-hidden rounded-lg bg-muted cursor-pointer group"
         onClick={() => setLightboxOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setLightboxOpen(true);
+          }
+        }}
       >
         <Image
           src={activeImage.url}
@@ -157,6 +166,9 @@ function Lightbox({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Image gallery"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
       onClick={onClose}
     >

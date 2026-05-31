@@ -197,8 +197,16 @@ export function PrivacySecurityTab({
               return (
                 <div
                   key={option.value}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setVisibility(option.value)}
-                  className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setVisibility(option.value);
+                    }
+                  }}
+                  className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     isSelected
                       ? `border-primary ${option.bgColor}`
                       : "border-transparent bg-muted/50 hover:bg-muted"

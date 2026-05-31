@@ -26,6 +26,7 @@ interface DocumentEditorViewProps {
 
 export function DocumentEditorView({ documentId }: DocumentEditorViewProps) {
   const t = useTranslations("documents.editor");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   
   const [documentName, setDocumentName] = useState("");
@@ -190,8 +191,8 @@ export function DocumentEditorView({ documentId }: DocumentEditorViewProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
+        <Button variant="ghost" size="icon" aria-label={tCommon("buttons.back")} onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold">

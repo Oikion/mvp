@@ -229,11 +229,12 @@ function SortableImageItem({
           {/* Bottom: Drag handle */}
           <button
             type="button"
+            aria-label={t("propertyImages.reorder")}
             className="absolute bottom-1.5 left-1/2 -translate-x-1/2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 max-sm:opacity-100 cursor-grab active:cursor-grabbing transition-all"
             {...attributes}
             {...listeners}
           >
-            <GripVertical className="h-4 w-4" />
+            <GripVertical className="h-4 w-4" aria-hidden="true" />
           </button>
 
           {/* Primary badge */}

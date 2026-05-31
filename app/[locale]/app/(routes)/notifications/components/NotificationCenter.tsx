@@ -226,10 +226,18 @@ export function NotificationCenter({ initialNotifications, dict }: NotificationC
               return (
                 <div
                   key={notification.id}
-                  className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-colors hover:bg-accent ${
+                  role="button"
+                  tabIndex={0}
+                  className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     !notification.read ? "bg-accent/50 border-primary/20" : ""
                   }`}
                   onClick={() => handleNotificationClick(notification)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleNotificationClick(notification);
+                    }
+                  }}
                 >
                   <div className="mt-0.5">
                     <Icon className="h-5 w-5 text-muted-foreground" />

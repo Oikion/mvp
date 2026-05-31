@@ -147,6 +147,7 @@ export const BudgetCell = ({
         <Button
           size="icon"
           variant="ghost"
+          aria-label={tCommon("buttons.save")}
           className="h-7 w-7 text-success hover:text-success hover:bg-success/10 dark:hover:bg-success/20"
           onMouseDown={(e) => {
             e.preventDefault();
@@ -154,11 +155,12 @@ export const BudgetCell = ({
           }}
           disabled={loading}
         >
-          <Check className="h-4 w-4" />
+          <Check className="h-4 w-4" aria-hidden="true" />
         </Button>
         <Button
           size="icon"
           variant="ghost"
+          aria-label={tCommon("buttons.cancel")}
           className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
           onMouseDown={(e) => {
             e.preventDefault();
@@ -166,7 +168,7 @@ export const BudgetCell = ({
           }}
           disabled={loading}
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
     );

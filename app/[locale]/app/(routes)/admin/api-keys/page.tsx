@@ -353,20 +353,22 @@ export default function ApiKeysPage() {
               <Button
                 variant="outline"
                 size="icon"
+                aria-label={showKey ? "Hide key" : "Show key"}
                 onClick={() => setShowKey(!showKey)}
               >
                 {showKey ? (
-                  <EyeOff className="h-4 w-4" />
+                  <EyeOff className="h-4 w-4" aria-hidden="true" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 w-4" aria-hidden="true" />
                 )}
               </Button>
               <Button
                 variant="outline"
                 size="icon"
+                aria-label="Copy key"
                 onClick={() => newKey && copyToClipboard(newKey)}
               >
-                <Copy className="h-4 w-4" />
+                <Copy className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -481,8 +483,8 @@ export default function ApiKeysPage() {
                       {key.isActive && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                            <Button variant="ghost" size="icon" aria-label="Revoke key">
+                              <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>

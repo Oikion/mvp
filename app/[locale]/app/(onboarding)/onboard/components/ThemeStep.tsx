@@ -106,6 +106,9 @@ export function ThemeStep({
               className="h-full"
             >
               <Card
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
                 className={cn(
                   "flex h-full flex-col justify-between p-4 cursor-pointer transition-all relative overflow-hidden",
                   isSelected
@@ -113,6 +116,12 @@ export function ThemeStep({
                     : "hover:bg-muted/50 hover:shadow-md"
                 )}
                 onClick={() => handleThemeChange(theme.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleThemeChange(theme.value);
+                  }
+                }}
               >
                 {/* Theme Preview */}
                 <div

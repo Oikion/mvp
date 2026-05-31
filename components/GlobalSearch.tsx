@@ -568,6 +568,8 @@ export function GlobalSearch() {
                             {hasRelationships && (
                               <button
                                 type="button"
+                                aria-label="Toggle related items"
+                                aria-expanded={isExpanded}
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
@@ -576,6 +578,7 @@ export function GlobalSearch() {
                                 className="shrink-0 p-0.5 hover:bg-accent rounded cursor-pointer"
                               >
                                 <ChevronRight
+                                  aria-hidden="true"
                                   className={cn(
                                     "h-3 w-3 transition-transform",
                                     isExpanded && "rotate-90"

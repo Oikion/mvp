@@ -321,11 +321,11 @@ export function ApiKeysClient() {
           <div className="space-y-4 py-4">
             <div className="flex items-center space-x-2">
               <Input type={showKey ? "text" : "password"} value={newKey || ""} readOnly className="font-mono" />
-              <Button variant="outline" size="icon" onClick={() => setShowKey(!showKey)}>
-                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              <Button variant="outline" size="icon" onClick={() => setShowKey(!showKey)} aria-label={showKey ? "Hide API key" : "Show API key"}>
+                {showKey ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
               </Button>
-              <Button variant="outline" size="icon" onClick={() => newKey && copyToClipboard(newKey)}>
-                <Copy className="h-4 w-4" />
+              <Button variant="outline" size="icon" onClick={() => newKey && copyToClipboard(newKey)} aria-label="Copy API key">
+                <Copy className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -417,7 +417,7 @@ export function ApiKeysClient() {
                       {key.isActive && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                            <Button variant="ghost" size="icon" aria-label="Revoke API key"><Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" /></Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>

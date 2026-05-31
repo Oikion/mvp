@@ -265,16 +265,18 @@ export function FormSubmissionsPage({
           <Button
             variant={viewMode === "grid" ? "default" : "outline"}
             size="icon"
+            aria-label="Grid view"
             onClick={() => setViewMode("grid")}
           >
-            <LayoutGrid className="h-4 w-4" />
+            <LayoutGrid className="h-4 w-4" aria-hidden="true" />
           </Button>
           <Button
             variant={viewMode === "list" ? "default" : "outline"}
             size="icon"
+            aria-label="List view"
             onClick={() => setViewMode("list")}
           >
-            <List className="h-4 w-4" />
+            <List className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -394,8 +396,8 @@ export function FormSubmissionsPage({
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Submission actions">
+                            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">

@@ -378,8 +378,9 @@ export function FeedbackChatHistory({
                   className="h-6 w-6 shrink-0"
                   onClick={clearPendingAttachment}
                   disabled={isAdding}
+                  aria-label="Remove attachment"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             )}
@@ -403,11 +404,12 @@ export function FeedbackChatHistory({
                 className="h-[60px] w-[60px] shrink-0"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAdding || isUploading || !!pendingAttachment}
+                aria-label="Attach file"
               >
                 {isUploading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Paperclip className="h-5 w-5" />
+                  <Paperclip className="h-5 w-5" aria-hidden="true" />
                 )}
               </Button>
               
@@ -425,11 +427,12 @@ export function FeedbackChatHistory({
                 disabled={isAdding || (!newMessage.trim() && !pendingAttachment)}
                 size="icon"
                 className="h-[60px] w-[60px] shrink-0"
+                aria-label="Send message"
               >
                 {isAdding ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Send className="h-5 w-5" />
+                  <Send className="h-5 w-5" aria-hidden="true" />
                 )}
               </Button>
             </div>

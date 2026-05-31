@@ -142,7 +142,15 @@ function PropertyCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
+      role="link"
+      tabIndex={0}
       onClick={() => router.push(`/app/mls/properties/${property.friendlyId}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/app/mls/properties/${property.friendlyId}`);
+        }
+      }}
     >
       {onUnlink && (
         <Button
@@ -209,7 +217,15 @@ function ClientCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
+      role="link"
+      tabIndex={0}
       onClick={() => router.push(`/app/crm/contacts/${client.friendlyId}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/app/crm/contacts/${client.friendlyId}`);
+        }
+      }}
     >
       {onUnlink && (
         <Button
@@ -269,7 +285,15 @@ function DocumentCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
+      role="link"
+      tabIndex={0}
       onClick={() => router.push(`/app/documents/${document.friendlyId}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/app/documents/${document.friendlyId}`);
+        }
+      }}
     >
       {onUnlink && (
         <Button
@@ -321,7 +345,15 @@ function EventCard({ event }: { event: LinkedEvent }) {
         "p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group",
         isPast && "opacity-60"
       )}
+      role="link"
+      tabIndex={0}
       onClick={() => router.push(`/app/calendar/events/${event.friendlyId}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/app/calendar/events/${event.friendlyId}`);
+        }
+      }}
     >
       <div className="flex items-start gap-3">
         <div
@@ -512,7 +544,15 @@ function DealCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
+      role="link"
+      tabIndex={0}
       onClick={() => router.push(`/app/deals/${deal.friendlyId}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/app/deals/${deal.friendlyId}`);
+        }
+      }}
     >
       {onUnlink && (
         <Button

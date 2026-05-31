@@ -160,10 +160,18 @@ export function MultiSelect({
                       key={option.value}
                       role="option"
                       aria-selected={isSelected}
+                      tabIndex={0}
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         handleSelect(option.value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleSelect(option.value);
+                        }
                       }}
                       onMouseDown={(e) => {
                         e.preventDefault();

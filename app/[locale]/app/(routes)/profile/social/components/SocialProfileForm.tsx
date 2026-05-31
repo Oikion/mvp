@@ -422,8 +422,8 @@ export function SocialProfileForm({
               }}
               disabled={isLoading}
             />
-            <Button type="button" variant="outline" size="sm" onClick={addServiceArea}>
-              <Plus className="h-4 w-4" />
+            <Button type="button" variant="outline" size="sm" aria-label="Add service area" onClick={addServiceArea}>
+              <Plus className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>
@@ -494,9 +494,10 @@ export function SocialProfileForm({
               type="button"
               variant="outline"
               size="sm"
+              aria-label="Add certification"
               onClick={addCertification}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>

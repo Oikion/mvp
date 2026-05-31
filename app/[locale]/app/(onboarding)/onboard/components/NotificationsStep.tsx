@@ -122,6 +122,9 @@ export function NotificationsStep({
                 transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
               >
                 <Card
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isEnabled}
                   className={cn(
                     "p-4 cursor-pointer transition-all",
                     isEnabled
@@ -129,6 +132,12 @@ export function NotificationsStep({
                       : "hover:bg-muted/50"
                   )}
                   onClick={() => handleToggle(option.key)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleToggle(option.key);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-4">
                     <div className={cn("p-3 rounded-xl", option.color)}>
@@ -205,6 +214,7 @@ export function NotificationsStep({
                       checked={isEnabled}
                       onCheckedChange={() => handleToggle(option.key)}
                       onClick={(e) => e.stopPropagation()}
+                      aria-label={optionDict.title}
                     />
                   </div>
                 </Card>

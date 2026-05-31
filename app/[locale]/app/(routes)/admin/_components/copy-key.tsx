@@ -44,12 +44,21 @@ const CopyKeyComponent = ({
 
   return (
     <p
-      className="flex gap-2 items-center cursor-pointer hover:opacity-80"
+      role="button"
+      tabIndex={0}
+      className="flex gap-2 items-center cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={onCopy}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onCopy();
+        }
+      }}
       title="Click to copy full key"
+      aria-label="Click to copy full key"
     >
       {maskKey(actualValue)}
-      <Copy className="w-4 h-4" />
+      <Copy className="w-4 h-4" aria-hidden="true" />
     </p>
   );
 };
