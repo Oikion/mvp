@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ export function NewContactForm({
 }: NewTaskFormProps) {
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("crm");
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -87,9 +89,9 @@ export function NewContactForm({
   });
 
   const contactType = [
-    { name: "Customer", id: "Customer" },
-    { name: "Partner", id: "Partner" },
-    { name: "Vendor", id: "Vendor" },
+    { name: t("contacts.legacyForm.contactType.Customer"), id: "Customer" },
+    { name: t("contacts.legacyForm.contactType.Partner"), id: "Partner" },
+    { name: t("contacts.legacyForm.contactType.Vendor"), id: "Vendor" },
   ];
 
   const yearArray = Array.from(
@@ -120,7 +122,7 @@ export function NewContactForm({
         category: [categoryMap[data.type] ?? "OTHER"],
         assignedAgentId: data.assigned_to || null,
       });
-      toast.success("Success", { description: "Contact created successfully", isTranslationKey: false });
+      toast.success("success", { description: t("contacts.legacyForm.toast.createSuccess") });
       form.reset({
         first_name: "",
         last_name: "",
@@ -148,7 +150,7 @@ export function NewContactForm({
       router.refresh();
       onFinish();
     } catch (error: any) {
-      toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
+      toast.error("error", { description: error?.response?.data });
     } finally {
       setIsLoading(false);
     }
@@ -173,9 +175,9 @@ export function NewContactForm({
               name="first_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First name</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.firstName")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="John" {...field} />
+                    <Input disabled={isLoading} placeholder={t("contacts.legacyForm.placeholders.firstName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -186,9 +188,9 @@ export function NewContactForm({
               name="last_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Last name</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.lastName")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="Doe" {...field} />
+                    <Input disabled={isLoading} placeholder={t("contacts.legacyForm.placeholders.lastName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -199,11 +201,11 @@ export function NewContactForm({
               name="mobile_phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile phone</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.mobilePhone")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="+11 1236 77 55"
+                      placeholder={t("contacts.legacyForm.placeholders.phone")}
                       {...field}
                     />
                   </FormControl>
@@ -217,11 +219,11 @@ export function NewContactForm({
               name="office_phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Office phone</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.officePhone")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="+11 1236 77 55"
+                      placeholder={t("contacts.legacyForm.placeholders.phone")}
                       {...field}
                     />
                   </FormControl>
@@ -234,11 +236,11 @@ export function NewContactForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.email")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="john@domain.com"
+                      placeholder={t("contacts.legacyForm.placeholders.email")}
                       {...field}
                     />
                   </FormControl>
@@ -251,11 +253,11 @@ export function NewContactForm({
               name="personal_email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Personal email</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.personalEmail")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="littlejohny@gmail.com"
+                      placeholder={t("contacts.legacyForm.placeholders.personalEmail")}
                       {...field}
                     />
                   </FormControl>
@@ -268,11 +270,11 @@ export function NewContactForm({
               name="website"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Website</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.website")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="https://www.domain.com"
+                      placeholder={t("contacts.legacyForm.placeholders.website")}
                       {...field}
                     />
                   </FormControl>
@@ -280,7 +282,7 @@ export function NewContactForm({
                 </FormItem>
               )}
             />
-            <h3>Birthday - (optional)</h3>
+            <h3>{t("contacts.legacyForm.labels.birthday")}</h3>
             <div className="flex space-x-3 w-full mx-auto">
               <FormField
                 control={form.control}
@@ -289,7 +291,7 @@ export function NewContactForm({
                   <FormItem className="flex flex-col">
                     <div className="flex space-x-2 w-32">
                       <Select onValueChange={field.onChange}>
-                        <SelectTrigger>Year</SelectTrigger>
+                        <SelectTrigger>{t("contacts.legacyForm.birthday.year")}</SelectTrigger>
                         <SelectContent>
                           {yearArray.map((yearOption) => (
                             <SelectItem
@@ -313,7 +315,7 @@ export function NewContactForm({
                   <FormItem className="flex flex-col">
                     <div className="flex space-x-2 w-28">
                       <Select onValueChange={field.onChange}>
-                        <SelectTrigger>Month</SelectTrigger>
+                        <SelectTrigger>{t("contacts.legacyForm.birthday.month")}</SelectTrigger>
                         <SelectContent>
                           {/* Replace this with the range of months you want to allow */}
                           {Array.from({ length: 12 }, (_, i) => i + 1).map(
@@ -340,7 +342,7 @@ export function NewContactForm({
                   <FormItem className="flex flex-col">
                     <div className="flex space-x-2">
                       <Select onValueChange={field.onChange}>
-                        <SelectTrigger>Day</SelectTrigger>
+                        <SelectTrigger>{t("contacts.legacyForm.birthday.day")}</SelectTrigger>
                         <SelectContent>
                           {/* Replace this with the range of months you want to allow */}
                           {Array.from({ length: 31 }, (_, i) => i + 1).map(
@@ -367,11 +369,11 @@ export function NewContactForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.description")}</FormLabel>
                   <FormControl>
                     <Textarea
                       disabled={isLoading}
-                      placeholder="Useful information about the contact"
+                      placeholder={t("contacts.legacyForm.placeholders.description")}
                       {...field}
                     />
                   </FormControl>
@@ -386,20 +388,20 @@ export function NewContactForm({
                   name="assigned_to"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Assigned user</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.assignedUser")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose an user " />
+                            <SelectValue placeholder={t("contacts.legacyForm.placeholders.chooseUser")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="h-96 overflow-y-auto">
                           <Input
                             type="text"
-                            placeholder="Search in users ..."
+                            placeholder={t("contacts.legacyForm.placeholders.searchUsers")}
                             onChange={(e) => setSearchTerm(e.target.value)}
                           />
                           {filteredData.map((item, index) => (
@@ -418,14 +420,14 @@ export function NewContactForm({
                   name="assigned_account"
                   render={({ field }) => (
                     <FormItem>
-                  <FormLabel>Assign a Client</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.assignClient")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose assigned account " />
+                            <SelectValue placeholder={t("contacts.legacyForm.placeholders.chooseAccount")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="flex overflow-y-auto h-56">
@@ -445,11 +447,11 @@ export function NewContactForm({
                   name="position"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Position</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.position")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="CTO"
+                          placeholder={t("contacts.legacyForm.placeholders.position")}
                           {...field}
                         />
                       </FormControl>
@@ -464,7 +466,7 @@ export function NewContactForm({
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">
-                          Is contact active?
+                          {t("contacts.legacyForm.labels.isContactActive")}
                         </FormLabel>
                       </div>
                       <FormControl>
@@ -481,14 +483,14 @@ export function NewContactForm({
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Assigned user</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.contactType")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose contact type " />
+                            <SelectValue placeholder={t("contacts.legacyForm.placeholders.chooseContactType")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="flex overflow-y-auto h-56">
@@ -510,11 +512,11 @@ export function NewContactForm({
                   name="social_twitter"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Twitter</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.twitter")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.twitter.com/john"
+                          placeholder={t("contacts.legacyForm.placeholders.twitter")}
                           {...field}
                         />
                       </FormControl>
@@ -527,11 +529,11 @@ export function NewContactForm({
                   name="social_facebook"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Facebook</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.facebook")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.facebook.com/john"
+                          placeholder={t("contacts.legacyForm.placeholders.facebook")}
                           {...field}
                         />
                       </FormControl>
@@ -544,11 +546,11 @@ export function NewContactForm({
                   name="social_linkedin"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Linkedin</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.linkedin")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.linkedin.com/john"
+                          placeholder={t("contacts.legacyForm.placeholders.linkedin")}
                           {...field}
                         />
                       </FormControl>
@@ -561,11 +563,11 @@ export function NewContactForm({
                   name="social_skype"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Skype</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.skype")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.skype.com/john"
+                          placeholder={t("contacts.legacyForm.placeholders.skype")}
                           {...field}
                         />
                       </FormControl>
@@ -578,11 +580,11 @@ export function NewContactForm({
                   name="social_youtube"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>YouTube</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.youtube")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.youtube.com/@oikion"
+                          placeholder={t("contacts.legacyForm.placeholders.youtube")}
                           {...field}
                         />
                       </FormControl>
@@ -595,11 +597,11 @@ export function NewContactForm({
                   name="social_tiktok"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>TikTok</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.tiktok")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.domain.com"
+                          placeholder={t("contacts.legacyForm.placeholders.tiktok")}
                           {...field}
                         />
                       </FormControl>
@@ -615,10 +617,10 @@ export function NewContactForm({
           <Button disabled={isLoading} type="submit">
             {isLoading ? (
               <span className="flex items-center animate-pulse">
-                Saving data ...
+                {t("contacts.legacyForm.buttons.saving")}
               </span>
             ) : (
-              "Create contact"
+              t("contacts.legacyForm.buttons.create")
             )}
           </Button>
         </div>

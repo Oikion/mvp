@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslations } from "next-intl";
 
 interface Deal {
   id: string;
@@ -79,16 +80,8 @@ const statusColors: Record<string, string> = {
   CANCELLED: "bg-muted text-muted-foreground",
 };
 
-const statusLabels: Record<string, string> = {
-  PROPOSED: "Πρόταση",
-  NEGOTIATING: "Διαπραγμάτευση",
-  ACCEPTED: "Αποδεκτή",
-  IN_PROGRESS: "Σε Εξέλιξη",
-  COMPLETED: "Ολοκληρωμένη",
-  CANCELLED: "Ακυρωμένη",
-};
-
 export function DealDetail({ deal }: DealDetailProps) {
+  const t = useTranslations("deals");
   const [isLoading, setIsLoading] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isNegotiating, setIsNegotiating] = useState(false);
@@ -113,10 +106,10 @@ export function DealDetail({ deal }: DealDetailProps) {
     try {
       setIsLoading(true);
       await axios.put(`/api/deals/${deal.id}`, { status: "ACCEPTED" });
-      toast.success("Deal Accepted!", { description: "You have accepted this deal. Time to close it!", isTranslationKey: false });
+      toast.success(t("toast.accepted"), { description: t("toast.acceptedDesc"), isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to accept deal", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.acceptError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -126,11 +119,11 @@ export function DealDetail({ deal }: DealDetailProps) {
     try {
       setIsLoading(true);
       await axios.put(`/api/deals/${deal.id}`, { status: "CANCELLED" });
-      toast.success("Deal Cancelled", { description: "The deal has been cancelled.", isTranslationKey: false });
+      toast.success(t("toast.cancelled"), { description: t("toast.cancelledDesc"), isTranslationKey: false });
       setShowCancelDialog(false);
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to cancel deal", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.cancelError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -144,11 +137,11 @@ export function DealDetail({ deal }: DealDetailProps) {
         clientAgentSplit: 100 - newSplit,
         status: "NEGOTIATING",
       });
-      toast.success("Counter-proposal Sent", { description: "Your proposed split has been sent to the other agent.", isTranslationKey: false });
+      toast.success(t("toast.counterProposalSent"), { description: t("toast.counterProposalSentDesc"), isTranslationKey: false });
       setIsNegotiating(false);
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to propose new split", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.proposeError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -158,10 +151,10 @@ export function DealDetail({ deal }: DealDetailProps) {
     try {
       setIsLoading(true);
       await axios.put(`/api/deals/${deal.id}`, { status: "IN_PROGRESS" });
-      toast.success("Deal In Progress", { description: "The deal is now marked as in progress.", isTranslationKey: false });
+      toast.success(t("toast.inProgress"), { description: t("toast.inProgressDesc"), isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to update deal", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.updateProgressError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -174,11 +167,11 @@ export function DealDetail({ deal }: DealDetailProps) {
         status: "COMPLETED",
         totalCommission: finalCommission ? parseFloat(finalCommission) : undefined,
       });
-      toast.success("Deal Completed! 🎉", { description: "Congratulations on closing this deal!", isTranslationKey: false });
+      toast.success(t("toast.completed"), { description: t("toast.completedDesc"), isTranslationKey: false });
       setShowCompleteDialog(false);
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to complete deal", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.completeError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -207,11 +200,11 @@ export function DealDetail({ deal }: DealDetailProps) {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Badge className={`${statusColors[deal.status]} text-sm py-1 px-3`}>
-            {statusLabels[deal.status]}
+            {t(`status.${deal.status}` as `status.${"PROPOSED" | "NEGOTIATING" | "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"}`)}
           </Badge>
           {!deal.isProposer && canAccept && (
             <Badge variant="outline" className="text-warning border-orange-300">
-              Awaiting Your Response
+              {t("actions.awaitingResponse")}
             </Badge>
           )}
         </div>
@@ -219,28 +212,28 @@ export function DealDetail({ deal }: DealDetailProps) {
           {canAccept && (
             <Button 
               leftIcon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-              onClick={handleAccept} 
+              onClick={handleAccept}
               disabled={isLoading}
             >
-              Accept Deal
+              {t("actions.accept")}
             </Button>
           )}
           {canStartProgress && (
-            <Button 
+            <Button
               leftIcon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
-              onClick={handleStartProgress} 
+              onClick={handleStartProgress}
               disabled={isLoading}
             >
-              Start Progress
+              {t("actions.startProgress")}
             </Button>
           )}
           {canComplete && (
-            <Button 
+            <Button
               leftIcon={<CheckCircle2 className="h-4 w-4" />}
-              onClick={() => setShowCompleteDialog(true)} 
+              onClick={() => setShowCompleteDialog(true)}
               disabled={isLoading}
             >
-              Complete Deal
+              {t("actions.complete")}
             </Button>
           )}
           {canCancel && (
@@ -250,7 +243,7 @@ export function DealDetail({ deal }: DealDetailProps) {
               onClick={() => setShowCancelDialog(true)}
               disabled={isLoading}
             >
-              Cancel
+              {t("actions.cancel")}
             </Button>
           )}
         </div>
@@ -264,10 +257,10 @@ export function DealDetail({ deal }: DealDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Percent className="h-5 w-5 text-primary" />
-                Commission Split (Διαμοιρασμός)
+                {t("commissionSplit.title")}
               </CardTitle>
               <CardDescription>
-                Agreement on how the commission will be divided
+                {t("commissionSplit.description")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -286,7 +279,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                     <div className="text-center">
                       <p className="font-semibold text-primary">{newSplit}%</p>
                       <p className="text-xs text-muted-foreground">
-                        Property Agent
+                        {t("commissionSplit.propertyAgent")}
                       </p>
                     </div>
                     <div className="text-center">
@@ -294,7 +287,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                         {100 - newSplit}%
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Client Agent
+                        {t("commissionSplit.clientAgent")}
                       </p>
                     </div>
                   </div>
@@ -303,14 +296,14 @@ export function DealDetail({ deal }: DealDetailProps) {
                       variant="outline"
                       onClick={() => setIsNegotiating(false)}
                     >
-                      Cancel
+                      {t("actions.cancel")}
                     </Button>
-                    <Button 
+                    <Button
                       leftIcon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
-                      onClick={handleProposeSplit} 
+                      onClick={handleProposeSplit}
                       disabled={isLoading}
                     >
-                      Propose This Split
+                      {t("commissionSplit.proposeThis")}
                     </Button>
                   </div>
                 </div>
@@ -327,10 +320,10 @@ export function DealDetail({ deal }: DealDetailProps) {
                           )}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="font-semibold">{deal.propertyAgent?.name ?? "Deleted User"}</p>
+                      <p className="font-semibold">{deal.propertyAgent?.name ?? t("commissionSplit.deletedUser")}</p>
                       <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                         <Building2 className="h-3 w-3" />
-                        Property Agent
+                        {t("commissionSplit.propertyAgent")}
                       </p>
                       <p className="text-3xl font-bold text-primary mt-2">
                         {Number(deal.propertyAgentSplit)}%
@@ -358,10 +351,10 @@ export function DealDetail({ deal }: DealDetailProps) {
                           )}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="font-semibold">{deal.clientAgent?.name ?? "Deleted User"}</p>
+                      <p className="font-semibold">{deal.clientAgent?.name ?? t("commissionSplit.deletedUser")}</p>
                       <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                         <Users className="h-3 w-3" />
-                        Client Agent
+                        {t("commissionSplit.clientAgent")}
                       </p>
                       <p className="text-3xl font-bold text-success mt-2">
                         {Number(deal.clientAgentSplit)}%
@@ -381,7 +374,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                   {deal.totalCommission && (
                     <div className="text-center pt-4 border-t">
                       <p className="text-sm text-muted-foreground">
-                        Total Commission
+                        {t("commissionSplit.totalCommission")}
                       </p>
                       <p className="text-2xl font-bold">
                         {formatPrice(Number(deal.totalCommission))}
@@ -396,7 +389,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                       leftIcon={<Edit className="h-4 w-4" />}
                       onClick={() => setIsNegotiating(true)}
                     >
-                      Propose Different Split
+                      {t("commissionSplit.proposeDifferent")}
                     </Button>
                   )}
                 </>
@@ -409,7 +402,7 @@ export function DealDetail({ deal }: DealDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-primary" />
-                Property
+                {t("property.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -456,7 +449,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                       <span className="flex items-center gap-1">
                         <Ruler className="h-4 w-4" />
                         {deal.property.size_net_sqm || deal.property.square_feet}{" "}
-                        sqm
+                        {t("property.sqm")}
                       </span>
                     )}
                   </div>
@@ -479,7 +472,7 @@ export function DealDetail({ deal }: DealDetailProps) {
           {deal.notes && (
             <Card>
               <CardHeader>
-                <CardTitle>Notes</CardTitle>
+                <CardTitle>{t("notes.title")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground whitespace-pre-wrap">
@@ -497,7 +490,7 @@ export function DealDetail({ deal }: DealDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                Client
+                {t("client.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -524,7 +517,7 @@ export function DealDetail({ deal }: DealDetailProps) {
               )}
               <Button variant="outline" className="w-full mt-2" size="sm" asChild>
                 <Link href={`/app/crm/accounts/${deal.client.id}`}>
-                  View Client
+                  {t("client.view")}
                   <ExternalLink className="h-3 w-3 ml-2" />
                 </Link>
               </Button>
@@ -534,20 +527,20 @@ export function DealDetail({ deal }: DealDetailProps) {
           {/* Timeline */}
           <Card>
             <CardHeader>
-              <CardTitle>Timeline</CardTitle>
+              <CardTitle>{t("timelineCard.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
-                <p className="text-muted-foreground">Created</p>
+                <p className="text-muted-foreground">{t("timelineCard.created")}</p>
                 <p className="font-medium">
-                  {formatDistanceToNow(new Date(deal.createdAt))} ago
+                  {t("timelineCard.ago", { time: formatDistanceToNow(new Date(deal.createdAt)) })}
                 </p>
               </div>
               {deal.closedAt && (
                 <div>
-                  <p className="text-muted-foreground">Closed</p>
+                  <p className="text-muted-foreground">{t("timelineCard.closed")}</p>
                   <p className="font-medium">
-                    {formatDistanceToNow(new Date(deal.closedAt))} ago
+                    {t("timelineCard.ago", { time: formatDistanceToNow(new Date(deal.closedAt)) })}
                   </p>
                 </div>
               )}
@@ -560,20 +553,19 @@ export function DealDetail({ deal }: DealDetailProps) {
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel This Deal?</AlertDialogTitle>
+            <AlertDialogTitle>{t("cancelDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel this deal? This action cannot be
-              undone.
+              {t("cancelDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep Deal</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancelDialog.keep")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancel}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center gap-2"
             >
               {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Cancel Deal
+              {t("cancelDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -583,13 +575,13 @@ export function DealDetail({ deal }: DealDetailProps) {
       <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Complete This Deal?</AlertDialogTitle>
+            <AlertDialogTitle>{t("completeDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Congratulations! Enter the final commission amount to close this deal.
+              {t("completeDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
-            <Label>Final Commission Amount</Label>
+            <Label>{t("completeDialog.finalCommission")}</Label>
             <div className="relative mt-2">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 €
@@ -601,17 +593,17 @@ export function DealDetail({ deal }: DealDetailProps) {
                 placeholder={
                   deal.totalCommission
                     ? String(Number(deal.totalCommission))
-                    : "Enter amount"
+                    : t("completeDialog.enterAmount")
                 }
                 className="pl-8"
               />
             </div>
             {finalCommission && (
               <div className="mt-3 p-3 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">Split breakdown:</p>
+                <p className="text-sm text-muted-foreground">{t("completeDialog.splitBreakdown")}</p>
                 <div className="flex justify-between mt-2">
                   <span>
-                    {deal.propertyAgent?.name ?? "Deleted User"} ({Number(deal.propertyAgentSplit)}%)
+                    {deal.propertyAgent?.name ?? t("commissionSplit.deletedUser")} ({Number(deal.propertyAgentSplit)}%)
                   </span>
                   <span className="font-semibold">
                     {formatPrice(
@@ -623,7 +615,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                 </div>
                 <div className="flex justify-between mt-1">
                   <span>
-                    {deal.clientAgent?.name ?? "Deleted User"} ({Number(deal.clientAgentSplit)}%)
+                    {deal.clientAgent?.name ?? t("commissionSplit.deletedUser")} ({Number(deal.clientAgentSplit)}%)
                   </span>
                   <span className="font-semibold">
                     {formatPrice(
@@ -637,14 +629,14 @@ export function DealDetail({ deal }: DealDetailProps) {
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogCancel>{t("completeDialog.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
               onClick={handleComplete}
               className="flex items-center gap-2"
             >
               {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
               {!isLoading && <Handshake className="h-4 w-4" />}
-              Complete Deal
+              {t("completeDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

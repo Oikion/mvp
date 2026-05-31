@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -71,38 +72,38 @@ interface AgencyProfileEditorProps {
 const VISIBILITY_OPTIONS = [
   {
     value: "PRIVATE",
-    label: "Private",
-    description: "Hidden from everyone",
+    labelKey: "visibility.private.label",
+    descriptionKey: "visibility.private.description",
     icon: Lock,
     color: "text-destructive",
     bgColor: "bg-destructive/10",
   },
   {
     value: "SECURE",
-    label: "Secure",
-    description: "Only registered users can view",
+    labelKey: "visibility.secure.label",
+    descriptionKey: "visibility.secure.description",
     icon: Shield,
     color: "text-warning",
     bgColor: "bg-warning/10",
   },
   {
     value: "PUBLIC",
-    label: "Public",
-    description: "Anyone can view",
+    labelKey: "visibility.public.label",
+    descriptionKey: "visibility.public.description",
     icon: Globe,
     color: "text-success",
     bgColor: "bg-success/10",
   },
-];
+] as const;
 
-const FIELD_TYPE_OPTIONS: { value: ContactFormFieldType; label: string }[] = [
-  { value: "text", label: "Text" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "textarea", label: "Text Area" },
-  { value: "select", label: "Dropdown" },
-  { value: "checkbox", label: "Checkbox" },
-];
+const FIELD_TYPE_OPTIONS = [
+  { value: "text", labelKey: "contactForm.types.text" },
+  { value: "email", labelKey: "contactForm.types.email" },
+  { value: "phone", labelKey: "contactForm.types.phone" },
+  { value: "textarea", labelKey: "contactForm.types.textarea" },
+  { value: "select", labelKey: "contactForm.types.select" },
+  { value: "checkbox", labelKey: "contactForm.types.checkbox" },
+] as const satisfies readonly { value: ContactFormFieldType; labelKey: string }[];
 
 export function AgencyProfileEditor({
   profile,
@@ -113,6 +114,7 @@ export function AgencyProfileEditor({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("profile.agency");
 
   // Contact form settings state
   const [contactFormEnabled, setContactFormEnabled] = useState(false);
@@ -190,18 +192,18 @@ export function AgencyProfileEditor({
 
     if (result.success) {
       const visibilityMsg: Record<string, string> = {
-        PRIVATE: "Your agency profile is hidden.",
-        SECURE: "Your agency profile is visible to registered users only.",
-        PUBLIC: "Your agency profile is now live and visible to everyone!",
+        PRIVATE: t("toast.savedPrivate"),
+        SECURE: t("toast.savedSecure"),
+        PUBLIC: t("toast.savedPublic"),
       };
-      toast.success("Profile Saved", { 
-        description: visibilityMsg[values.visibility] || "Profile updated", 
-        isTranslationKey: false 
+      toast.success(t("toast.saved"), {
+        description: visibilityMsg[values.visibility] || t("toast.savedDefault"),
+        isTranslationKey: false
       });
       router.refresh();
       onSave?.();
     } else {
-      toast.error(result.error ?? "Failed to save profile", { isTranslationKey: false });
+      toast.error(result.error ?? t("toast.errorSave"), { isTranslationKey: false });
     }
   }
 
@@ -211,10 +213,10 @@ export function AgencyProfileEditor({
     setIsSavingContactForm(false);
 
     if (result.success) {
-      toast.success("settingsSaved", { isTranslationKey: false });
+      toast.success(t("toast.settingsSaved"), { isTranslationKey: false });
       router.refresh();
     } else {
-      toast.error(result.error ?? "Failed to save contact form settings", { isTranslationKey: false });
+      toast.error(result.error ?? t("toast.contactFormError"), { isTranslationKey: false });
     }
   }
 
@@ -266,19 +268,19 @@ export function AgencyProfileEditor({
       <TabsList className="inline-grid grid-cols-4 mb-6">
         <TabsTrigger value="profile">
           <Building2 className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Profile</span>
+          <span className="hidden sm:inline">{t("tabs.profile")}</span>
         </TabsTrigger>
         <TabsTrigger value="location">
           <MapPin className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Location</span>
+          <span className="hidden sm:inline">{t("tabs.location")}</span>
         </TabsTrigger>
         <TabsTrigger value="contact">
           <Mail className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Contact Form</span>
+          <span className="hidden sm:inline">{t("tabs.contactForm")}</span>
         </TabsTrigger>
         <TabsTrigger value="social">
           <Share2 className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Social</span>
+          <span className="hidden sm:inline">{t("tabs.social")}</span>
         </TabsTrigger>
       </TabsList>
 
@@ -288,8 +290,8 @@ export function AgencyProfileEditor({
             {/* Visibility */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Profile Visibility</CardTitle>
-                <CardDescription>Control who can see your agency profile</CardDescription>
+                <CardTitle className="text-base">{t("visibility.title")}</CardTitle>
+                <CardDescription>{t("visibility.description")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <FormField
@@ -317,9 +319,9 @@ export function AgencyProfileEditor({
                                   <Icon className={`h-4 w-4 ${option.color}`} />
                                 </div>
                                 <div>
-                                  <div className="font-medium text-sm">{option.label}</div>
+                                  <div className="font-medium text-sm">{t(option.labelKey)}</div>
                                   <div className="text-xs text-muted-foreground">
-                                    {option.description}
+                                    {t(option.descriptionKey)}
                                   </div>
                                 </div>
                               </button>
@@ -336,12 +338,12 @@ export function AgencyProfileEditor({
             {/* Profile URL — read-only, synced from Clerk org slug */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Profile URL</CardTitle>
-                <CardDescription>Your agency's public profile address — managed via your organization settings</CardDescription>
+                <CardTitle className="text-base">{t("profileUrl.title")}</CardTitle>
+                <CardDescription>{t("profileUrl.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <p className="text-sm font-medium mb-1.5">Public URL</p>
+                  <p className="text-sm font-medium mb-1.5">{t("profileUrl.publicUrl")}</p>
                   <div className="flex items-center">
                     <span className="px-3 py-2 bg-muted border border-r-0 rounded-l-md text-sm text-muted-foreground">
                       /agency/
@@ -351,7 +353,7 @@ export function AgencyProfileEditor({
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1.5">
-                    This URL is tied to your organization's slug in Clerk. To change it, update the slug in your Clerk organization settings.
+                    {t("profileUrl.hint")}
                   </p>
                 </div>
               </CardContent>
@@ -360,18 +362,18 @@ export function AgencyProfileEditor({
             {/* Basic Info */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Agency Information</CardTitle>
-                <CardDescription>Basic details about your agency</CardDescription>
+                <CardTitle className="text-base">{t("info.title")}</CardTitle>
+                <CardDescription>{t("info.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Agency name — read-only, synced from Clerk org name */}
                 <div>
-                  <p className="text-sm font-medium mb-1.5">Agency Name</p>
+                  <p className="text-sm font-medium mb-1.5">{t("info.agencyName")}</p>
                   <div className="flex h-9 w-full items-center rounded-md border bg-muted px-3 text-sm text-muted-foreground">
                     {clerkOrgName}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1.5">
-                    Managed via your Clerk organization settings.
+                    {t("info.agencyNameHint")}
                   </p>
                 </div>
 
@@ -380,7 +382,7 @@ export function AgencyProfileEditor({
                   name="logo"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Agency Logo</FormLabel>
+                      <FormLabel>{t("info.logo")}</FormLabel>
                       <FormControl>
                         <LogoUpload
                           currentLogo={field.value}
@@ -398,17 +400,17 @@ export function AgencyProfileEditor({
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t("info.description_label")}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Tell clients about your agency..."
+                          placeholder={t("info.descriptionPlaceholder")}
                           rows={5}
                           {...field}
                           disabled={isLoading}
                         />
                       </FormControl>
                       <FormDescription>
-                        {(field.value?.length || 0)}/1000 characters
+                        {t("info.descriptionCharacters", { count: field.value?.length || 0 })}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -420,8 +422,8 @@ export function AgencyProfileEditor({
             {/* Agency Details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Agency Details</CardTitle>
-                <CardDescription>Additional information about your agency</CardDescription>
+                <CardTitle className="text-base">{t("details.title")}</CardTitle>
+                <CardDescription>{t("details.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -430,14 +432,14 @@ export function AgencyProfileEditor({
                     name="yearFounded"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Year Founded</FormLabel>
+                        <FormLabel>{t("details.yearFounded")}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             type="number"
                             min={1800}
                             max={new Date().getFullYear()}
-                            placeholder="2020"
+                            placeholder={t("details.yearFoundedPlaceholder")}
                             disabled={isLoading}
                             value={field.value ?? ""}
                             onChange={(e) =>
@@ -455,10 +457,10 @@ export function AgencyProfileEditor({
                     name="licenseNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>License / Registration Number</FormLabel>
+                        <FormLabel>{t("details.licenseNumber")}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="REA-12345"
+                            placeholder={t("details.licenseNumberPlaceholder")}
                             {...field}
                             disabled={isLoading}
                           />
@@ -474,8 +476,8 @@ export function AgencyProfileEditor({
             {/* Contact Information */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Contact Information</CardTitle>
-                <CardDescription>How clients can reach you</CardDescription>
+                <CardTitle className="text-base">{t("contact.title")}</CardTitle>
+                <CardDescription>{t("contact.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -484,9 +486,9 @@ export function AgencyProfileEditor({
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t("contact.email")}</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="info@agency.com" {...field} disabled={isLoading} />
+                          <Input type="email" placeholder={t("contact.emailPlaceholder")} {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -498,9 +500,9 @@ export function AgencyProfileEditor({
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone</FormLabel>
+                        <FormLabel>{t("contact.phone")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="+30 210 1234567" {...field} disabled={isLoading} />
+                          <Input placeholder={t("contact.phonePlaceholder")} {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -513,9 +515,9 @@ export function AgencyProfileEditor({
                   name="website"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Website</FormLabel>
+                      <FormLabel>{t("contact.website")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://www.agency.com" {...field} disabled={isLoading} />
+                        <Input placeholder={t("contact.websitePlaceholder")} {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -528,8 +530,8 @@ export function AgencyProfileEditor({
           <TabsContent value="location" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Physical Address</CardTitle>
-                <CardDescription>Your agency's office location</CardDescription>
+                <CardTitle className="text-base">{t("address.title")}</CardTitle>
+                <CardDescription>{t("address.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -537,9 +539,9 @@ export function AgencyProfileEditor({
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Street Address</FormLabel>
+                      <FormLabel>{t("address.street")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="123 Main Street" {...field} disabled={isLoading} />
+                        <Input placeholder={t("address.streetPlaceholder")} {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -552,9 +554,9 @@ export function AgencyProfileEditor({
                     name="city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>City</FormLabel>
+                        <FormLabel>{t("address.city")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Athens" {...field} disabled={isLoading} />
+                          <Input placeholder={t("address.cityPlaceholder")} {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -566,9 +568,9 @@ export function AgencyProfileEditor({
                     name="region"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Region</FormLabel>
+                        <FormLabel>{t("address.region")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Attica" {...field} disabled={isLoading} />
+                          <Input placeholder={t("address.regionPlaceholder")} {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -582,9 +584,9 @@ export function AgencyProfileEditor({
                     name="postalCode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Postal Code</FormLabel>
+                        <FormLabel>{t("address.postalCode")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="10431" {...field} disabled={isLoading} />
+                          <Input placeholder={t("address.postalCodePlaceholder")} {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -596,9 +598,9 @@ export function AgencyProfileEditor({
                     name="country"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Country</FormLabel>
+                        <FormLabel>{t("address.country")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="GR" {...field} disabled={isLoading} />
+                          <Input placeholder={t("address.countryPlaceholder")} {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -614,14 +616,14 @@ export function AgencyProfileEditor({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center justify-between">
-                  <span>Enable Contact Form</span>
+                  <span>{t("contactForm.enableTitle")}</span>
                   <Switch
                     checked={contactFormEnabled}
                     onCheckedChange={setContactFormEnabled}
                   />
                 </CardTitle>
                 <CardDescription>
-                  Allow visitors to contact you directly through your profile page
+                  {t("contactForm.enableDescription")}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -631,15 +633,15 @@ export function AgencyProfileEditor({
                 {/* Current Fields */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Form Fields</CardTitle>
+                    <CardTitle className="text-base">{t("contactForm.fieldsTitle")}</CardTitle>
                     <CardDescription>
-                      Configure which fields appear on your contact form
+                      {t("contactForm.fieldsDescription")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {contactFormFields.length === 0 ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
-                        No fields configured. Add some fields below.
+                        {t("contactForm.noFields")}
                       </p>
                     ) : (
                       <div className="space-y-2">
@@ -667,13 +669,13 @@ export function AgencyProfileEditor({
                                   onChange={() => toggleFieldRequired(field.id)}
                                   className="h-3 w-3"
                                 />{" "}
-                                Required
+                                {t("contactForm.required")}
                               </label>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                aria-label="Remove field"
+                                aria-label={t("contactForm.removeField")}
                                 onClick={() => removeField(field.id)}
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               >
@@ -690,12 +692,12 @@ export function AgencyProfileEditor({
                 {/* Add New Field */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Add Custom Field</CardTitle>
+                    <CardTitle className="text-base">{t("contactForm.addCustomField")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="sm:col-span-1">
-                        <label htmlFor="field-type-select" className="text-sm font-medium mb-1 block">Field Type</label>
+                        <label htmlFor="field-type-select" className="text-sm font-medium mb-1 block">{t("contactForm.fieldType")}</label>
                         <select
                           id="field-type-select"
                           value={newFieldType}
@@ -704,18 +706,18 @@ export function AgencyProfileEditor({
                         >
                           {FIELD_TYPE_OPTIONS.map((opt) => (
                             <option key={opt.value} value={opt.value}>
-                              {opt.label}
+                              {t(opt.labelKey)}
                             </option>
                           ))}
                         </select>
                       </div>
                       <div className="sm:col-span-2">
-                        <label htmlFor="field-label-input" className="text-sm font-medium mb-1 block">Field Label</label>
+                        <label htmlFor="field-label-input" className="text-sm font-medium mb-1 block">{t("contactForm.fieldLabel")}</label>
                         <Input
                           id="field-label-input"
                           value={newFieldLabel}
                           onChange={(e) => setNewFieldLabel(e.target.value)}
-                          placeholder="e.g., Property Interest"
+                          placeholder={t("contactForm.fieldLabelPlaceholder")}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault();
@@ -733,7 +735,7 @@ export function AgencyProfileEditor({
                           onChange={(e) => setNewFieldRequired(e.target.checked)}
                           className="h-4 w-4"
                         />
-                        <span className="text-sm">Required field</span>
+                        <span className="text-sm">{t("contactForm.requiredField")}</span>
                       </label>
                       <Button
                         type="button"
@@ -742,7 +744,7 @@ export function AgencyProfileEditor({
                         onClick={addCustomField}
                         disabled={!newFieldLabel.trim()}
                       >
-                        Add Field
+                        {t("contactForm.addField")}
                       </Button>
                     </div>
                   </CardContent>
@@ -756,7 +758,7 @@ export function AgencyProfileEditor({
                     onClick={handleSaveContactForm}
                     disabled={isSavingContactForm}
                   >
-                    Save Contact Form Settings
+                    {t("contactForm.saveSettings")}
                   </Button>
                 </div>
               </>
@@ -770,7 +772,7 @@ export function AgencyProfileEditor({
                   onClick={handleSaveContactForm}
                   disabled={isSavingContactForm}
                 >
-                  Save Settings
+                  {t("saveSettings")}
                 </Button>
               </div>
             )}
@@ -848,7 +850,7 @@ export function AgencyProfileEditor({
           <div className="flex justify-end pt-6 border-t mt-6">
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Profile
+              {t("saveProfile")}
             </Button>
           </div>
         </form>

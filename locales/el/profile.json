@@ -430,5 +430,230 @@
     "title": "Προφίλ Πρακτορείου",
     "description": "Διαχειριστείτε το δημόσιο προφίλ του πρακτορείου σας",
     "agencyOnly": "Αυτή η σελίδα είναι διαθέσιμη μόνο για χώρους εργασίας πρακτορείων."
+  },
+  "editor": {
+    "tabs": {
+      "profile": "Προφίλ",
+      "showcase": "Βιτρίνα",
+      "location": "Τοποθεσία",
+      "contactForm": "Φόρμα Επικοινωνίας",
+      "social": "Κοινωνικά"
+    },
+    "visibility": {
+      "title": "Ορατότητα Προφίλ",
+      "description": "Ελέγξτε ποιος μπορεί να δει το προφίλ σας",
+      "private": {
+        "label": "Ιδιωτικό",
+        "description": "Κρυφό από όλους"
+      },
+      "secure": {
+        "label": "Ασφαλές",
+        "description": "Μόνο εγγεγραμμένοι χρήστες μπορούν να το δουν"
+      },
+      "public": {
+        "label": "Δημόσιο",
+        "description": "Όλοι μπορούν να το δουν"
+      }
+    },
+    "profileUrl": {
+      "title": "URL Προφίλ",
+      "description": "Η δημόσια διεύθυνση του προφίλ σας βάσει του ονόματος χρήστη",
+      "hint": "Το URL του προφίλ σας βασίζεται στο όνομα χρήστη σας. Για να το αλλάξετε, ενημερώστε το όνομα χρήστη σας στις",
+      "accountSettings": "ρυθμίσεις λογαριασμού"
+    },
+    "contact": {
+      "title": "Στοιχεία Επικοινωνίας",
+      "publicEmail": "Δημόσιο Email",
+      "publicEmailPlaceholder": "email@example.com",
+      "publicPhone": "Δημόσιο Τηλέφωνο",
+      "publicPhonePlaceholder": "+30 210 1234567",
+      "bio": "Βιογραφικό",
+      "bioPlaceholder": "Πείτε στους πιθανούς πελάτες για εσάς...",
+      "bioCharacters": "{count}/1000 χαρακτήρες",
+      "yearsExperience": "Χρόνια Εμπειρίας"
+    },
+    "expertise": {
+      "title": "Εξειδίκευση",
+      "specializations": "Ειδικότητες",
+      "languages": "Γλώσσες",
+      "serviceAreas": "Περιοχές Εξυπηρέτησης",
+      "serviceAreaPlaceholder": "π.χ., Κολωνάκι",
+      "addServiceArea": "Προσθήκη περιοχής εξυπηρέτησης",
+      "certifications": "Πιστοποιήσεις",
+      "certificationPlaceholder": "π.χ., Πιστοποιημένος Μεσίτης",
+      "addCertification": "Προσθήκη πιστοποίησης"
+    },
+    "showcaseTabHint": "Διαχειριστείτε τα ακίνητα της βιτρίνας σας από την καρτέλα <showcaseTab></showcaseTab> παραπάνω.",
+    "social": {
+      "title": "Σύνδεσμοι Κοινωνικών Δικτύων",
+      "description": "Προσθέστε συνδέσμους στα προφίλ σας στα κοινωνικά δίκτυα",
+      "linkedin": "LinkedIn",
+      "linkedinPlaceholder": "https://linkedin.com/in/...",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "https://instagram.com/...",
+      "twitter": "Twitter / X",
+      "twitterPlaceholder": "https://twitter.com/...",
+      "facebook": "Facebook",
+      "facebookPlaceholder": "https://facebook.com/..."
+    },
+    "contactForm": {
+      "enableTitle": "Ενεργοποίηση Φόρμας Επικοινωνίας",
+      "enableDescription": "Επιτρέψτε στους επισκέπτες να επικοινωνούν απευθείας μέσω της σελίδας του προφίλ σας",
+      "fieldsTitle": "Πεδία Φόρμας",
+      "fieldsDescription": "Ρυθμίστε ποια πεδία εμφανίζονται στη φόρμα επικοινωνίας σας",
+      "noFields": "Δεν έχουν ρυθμιστεί πεδία. Προσθέστε μερικά πεδία παρακάτω.",
+      "removeField": "Αφαίρεση πεδίου",
+      "addCustomField": "Προσθήκη Προσαρμοσμένου Πεδίου",
+      "fieldType": "Τύπος Πεδίου",
+      "fieldLabel": "Ετικέτα Πεδίου",
+      "fieldLabelPlaceholder": "π.χ., Ενδιαφέρον για Ακίνητο",
+      "requiredField": "Υποχρεωτικό πεδίο",
+      "required": "Υποχρεωτικό",
+      "addField": "Προσθήκη Πεδίου",
+      "saveSettings": "Αποθήκευση Ρυθμίσεων Φόρμας Επικοινωνίας",
+      "types": {
+        "text": "Κείμενο",
+        "email": "Email",
+        "phone": "Τηλέφωνο",
+        "textarea": "Περιοχή Κειμένου",
+        "select": "Αναπτυσσόμενη Λίστα",
+        "checkbox": "Πλαίσιο Επιλογής"
+      }
+    },
+    "saveProfile": "Αποθήκευση Προφίλ",
+    "saveSettings": "Αποθήκευση Ρυθμίσεων",
+    "toast": {
+      "saved": "Το Προφίλ Αποθηκεύτηκε",
+      "savedPrivate": "Το προφίλ σας είναι κρυφό.",
+      "savedSecure": "Το προφίλ σας είναι ορατό μόνο σε εγγεγραμμένους χρήστες.",
+      "savedPublic": "Το προφίλ σας είναι πλέον ζωντανό και ορατό σε όλους!",
+      "savedDefault": "Το προφίλ ενημερώθηκε",
+      "error": "Σφάλμα",
+      "errorSave": "Αποτυχία ενημέρωσης προφίλ. Παρακαλώ δοκιμάστε ξανά.",
+      "contactFormUpdated": "Η Φόρμα Επικοινωνίας Ενημερώθηκε",
+      "contactFormEnabled": "Η φόρμα επικοινωνίας είναι πλέον ενεργοποιημένη.",
+      "contactFormDisabled": "Η φόρμα επικοινωνίας απενεργοποιήθηκε.",
+      "contactFormError": "Αποτυχία ενημέρωσης ρυθμίσεων φόρμας επικοινωνίας."
+    }
+  },
+  "agency": {
+    "tabs": {
+      "profile": "Προφίλ",
+      "location": "Τοποθεσία",
+      "contactForm": "Φόρμα Επικοινωνίας",
+      "social": "Κοινωνικά"
+    },
+    "visibility": {
+      "title": "Ορατότητα Προφίλ",
+      "description": "Ελέγξτε ποιος μπορεί να δει το προφίλ του πρακτορείου σας",
+      "private": {
+        "label": "Ιδιωτικό",
+        "description": "Κρυφό από όλους"
+      },
+      "secure": {
+        "label": "Ασφαλές",
+        "description": "Μόνο εγγεγραμμένοι χρήστες μπορούν να το δουν"
+      },
+      "public": {
+        "label": "Δημόσιο",
+        "description": "Όλοι μπορούν να το δουν"
+      }
+    },
+    "profileUrl": {
+      "title": "URL Προφίλ",
+      "description": "Η δημόσια διεύθυνση του προφίλ του πρακτορείου σας — διαχειρίζεται μέσω των ρυθμίσεων του οργανισμού σας",
+      "publicUrl": "Δημόσιο URL",
+      "hint": "Αυτό το URL συνδέεται με το slug του οργανισμού σας στο Clerk. Για να το αλλάξετε, ενημερώστε το slug στις ρυθμίσεις του οργανισμού σας στο Clerk."
+    },
+    "info": {
+      "title": "Πληροφορίες Πρακτορείου",
+      "description": "Βασικά στοιχεία για το πρακτορείο σας",
+      "agencyName": "Όνομα Πρακτορείου",
+      "agencyNameHint": "Διαχειρίζεται μέσω των ρυθμίσεων του οργανισμού σας στο Clerk.",
+      "logo": "Λογότυπο Πρακτορείου",
+      "description_label": "Περιγραφή",
+      "descriptionPlaceholder": "Πείτε στους πελάτες για το πρακτορείο σας...",
+      "descriptionCharacters": "{count}/1000 χαρακτήρες"
+    },
+    "details": {
+      "title": "Στοιχεία Πρακτορείου",
+      "description": "Πρόσθετες πληροφορίες για το πρακτορείο σας",
+      "yearFounded": "Έτος Ίδρυσης",
+      "yearFoundedPlaceholder": "2020",
+      "licenseNumber": "Αριθμός Άδειας / Μητρώου",
+      "licenseNumberPlaceholder": "REA-12345"
+    },
+    "contact": {
+      "title": "Στοιχεία Επικοινωνίας",
+      "description": "Πώς μπορούν να σας βρουν οι πελάτες",
+      "email": "Email",
+      "emailPlaceholder": "info@agency.com",
+      "phone": "Τηλέφωνο",
+      "phonePlaceholder": "+30 210 1234567",
+      "website": "Ιστοσελίδα",
+      "websitePlaceholder": "https://www.agency.com"
+    },
+    "address": {
+      "title": "Φυσική Διεύθυνση",
+      "description": "Η τοποθεσία του γραφείου του πρακτορείου σας",
+      "street": "Διεύθυνση",
+      "streetPlaceholder": "Οδός 123",
+      "city": "Πόλη",
+      "cityPlaceholder": "Αθήνα",
+      "region": "Περιφέρεια",
+      "regionPlaceholder": "Αττική",
+      "postalCode": "Ταχυδρομικός Κώδικας",
+      "postalCodePlaceholder": "10431",
+      "country": "Χώρα",
+      "countryPlaceholder": "GR"
+    },
+    "social": {
+      "title": "Σύνδεσμοι Κοινωνικών Δικτύων",
+      "description": "Συνδέστε τα προφίλ σας στα κοινωνικά δίκτυα",
+      "facebook": "Facebook",
+      "facebookPlaceholder": "https://facebook.com/your-agency",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "https://instagram.com/your-agency",
+      "linkedin": "LinkedIn",
+      "linkedinPlaceholder": "https://linkedin.com/company/your-agency",
+      "twitter": "Twitter / X",
+      "twitterPlaceholder": "https://twitter.com/your-agency"
+    },
+    "contactForm": {
+      "enableTitle": "Ενεργοποίηση Φόρμας Επικοινωνίας",
+      "enableDescription": "Επιτρέψτε στους επισκέπτες να επικοινωνούν απευθείας μέσω της σελίδας του προφίλ σας",
+      "fieldsTitle": "Πεδία Φόρμας",
+      "fieldsDescription": "Ρυθμίστε ποια πεδία εμφανίζονται στη φόρμα επικοινωνίας σας",
+      "noFields": "Δεν έχουν ρυθμιστεί πεδία. Προσθέστε μερικά πεδία παρακάτω.",
+      "removeField": "Αφαίρεση πεδίου",
+      "addCustomField": "Προσθήκη Προσαρμοσμένου Πεδίου",
+      "fieldType": "Τύπος Πεδίου",
+      "fieldLabel": "Ετικέτα Πεδίου",
+      "fieldLabelPlaceholder": "π.χ., Ενδιαφέρον για Ακίνητο",
+      "requiredField": "Υποχρεωτικό πεδίο",
+      "required": "Υποχρεωτικό",
+      "addField": "Προσθήκη Πεδίου",
+      "saveSettings": "Αποθήκευση Ρυθμίσεων Φόρμας Επικοινωνίας",
+      "types": {
+        "text": "Κείμενο",
+        "email": "Email",
+        "phone": "Τηλέφωνο",
+        "textarea": "Περιοχή Κειμένου",
+        "select": "Αναπτυσσόμενη Λίστα",
+        "checkbox": "Πλαίσιο Επιλογής"
+      }
+    },
+    "saveProfile": "Αποθήκευση Προφίλ",
+    "saveSettings": "Αποθήκευση Ρυθμίσεων",
+    "toast": {
+      "saved": "Το Προφίλ Αποθηκεύτηκε",
+      "savedPrivate": "Το προφίλ του πρακτορείου σας είναι κρυφό.",
+      "savedSecure": "Το προφίλ του πρακτορείου σας είναι ορατό μόνο σε εγγεγραμμένους χρήστες.",
+      "savedPublic": "Το προφίλ του πρακτορείου σας είναι πλέον ζωντανό και ορατό σε όλους!",
+      "savedDefault": "Το προφίλ ενημερώθηκε",
+      "errorSave": "Αποτυχία αποθήκευσης προφίλ",
+      "settingsSaved": "Οι ρυθμίσεις αποθηκεύτηκαν",
+      "contactFormError": "Αποτυχία αποθήκευσης ρυθμίσεων φόρμας επικοινωνίας"
+    }
   }
 }

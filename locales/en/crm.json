@@ -523,6 +523,210 @@
         "displayName": "Display Name",
         "status": "Status"
       }
+    },
+    "legacyForm": {
+      "labels": {
+        "firstName": "First name",
+        "lastName": "Last name",
+        "mobilePhone": "Mobile phone",
+        "officePhone": "Office phone",
+        "email": "Email",
+        "personalEmail": "Personal email",
+        "website": "Website",
+        "birthday": "Birthday - (optional)",
+        "description": "Description",
+        "assignedUser": "Assigned user",
+        "assignClient": "Assign a Client",
+        "assignAccount": "Assign an Account",
+        "position": "Position",
+        "isContactActive": "Is contact active?",
+        "contactType": "Contact type",
+        "twitter": "Twitter",
+        "facebook": "Facebook",
+        "linkedin": "Linkedin",
+        "skype": "Skype",
+        "youtube": "YouTube",
+        "tiktok": "TikTok"
+      },
+      "placeholders": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "phone": "+11 1236 77 55",
+        "email": "john@domain.com",
+        "personalEmail": "littlejohny@gmail.com",
+        "website": "https://www.domain.com",
+        "description": "Useful information about the contact",
+        "chooseUser": "Choose a user",
+        "searchUsers": "Search in users ...",
+        "chooseAccount": "Choose assigned account",
+        "position": "CTO",
+        "chooseContactType": "Choose contact type",
+        "twitter": "https://www.twitter.com/john",
+        "facebook": "https://www.facebook.com/john",
+        "linkedin": "https://www.linkedin.com/john",
+        "skype": "https://www.skype.com/john",
+        "youtube": "https://www.youtube.com/@oikion",
+        "tiktok": "https://www.domain.com"
+      },
+      "birthday": {
+        "year": "Year",
+        "month": "Month",
+        "day": "Day"
+      },
+      "contactType": {
+        "Customer": "Customer",
+        "Partner": "Partner",
+        "Vendor": "Vendor"
+      },
+      "buttons": {
+        "saving": "Saving data ...",
+        "create": "Create contact",
+        "update": "Update contact"
+      },
+      "toast": {
+        "createSuccess": "Contact created successfully",
+        "updateSuccess": "Contact updated successfully"
+      },
+      "noData": "Something went wrong, there is no data for form"
+    }
+  },
+  "accounts": {
+    "form": {
+      "steps": {
+        "basic": {
+          "title": "Basic Information",
+          "description": "Client name, contact details, type and status"
+        },
+        "company": {
+          "title": "Company Details",
+          "description": "Company ID, VAT, website and fax"
+        },
+        "billing": {
+          "title": "Billing Address",
+          "description": "Billing address information"
+        },
+        "properties": {
+          "title": "Properties",
+          "description": "Link properties to this client"
+        },
+        "additional": {
+          "title": "Additional Information",
+          "description": "Description, assignment and other details"
+        }
+      },
+      "labels": {
+        "clientName": "Client Name *",
+        "email": "Email",
+        "phone": "Phone",
+        "clientType": "Client Type",
+        "status": "Status",
+        "companyId": "Company ID",
+        "vatNumber": "VAT Number",
+        "website": "Website",
+        "fax": "Fax",
+        "streetAddress": "Street Address",
+        "selectProperties": "Select Properties",
+        "description": "Description / Notes",
+        "assignedTo": "Assigned to *",
+        "memberOf": "Member Of"
+      },
+      "placeholders": {
+        "clientName": "John Doe or Company Name",
+        "email": "john@domain.com",
+        "phone": "+1 555 123 4567",
+        "selectType": "Select type",
+        "selectStatus": "Select status",
+        "companyId": "Company registration number",
+        "vatNumber": "VAT/Tax ID",
+        "website": "https://example.com",
+        "fax": "+1 555 123 4567",
+        "streetAddress": "123 Main Street",
+        "description": "Additional notes about the client",
+        "assignUser": "Select a user to assign the client",
+        "memberOf": "Parent organization or group"
+      },
+      "clientType": {
+        "BUYER": "Buyer",
+        "SELLER": "Seller",
+        "RENTER": "Renter",
+        "INVESTOR": "Investor",
+        "REFERRAL_PARTNER": "Referral Partner"
+      },
+      "clientStatus": {
+        "LEAD": "Lead",
+        "ACTIVE": "Active",
+        "INACTIVE": "Inactive",
+        "CONVERTED": "Converted",
+        "LOST": "Lost"
+      },
+      "properties": {
+        "instructions": "Select properties to link to this client. You can link properties later as well.",
+        "loading": "Loading properties...",
+        "none": "No properties available. Create properties first."
+      },
+      "validation": {
+        "clientNameMin": "Client name must be at least 2 characters",
+        "emailInvalid": "Invalid email address",
+        "urlInvalid": "Invalid URL",
+        "emailOrPhoneRequired": "Email or phone number is required"
+      },
+      "buttons": {
+        "previous": "Previous",
+        "next": "Next",
+        "creating": "Creating...",
+        "create": "Create Client"
+      },
+      "toast": {
+        "createSuccess": "Client created successfully",
+        "genericError": "Something went wrong. Please try again."
+      }
+    }
+  },
+  "tasks": {
+    "form": {
+      "labels": {
+        "newTaskName": "New task name",
+        "taskTitle": "Task Title",
+        "taskDescription": "Task description",
+        "taskContent": "Task Description",
+        "taskDueDate": "Task due date",
+        "dueDate": "Due Date",
+        "assignedTo": "Assigned to",
+        "assignedToLong": "Assigned To",
+        "chooseTaskPriority": "Choose task priority",
+        "priority": "Priority"
+      },
+      "placeholders": {
+        "taskName": "Enter task name",
+        "taskTitle": "Enter task title",
+        "taskDescription": "Enter task description",
+        "pickDate": "Pick a date",
+        "selectAssignedUser": "Select assigned user",
+        "selectTaskPriority": "Select tasks priority",
+        "selectPriority": "Select priority"
+      },
+      "validation": {
+        "titleMin": "Title must be at least 3 characters",
+        "descriptionMin": "Description must be at least 3 characters",
+        "selectUser": "Please select an assigned user"
+      },
+      "buttons": {
+        "close": "Close",
+        "create": "Create",
+        "cancel": "Cancel",
+        "updateTask": "Update Task"
+      },
+      "toast": {
+        "createSuccess": "New task: {title}, created successfully",
+        "updateSuccess": "Task updated successfully",
+        "updateError": "Failed to update task"
+      }
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
     }
   }
 }

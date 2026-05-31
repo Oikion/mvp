@@ -245,6 +245,71 @@
     "updateError": "Failed to update deal",
     "deleteError": "Failed to delete deal",
     "stageError": "Failed to advance stage",
-    "partyError": "Failed to manage deal parties"
+    "partyError": "Failed to manage deal parties",
+    "accepted": "Deal Accepted!",
+    "acceptedDesc": "You have accepted this deal. Time to close it!",
+    "acceptError": "Failed to accept deal",
+    "cancelled": "Deal Cancelled",
+    "cancelledDesc": "The deal has been cancelled.",
+    "cancelError": "Failed to cancel deal",
+    "counterProposalSent": "Counter-proposal Sent",
+    "counterProposalSentDesc": "Your proposed split has been sent to the other agent.",
+    "proposeError": "Failed to propose new split",
+    "inProgress": "Deal In Progress",
+    "inProgressDesc": "The deal is now marked as in progress.",
+    "updateProgressError": "Failed to update deal",
+    "completed": "Deal Completed! 🎉",
+    "completedDesc": "Congratulations on closing this deal!",
+    "completeError": "Failed to complete deal"
+  },
+  "commissionSplit": {
+    "title": "Commission Split (Διαμοιρασμός)",
+    "description": "Agreement on how the commission will be divided",
+    "propertyAgent": "Property Agent",
+    "clientAgent": "Client Agent",
+    "totalCommission": "Total Commission",
+    "proposeDifferent": "Propose Different Split",
+    "proposeThis": "Propose This Split",
+    "deletedUser": "Deleted User"
+  },
+  "actions": {
+    "accept": "Accept Deal",
+    "startProgress": "Start Progress",
+    "complete": "Complete Deal",
+    "cancel": "Cancel",
+    "awaitingResponse": "Awaiting Your Response"
+  },
+  "property": {
+    "title": "Property",
+    "sqm": "sqm",
+    "view": "View Property"
+  },
+  "client": {
+    "title": "Client",
+    "view": "View Client"
+  },
+  "notes": {
+    "title": "Notes"
+  },
+  "timelineCard": {
+    "title": "Timeline",
+    "created": "Created",
+    "closed": "Closed",
+    "ago": "{time} ago"
+  },
+  "cancelDialog": {
+    "title": "Cancel This Deal?",
+    "description": "Are you sure you want to cancel this deal? This action cannot be undone.",
+    "keep": "Keep Deal",
+    "confirm": "Cancel Deal"
+  },
+  "completeDialog": {
+    "title": "Complete This Deal?",
+    "description": "Congratulations! Enter the final commission amount to close this deal.",
+    "finalCommission": "Final Commission Amount",
+    "enterAmount": "Enter amount",
+    "splitBreakdown": "Split breakdown:",
+    "cancel": "Cancel",
+    "confirm": "Complete Deal"
   }
 }

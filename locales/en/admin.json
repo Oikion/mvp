@@ -166,5 +166,122 @@
   "selectMemberRequired": "Please select a member",
   "transferSuccess": "Ownership transferred successfully",
   "transferError": "Failed to transfer ownership",
-  "cannotEditOwnerRole": "Cannot edit the owner's role"
+  "cannotEditOwnerRole": "Cannot edit the owner's role",
+  "apiKeys": {
+    "title": "API Keys",
+    "subtitle": "Manage API keys for external integrations (n8n, Make.com, webhooks)",
+    "createKey": "Create API Key",
+    "createDialog": {
+      "title": "Create New API Key",
+      "description": "Create a new API key for external integrations. The key will only be shown once.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g., n8n Integration, Make.com Workflow",
+      "expirationLabel": "Expiration",
+      "expirationPlaceholder": "Select expiration",
+      "permissionsLabel": "Permissions",
+      "readOnly": "Read Only",
+      "fullAccess": "Full Access",
+      "cancel": "Cancel",
+      "submit": "Create Key"
+    },
+    "expiration": {
+      "never": "Never expires",
+      "days30": "30 days",
+      "days90": "90 days",
+      "days180": "180 days",
+      "year1": "1 year"
+    },
+    "newKeyDialog": {
+      "title": "API Key Created",
+      "description": "Copy your API key now. You won't be able to see it again!",
+      "showKey": "Show key",
+      "hideKey": "Hide key",
+      "copyKey": "Copy key",
+      "authHeaderNote": "Use this key in the {header} header:",
+      "done": "Done"
+    },
+    "table": {
+      "activeKeysTitle": "Active API Keys",
+      "activeKeysCount": "{count, plural, =0 {no active keys} =1 {1 active key} other {# active keys}}",
+      "name": "Name",
+      "key": "Key",
+      "scopes": "Scopes",
+      "lastUsed": "Last Used",
+      "expires": "Expires",
+      "status": "Status",
+      "actions": "Actions",
+      "moreScopes": "+{count} more",
+      "never": "Never",
+      "active": "Active",
+      "revoked": "Revoked",
+      "expired": "Expired",
+      "emptyTitle": "No API keys yet",
+      "emptyDescription": "Create your first API key to get started with integrations"
+    },
+    "revoke": {
+      "ariaLabel": "Revoke key",
+      "title": "Revoke API Key",
+      "description": "Are you sure you want to revoke this API key? This action cannot be undone and any integrations using this key will stop working.",
+      "cancel": "Cancel",
+      "confirm": "Revoke Key"
+    },
+    "quickStart": {
+      "title": "Quick Start Guide",
+      "description": "How to use your API keys with external tools",
+      "baseUrl": "Base URL",
+      "authentication": "Authentication",
+      "authNote": "Include your API key in the Authorization header:",
+      "availableEndpoints": "Available Endpoints"
+    },
+    "toast": {
+      "loadError": "Failed to load API keys",
+      "nameRequired": "Please enter a name for the API key",
+      "scopeRequired": "Please select at least one scope",
+      "createError": "Failed to create API key",
+      "revoked": "API key revoked successfully",
+      "revokeError": "Failed to revoke API key",
+      "copied": "Copied to clipboard"
+    }
+  },
+  "dataControl": {
+    "encryption": {
+      "title": "Data Encryption",
+      "description": "Organization data is protected by server-side encryption and PIN-based E2EE for messaging.",
+      "note": "Team members can manage their encryption PIN in Security Settings."
+    },
+    "export": {
+      "title": "Export Organization Data",
+      "description": "Download a complete copy of all organization data",
+      "inProgressTitle": "Export in Progress",
+      "inProgressDescription": "Your organization data export is being processed. You will receive an email with the download link.",
+      "readyTitle": "Export Ready",
+      "readyDescription": "Your organization data export is ready for download.",
+      "downloadExport": "Download Export",
+      "expiresOn": "Expires: {date}",
+      "requestExport": "Request Full Export",
+      "requestNote": "Export includes all clients, properties, documents, and team data. You will receive an email with download link within a few minutes.",
+      "requestSuccess": "Data export request submitted. You will receive an email when ready.",
+      "requestError": "Failed to request data export"
+    },
+    "deletion": {
+      "title": "Delete Organization",
+      "description": "Permanently delete this organization and all associated data",
+      "dialogDescription": "This will permanently delete your organization and all data including:",
+      "itemMembers": "All team members and their access",
+      "itemEntities": "All properties, clients, and contacts",
+      "itemDocuments": "All documents, messages, and files",
+      "itemKeys": "All encryption keys and settings",
+      "itemIntegrations": "All integrations and API keys",
+      "warningTitle": "This action cannot be undone",
+      "warningDescription": "Type {phrase} below to confirm.",
+      "confirmPhrase": "DELETE ORGANIZATION",
+      "confirmPlaceholder": "Type DELETE ORGANIZATION",
+      "cancel": "Cancel",
+      "confirmButton": "Delete Organization",
+      "irreversibleNote": "This action is irreversible. Make sure to export your data first.",
+      "confirmRequired": "Please type 'DELETE ORGANIZATION' to confirm",
+      "deleteSuccess": "Organization deleted successfully. You will be redirected.",
+      "deleteError": "Failed to delete organization"
+    }
+  }
 }

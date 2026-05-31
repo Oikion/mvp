@@ -34,6 +34,7 @@ import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { z } from 'zod';
 import fetcher from '@/lib/fetcher';
+import { useTranslations } from 'next-intl';
 
 interface Task {
   id: string;
@@ -50,21 +51,26 @@ interface EditTaskFormProps {
   onSuccess?: () => void;
 }
 
-const formSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters').max(255),
-  content: z.string().min(3, 'Description must be at least 3 characters').max(500),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
-  dueDateAt: z.date().optional(),
-  user: z.string().min(1, 'Please select an assigned user'),
-  account: z.string().optional(),
-});
+type TFunc = ReturnType<typeof useTranslations<"crm">>;
 
-type EditTaskFormValues = z.infer<typeof formSchema>;
+const createFormSchema = (t: TFunc) =>
+  z.object({
+    title: z.string().min(3, t('tasks.form.validation.titleMin')).max(255),
+    content: z.string().min(3, t('tasks.form.validation.descriptionMin')).max(500),
+    priority: z.enum(['low', 'medium', 'high', 'critical']),
+    dueDateAt: z.date().optional(),
+    user: z.string().min(1, t('tasks.form.validation.selectUser')),
+    account: z.string().optional(),
+  });
+
+type EditTaskFormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useAppToast();
+  const t = useTranslations("crm");
+  const formSchema = createFormSchema(t);
 
   const { data: users, isLoading: isLoadingUsers } = useSWR<Array<{ id: string; name: string | null; email: string }>>(
     '/api/user',
@@ -107,14 +113,14 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to update task');
+        throw new Error(error.error || t('tasks.form.toast.updateError'));
       }
 
-      toast.info("Success", { description: "Task updated successfully", isTranslationKey: false });
+      toast.info("success", { description: t("tasks.form.toast.updateSuccess") });
 
       onSuccess?.();
     } catch (error: any) {
-      toast.error("Error", { description: error.message || 'Failed to update task', isTranslationKey: false });
+      toast.error("error", { description: error.message || t('tasks.form.toast.updateError') });
     } finally {
       setIsLoading(false);
     }
@@ -136,11 +142,11 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Task Title</FormLabel>
+              <FormLabel>{t("tasks.form.labels.taskTitle")}</FormLabel>
               <FormControl>
                 <Input
                   disabled={isLoading}
-                  placeholder="Enter task title"
+                  placeholder={t("tasks.form.placeholders.taskTitle")}
                   {...field}
                 />
               </FormControl>
@@ -154,11 +160,11 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Task Description</FormLabel>
+              <FormLabel>{t("tasks.form.labels.taskContent")}</FormLabel>
               <FormControl>
                 <Textarea
                   disabled={isLoading}
-                  placeholder="Enter task description"
+                  placeholder={t("tasks.form.placeholders.taskDescription")}
                   {...field}
                 />
               </FormControl>
@@ -172,7 +178,7 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
           name="dueDateAt"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Due Date</FormLabel>
+              <FormLabel>{t("tasks.form.labels.dueDate")}</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -187,7 +193,7 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
                       {field.value ? (
                         format(field.value, 'PPP')
                       ) : (
-                        <span>Pick a date</span>
+                        <span>{t("tasks.form.placeholders.pickDate")}</span>
                       )}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
@@ -212,7 +218,7 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
           name="user"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Assigned To</FormLabel>
+              <FormLabel>{t("tasks.form.labels.assignedToLong")}</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
@@ -220,7 +226,7 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select assigned user" />
+                    <SelectValue placeholder={t("tasks.form.placeholders.selectAssignedUser")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="max-h-56 overflow-y-auto">
@@ -241,7 +247,7 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
           name="priority"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Priority</FormLabel>
+              <FormLabel>{t("tasks.form.labels.priority")}</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
@@ -249,14 +255,14 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
+                    <SelectValue placeholder={t("tasks.form.placeholders.selectPriority")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="low">{t("tasks.priority.low")}</SelectItem>
+                  <SelectItem value="medium">{t("tasks.priority.medium")}</SelectItem>
+                  <SelectItem value="high">{t("tasks.priority.high")}</SelectItem>
+                  <SelectItem value="critical">{t("tasks.priority.critical")}</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -271,11 +277,11 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
             onClick={() => onSuccess?.()}
             disabled={isLoading}
           >
-            Cancel
+            {t("tasks.form.buttons.cancel")}
           </Button>
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Update Task
+            {t("tasks.form.buttons.updateTask")}
           </Button>
         </div>
       </form>

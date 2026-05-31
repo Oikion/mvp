@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useClerk } from "@clerk/nextjs";
 import {
   Lock,
@@ -33,20 +34,21 @@ import { Loading } from "@/components/ui/loading";
 // =============================================================================
 
 function DataEncryptionInfoSection() {
+  const t = useTranslations("admin");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Lock className="h-5 w-5" />
-          Data Encryption
+          {t("dataControl.encryption.title")}
         </CardTitle>
         <CardDescription>
-          Organization data is protected by server-side encryption and PIN-based E2EE for messaging.
+          {t("dataControl.encryption.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground">
-          Team members can manage their encryption PIN in Security Settings.
+          {t("dataControl.encryption.note")}
         </p>
       </CardContent>
     </Card>
@@ -79,6 +81,8 @@ function OrgExportStatusContent({
   isRequesting: boolean;
   onRequestExport: () => void;
 }) {
+  const t = useTranslations("admin");
+
   if (isLoadingStatus) {
     return <Loading variant="dots" size="sm" />;
   }
@@ -87,9 +91,9 @@ function OrgExportStatusContent({
     return (
       <Alert>
         <Clock className="h-4 w-4" />
-        <AlertTitle>Export in Progress</AlertTitle>
+        <AlertTitle>{t("dataControl.export.inProgressTitle")}</AlertTitle>
         <AlertDescription>
-          Your organization data export is being processed. You will receive an email with the download link.
+          {t("dataControl.export.inProgressDescription")}
         </AlertDescription>
       </Alert>
     );
@@ -99,20 +103,22 @@ function OrgExportStatusContent({
     return (
       <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
         <Download className="h-4 w-4 text-green-600" />
-        <AlertTitle className="text-green-700 dark:text-green-400">Export Ready</AlertTitle>
+        <AlertTitle className="text-green-700 dark:text-green-400">{t("dataControl.export.readyTitle")}</AlertTitle>
         <AlertDescription className="space-y-2">
-          <p>Your organization data export is ready for download.</p>
+          <p>{t("dataControl.export.readyDescription")}</p>
           <a
             href={completedExport.downloadUrl}
             download
             className="inline-flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-400 underline"
           >
             <Download className="h-3 w-3" />
-            Download Export
+            {t("dataControl.export.downloadExport")}
           </a>
           {completedExport.expiresAt && (
             <p className="text-xs text-muted-foreground">
-              Expires: {new Date(completedExport.expiresAt).toLocaleDateString()}
+              {t("dataControl.export.expiresOn", {
+                date: new Date(completedExport.expiresAt).toLocaleDateString(),
+              })}
             </p>
           )}
         </AlertDescription>
@@ -124,17 +130,17 @@ function OrgExportStatusContent({
     <>
       <Button variant="outline" onClick={onRequestExport} disabled={isRequesting}>
         {isRequesting ? <Loading variant="spinner" size="sm" /> : <Download className="h-4 w-4 mr-2" />}
-        Request Full Export
+        {t("dataControl.export.requestExport")}
       </Button>
       <p className="text-sm text-muted-foreground">
-        Export includes all clients, properties, documents, and team data. 
-        You will receive an email with download link within a few minutes.
+        {t("dataControl.export.requestNote")}
       </p>
     </>
   );
 }
 
 function OrgDataExportSection() {
+  const t = useTranslations("admin");
   const { toast } = useAppToast();
   const [isRequesting, setIsRequesting] = useState(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
@@ -170,7 +176,7 @@ function OrgDataExportSection() {
     try {
       const result = await requestDataExport({ processImmediately: true });
       if (result.success) {
-        toast.success("Data export request submitted. You will receive an email when ready.", { isTranslationKey: false });
+        toast.success(t("dataControl.export.requestSuccess"), { isTranslationKey: false });
         if (result.data) {
           setPendingExport({
             id: result.data.requestId,
@@ -182,10 +188,10 @@ function OrgDataExportSection() {
           });
         }
       } else {
-        toast.error(result.error || "Failed to request data export");
+        toast.error(result.error || t("dataControl.export.requestError"), { isTranslationKey: false });
       }
     } catch {
-      toast.error("Failed to request data export");
+      toast.error(t("dataControl.export.requestError"), { isTranslationKey: false });
     } finally {
       setIsRequesting(false);
     }
@@ -196,10 +202,10 @@ function OrgDataExportSection() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Download className="h-5 w-5" />
-          Export Organization Data
+          {t("dataControl.export.title")}
         </CardTitle>
         <CardDescription>
-          Download a complete copy of all organization data
+          {t("dataControl.export.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -220,6 +226,7 @@ function OrgDataExportSection() {
 // =============================================================================
 
 function OrgDeletionSection() {
+  const t = useTranslations("admin");
   const router = useRouter();
   const { signOut } = useClerk();
   const { toast } = useAppToast();
@@ -229,7 +236,7 @@ function OrgDeletionSection() {
 
   const handleDeleteOrganization = async () => {
     if (deleteConfirmation !== "DELETE ORGANIZATION") {
-      toast.error("Please type 'DELETE ORGANIZATION' to confirm");
+      toast.error(t("dataControl.deletion.confirmRequired"), { isTranslationKey: false });
       return;
     }
 
@@ -237,7 +244,7 @@ function OrgDeletionSection() {
     try {
       const result = await deleteOrganization(deleteConfirmation);
       if (result.success) {
-        toast.success("Organization deleted successfully. You will be redirected.", { isTranslationKey: false });
+        toast.success(t("dataControl.deletion.deleteSuccess"), { isTranslationKey: false });
         setShowDeleteDialog(false);
         // Sign out and redirect to home
         setTimeout(async () => {
@@ -245,10 +252,10 @@ function OrgDeletionSection() {
           router.push("/");
         }, 1500);
       } else {
-        toast.error(result.error || "Failed to delete organization");
+        toast.error(result.error || t("dataControl.deletion.deleteError"), { isTranslationKey: false });
       }
     } catch {
-      toast.error("Failed to delete organization");
+      toast.error(t("dataControl.deletion.deleteError"), { isTranslationKey: false });
     } finally {
       setIsSubmitting(false);
     }
@@ -259,10 +266,10 @@ function OrgDeletionSection() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-destructive">
           <Trash2 className="h-5 w-5" />
-          Delete Organization
+          {t("dataControl.deletion.title")}
         </CardTitle>
         <CardDescription>
-          Permanently delete this organization and all associated data
+          {t("dataControl.deletion.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -270,51 +277,53 @@ function OrgDeletionSection() {
           <DialogTrigger asChild>
             <Button variant="destructive">
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Organization
+              {t("dataControl.deletion.title")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle className="text-destructive">Delete Organization</DialogTitle>
+              <DialogTitle className="text-destructive">{t("dataControl.deletion.title")}</DialogTitle>
               <DialogDescription>
-                This will permanently delete your organization and all data including:
+                {t("dataControl.deletion.dialogDescription")}
               </DialogDescription>
             </DialogHeader>
             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 py-2">
-              <li>All team members and their access</li>
-              <li>All properties, clients, and contacts</li>
-              <li>All documents, messages, and files</li>
-              <li>All encryption keys and settings</li>
-              <li>All integrations and API keys</li>
+              <li>{t("dataControl.deletion.itemMembers")}</li>
+              <li>{t("dataControl.deletion.itemEntities")}</li>
+              <li>{t("dataControl.deletion.itemDocuments")}</li>
+              <li>{t("dataControl.deletion.itemKeys")}</li>
+              <li>{t("dataControl.deletion.itemIntegrations")}</li>
             </ul>
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>This action cannot be undone</AlertTitle>
+              <AlertTitle>{t("dataControl.deletion.warningTitle")}</AlertTitle>
               <AlertDescription>
-                Type <strong>DELETE ORGANIZATION</strong> below to confirm.
+                {t.rich("dataControl.deletion.warningDescription", {
+                  phrase: () => <strong>{t("dataControl.deletion.confirmPhrase")}</strong>,
+                })}
               </AlertDescription>
             </Alert>
             <Input
-              placeholder="Type DELETE ORGANIZATION"
+              placeholder={t("dataControl.deletion.confirmPlaceholder")}
               value={deleteConfirmation}
               onChange={(e) => setDeleteConfirmation(e.target.value)}
             />
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-                Cancel
+                {t("dataControl.deletion.cancel")}
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleDeleteOrganization}
                 disabled={isSubmitting || deleteConfirmation !== "DELETE ORGANIZATION"}
               >
-                {isSubmitting ? <Loading variant="spinner" size="sm" /> : "Delete Organization"}
+                {isSubmitting ? <Loading variant="spinner" size="sm" /> : t("dataControl.deletion.confirmButton")}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
         <p className="text-sm text-muted-foreground mt-2">
-          This action is irreversible. Make sure to export your data first.
+          {t("dataControl.deletion.irreversibleNote")}
         </p>
       </CardContent>
     </Card>

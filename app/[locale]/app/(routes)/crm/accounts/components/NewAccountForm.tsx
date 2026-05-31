@@ -4,6 +4,7 @@ import { z } from "zod";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { useAppToast } from "@/hooks/use-app-toast";
 
@@ -38,74 +39,80 @@ type Props = {
   onFinish: () => void;
 };
 
-const clientTypeOptions = [
-  { value: "BUYER", label: "Buyer" },
-  { value: "SELLER", label: "Seller" },
-  { value: "RENTER", label: "Renter" },
-  { value: "INVESTOR", label: "Investor" },
-  { value: "REFERRAL_PARTNER", label: "Referral Partner" },
-];
+type TFunc = ReturnType<typeof useTranslations<"crm">>;
 
-const clientStatusOptions = [
-  { value: "LEAD", label: "Lead" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "INACTIVE", label: "Inactive" },
-  { value: "CONVERTED", label: "Converted" },
-  { value: "LOST", label: "Lost" },
-];
+const createFormSchema = (t: TFunc) =>
+  z.object({
+    // Step 1: Basic Information
+    client_name: z.string().min(2, t("accounts.form.validation.clientNameMin")),
+    primary_email: z.string().email(t("accounts.form.validation.emailInvalid")).optional().or(z.literal("")),
+    office_phone: z.string().optional().or(z.literal("")),
+    client_type: z.string().optional().nullable(),
+    client_status: z.string().optional().nullable(),
 
-const formSchema = z.object({
-  // Step 1: Basic Information
-  client_name: z.string().min(2, "Client name must be at least 2 characters"),
-  primary_email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  office_phone: z.string().optional().or(z.literal("")),
-  client_type: z.string().optional().nullable(),
-  client_status: z.string().optional().nullable(),
-  
-  // Step 2: Company Details
-  company_id: z.string().optional().or(z.literal("")),
-  vat: z.string().optional().or(z.literal("")),
-  website: z.union([z.string().url("Invalid URL"), z.literal(""), z.undefined()]).optional(),
-  fax: z.string().optional().or(z.literal("")),
-  
-  // Step 3: Billing Address
-  billing_street: z.string().optional().or(z.literal("")),
-  billing_city: z.string().optional().or(z.literal("")),
-  billing_state: z.string().optional().or(z.literal("")),
-  billing_postal_code: z.string().optional().or(z.literal("")),
-  billing_country: z.string().optional().default("GR"),
-  billing_municipality: z.string().optional().or(z.literal("")),
-  billing_area: z.string().optional().or(z.literal("")),
-  
-  // Step 4: Properties
-  propertyIds: z.array(z.string()).optional().default([]),
-  
-  // Step 5: Additional Information
-  description: z.string().optional().or(z.literal("")),
-  assigned_to: z.string().min(3).max(50),
-  member_of: z.string().optional().or(z.literal("")),
-}).refine(
-  (data) => !!(data.primary_email && data.primary_email.length) || !!(data.office_phone && data.office_phone.length),
-  {
-    path: ["primary_email"],
-    message: "Email or phone number is required",
-  }
-);
+    // Step 2: Company Details
+    company_id: z.string().optional().or(z.literal("")),
+    vat: z.string().optional().or(z.literal("")),
+    website: z.union([z.string().url(t("accounts.form.validation.urlInvalid")), z.literal(""), z.undefined()]).optional(),
+    fax: z.string().optional().or(z.literal("")),
 
-type FormValues = z.infer<typeof formSchema>;
+    // Step 3: Billing Address
+    billing_street: z.string().optional().or(z.literal("")),
+    billing_city: z.string().optional().or(z.literal("")),
+    billing_state: z.string().optional().or(z.literal("")),
+    billing_postal_code: z.string().optional().or(z.literal("")),
+    billing_country: z.string().optional().default("GR"),
+    billing_municipality: z.string().optional().or(z.literal("")),
+    billing_area: z.string().optional().or(z.literal("")),
 
-const STEPS = [
-  { id: 1, title: "Basic Information", description: "Client name, contact details, type and status" },
-  { id: 2, title: "Company Details", description: "Company ID, VAT, website and fax" },
-  { id: 3, title: "Billing Address", description: "Billing address information" },
-  { id: 4, title: "Properties", description: "Link properties to this client" },
-  { id: 5, title: "Additional Information", description: "Description, assignment and other details" },
-];
+    // Step 4: Properties
+    propertyIds: z.array(z.string()).optional().default([]),
+
+    // Step 5: Additional Information
+    description: z.string().optional().or(z.literal("")),
+    assigned_to: z.string().min(3).max(50),
+    member_of: z.string().optional().or(z.literal("")),
+  }).refine(
+    (data) => !!(data.primary_email && data.primary_email.length) || !!(data.office_phone && data.office_phone.length),
+    {
+      path: ["primary_email"],
+      message: t("accounts.form.validation.emailOrPhoneRequired"),
+    }
+  );
+
+type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 export function NewAccountForm({ industries, users, onFinish }: Props) {
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("crm");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const clientTypeOptions = [
+    { value: "BUYER", label: t("accounts.form.clientType.BUYER") },
+    { value: "SELLER", label: t("accounts.form.clientType.SELLER") },
+    { value: "RENTER", label: t("accounts.form.clientType.RENTER") },
+    { value: "INVESTOR", label: t("accounts.form.clientType.INVESTOR") },
+    { value: "REFERRAL_PARTNER", label: t("accounts.form.clientType.REFERRAL_PARTNER") },
+  ];
+
+  const clientStatusOptions = [
+    { value: "LEAD", label: t("accounts.form.clientStatus.LEAD") },
+    { value: "ACTIVE", label: t("accounts.form.clientStatus.ACTIVE") },
+    { value: "INACTIVE", label: t("accounts.form.clientStatus.INACTIVE") },
+    { value: "CONVERTED", label: t("accounts.form.clientStatus.CONVERTED") },
+    { value: "LOST", label: t("accounts.form.clientStatus.LOST") },
+  ];
+
+  const STEPS = [
+    { id: 1, title: t("accounts.form.steps.basic.title"), description: t("accounts.form.steps.basic.description") },
+    { id: 2, title: t("accounts.form.steps.company.title"), description: t("accounts.form.steps.company.description") },
+    { id: 3, title: t("accounts.form.steps.billing.title"), description: t("accounts.form.steps.billing.description") },
+    { id: 4, title: t("accounts.form.steps.properties.title"), description: t("accounts.form.steps.properties.description") },
+    { id: 5, title: t("accounts.form.steps.additional.title"), description: t("accounts.form.steps.additional.description") },
+  ];
+
+  const formSchema = createFormSchema(t);
   const [currentStep, setCurrentStep] = useState(1);
   const [properties, setProperties] = useState<any[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
@@ -235,14 +242,14 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
         });
       }
 
-      toast.success("Success", { description: "Client created successfully", isTranslationKey: false });
+      toast.success("success", { description: t("accounts.form.toast.createSuccess") });
       form.reset();
       router.refresh();
       onFinish();
     } catch (error: any) {
       console.error("Error creating client:", error);
-      const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || "Something went wrong. Please try again.";
-      toast.error("Error", { description: typeof errorMessage === 'string' ? errorMessage : String(errorMessage) });
+      const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || t("accounts.form.toast.genericError");
+      toast.error("error", { description: typeof errorMessage === 'string' ? errorMessage : String(errorMessage) });
     } finally {
       setIsLoading(false);
     }
@@ -258,9 +265,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
               name="client_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Name *</FormLabel>
+                  <FormLabel>{t("accounts.form.labels.clientName")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="John Doe or Company Name" {...field} />
+                    <Input disabled={isLoading} placeholder={t("accounts.form.placeholders.clientName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -272,9 +279,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
                 name="primary_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("accounts.form.labels.email")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} type="email" placeholder="john@domain.com" {...field} />
+                      <Input disabled={isLoading} type="email" placeholder={t("accounts.form.placeholders.email")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -285,9 +292,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
                 name="office_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>{t("accounts.form.labels.phone")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder="+1 555 123 4567" {...field} />
+                      <Input disabled={isLoading} placeholder={t("accounts.form.placeholders.phone")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -300,11 +307,11 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
                 name="client_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Client Type</FormLabel>
+                    <FormLabel>{t("accounts.form.labels.clientType")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder={t("accounts.form.placeholders.selectType")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -324,11 +331,11 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
                 name="client_status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>{t("accounts.form.labels.status")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value || "LEAD"}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder={t("accounts.form.placeholders.selectStatus")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -355,9 +362,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
               name="company_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Company ID</FormLabel>
+                  <FormLabel>{t("accounts.form.labels.companyId")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="Company registration number" {...field} />
+                    <Input disabled={isLoading} placeholder={t("accounts.form.placeholders.companyId")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -368,9 +375,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
               name="vat"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>VAT Number</FormLabel>
+                  <FormLabel>{t("accounts.form.labels.vatNumber")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="VAT/Tax ID" {...field} />
+                    <Input disabled={isLoading} placeholder={t("accounts.form.placeholders.vatNumber")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -382,9 +389,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>{t("accounts.form.labels.website")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} type="url" placeholder="https://example.com" {...field} />
+                      <Input disabled={isLoading} type="url" placeholder={t("accounts.form.placeholders.website")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -395,9 +402,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
                 name="fax"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fax</FormLabel>
+                    <FormLabel>{t("accounts.form.labels.fax")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder="+1 555 123 4567" {...field} />
+                      <Input disabled={isLoading} placeholder={t("accounts.form.placeholders.fax")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -415,9 +422,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
               name="billing_street"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Street Address</FormLabel>
+                  <FormLabel>{t("accounts.form.labels.streetAddress")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="123 Main Street" {...field} />
+                    <Input disabled={isLoading} placeholder={t("accounts.form.placeholders.streetAddress")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -440,19 +447,19 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
         return (
           <div className="space-y-4">
             <div className="text-sm text-muted-foreground mb-4">
-              Select properties to link to this client. You can link properties later as well.
+              {t("accounts.form.properties.instructions")}
             </div>
             {loadingProperties ? (
-              <div className="text-sm text-muted-foreground">Loading properties...</div>
+              <div className="text-sm text-muted-foreground">{t("accounts.form.properties.loading")}</div>
             ) : properties.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No properties available. Create properties first.</div>
+              <div className="text-sm text-muted-foreground">{t("accounts.form.properties.none")}</div>
             ) : (
               <FormField
                 control={form.control}
                 name="propertyIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Select Properties</FormLabel>
+                    <FormLabel>{t("accounts.form.labels.selectProperties")}</FormLabel>
                     <FormControl>
                       <div className="space-y-2 max-h-96 overflow-y-auto border rounded-md p-4">
                         {properties.map((property) => (
@@ -507,9 +514,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description / Notes</FormLabel>
+                  <FormLabel>{t("accounts.form.labels.description")}</FormLabel>
                   <FormControl>
-                    <Textarea disabled={isLoading} placeholder="Additional notes about the client" {...field} />
+                    <Textarea disabled={isLoading} placeholder={t("accounts.form.placeholders.description")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -520,11 +527,11 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
               name="assigned_to"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assigned to *</FormLabel>
+                  <FormLabel>{t("accounts.form.labels.assignedTo")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a user to assign the client" />
+                        <SelectValue placeholder={t("accounts.form.placeholders.assignUser")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="overflow-y-auto h-56">
@@ -544,9 +551,9 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
               name="member_of"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Member Of</FormLabel>
+                  <FormLabel>{t("accounts.form.labels.memberOf")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="Parent organization or group" {...field} />
+                    <Input disabled={isLoading} placeholder={t("accounts.form.placeholders.memberOf")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -636,15 +643,15 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
               onClick={handlePrevious}
               disabled={currentStep === 1 || isLoading}
             >
-              Previous
+              {t("accounts.form.buttons.previous")}
             </Button>
             {currentStep < STEPS.length ? (
               <Button type="button" onClick={handleNext} disabled={isLoading}>
-                Next
+                {t("accounts.form.buttons.next")}
               </Button>
             ) : (
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Client"}
+                {isLoading ? t("accounts.form.buttons.creating") : t("accounts.form.buttons.create")}
               </Button>
             )}
           </div>

@@ -430,5 +430,230 @@
     "title": "Agency Profile",
     "description": "Manage your agency's public profile",
     "agencyOnly": "This page is only available for agency workspaces."
+  },
+  "editor": {
+    "tabs": {
+      "profile": "Profile",
+      "showcase": "Showcase",
+      "location": "Location",
+      "contactForm": "Contact Form",
+      "social": "Social"
+    },
+    "visibility": {
+      "title": "Profile Visibility",
+      "description": "Control who can see your profile",
+      "private": {
+        "label": "Private",
+        "description": "Hidden from everyone"
+      },
+      "secure": {
+        "label": "Secure",
+        "description": "Only registered users can view"
+      },
+      "public": {
+        "label": "Public",
+        "description": "Anyone can view"
+      }
+    },
+    "profileUrl": {
+      "title": "Profile URL",
+      "description": "Your public profile address based on your username",
+      "hint": "Your profile URL is based on your username. To change it, update your username in",
+      "accountSettings": "account settings"
+    },
+    "contact": {
+      "title": "Contact Information",
+      "publicEmail": "Public Email",
+      "publicEmailPlaceholder": "your@email.com",
+      "publicPhone": "Public Phone",
+      "publicPhonePlaceholder": "+30 210 1234567",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell potential clients about yourself...",
+      "bioCharacters": "{count}/1000 characters",
+      "yearsExperience": "Years of Experience"
+    },
+    "expertise": {
+      "title": "Expertise",
+      "specializations": "Specializations",
+      "languages": "Languages",
+      "serviceAreas": "Service Areas",
+      "serviceAreaPlaceholder": "e.g., Kolonaki",
+      "addServiceArea": "Add service area",
+      "certifications": "Certifications",
+      "certificationPlaceholder": "e.g., Licensed Agent",
+      "addCertification": "Add certification"
+    },
+    "showcaseTabHint": "Manage your showcase properties from the <showcaseTab></showcaseTab> tab above.",
+    "social": {
+      "title": "Social Media Links",
+      "description": "Add links to your social media profiles",
+      "linkedin": "LinkedIn",
+      "linkedinPlaceholder": "https://linkedin.com/in/...",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "https://instagram.com/...",
+      "twitter": "Twitter / X",
+      "twitterPlaceholder": "https://twitter.com/...",
+      "facebook": "Facebook",
+      "facebookPlaceholder": "https://facebook.com/..."
+    },
+    "contactForm": {
+      "enableTitle": "Enable Contact Form",
+      "enableDescription": "Allow visitors to contact you directly through your profile page",
+      "fieldsTitle": "Form Fields",
+      "fieldsDescription": "Configure which fields appear on your contact form",
+      "noFields": "No fields configured. Add some fields below.",
+      "removeField": "Remove field",
+      "addCustomField": "Add Custom Field",
+      "fieldType": "Field Type",
+      "fieldLabel": "Field Label",
+      "fieldLabelPlaceholder": "e.g., Property Interest",
+      "requiredField": "Required field",
+      "required": "Required",
+      "addField": "Add Field",
+      "saveSettings": "Save Contact Form Settings",
+      "types": {
+        "text": "Text",
+        "email": "Email",
+        "phone": "Phone",
+        "textarea": "Text Area",
+        "select": "Dropdown",
+        "checkbox": "Checkbox"
+      }
+    },
+    "saveProfile": "Save Profile",
+    "saveSettings": "Save Settings",
+    "toast": {
+      "saved": "Profile Saved",
+      "savedPrivate": "Your profile is hidden.",
+      "savedSecure": "Your profile is visible to registered users only.",
+      "savedPublic": "Your profile is now live and visible to everyone!",
+      "savedDefault": "Profile updated",
+      "error": "Error",
+      "errorSave": "Failed to update profile. Please try again.",
+      "contactFormUpdated": "Contact Form Updated",
+      "contactFormEnabled": "Contact form is now enabled.",
+      "contactFormDisabled": "Contact form has been disabled.",
+      "contactFormError": "Failed to update contact form settings."
+    }
+  },
+  "agency": {
+    "tabs": {
+      "profile": "Profile",
+      "location": "Location",
+      "contactForm": "Contact Form",
+      "social": "Social"
+    },
+    "visibility": {
+      "title": "Profile Visibility",
+      "description": "Control who can see your agency profile",
+      "private": {
+        "label": "Private",
+        "description": "Hidden from everyone"
+      },
+      "secure": {
+        "label": "Secure",
+        "description": "Only registered users can view"
+      },
+      "public": {
+        "label": "Public",
+        "description": "Anyone can view"
+      }
+    },
+    "profileUrl": {
+      "title": "Profile URL",
+      "description": "Your agency's public profile address — managed via your organization settings",
+      "publicUrl": "Public URL",
+      "hint": "This URL is tied to your organization's slug in Clerk. To change it, update the slug in your Clerk organization settings."
+    },
+    "info": {
+      "title": "Agency Information",
+      "description": "Basic details about your agency",
+      "agencyName": "Agency Name",
+      "agencyNameHint": "Managed via your Clerk organization settings.",
+      "logo": "Agency Logo",
+      "description_label": "Description",
+      "descriptionPlaceholder": "Tell clients about your agency...",
+      "descriptionCharacters": "{count}/1000 characters"
+    },
+    "details": {
+      "title": "Agency Details",
+      "description": "Additional information about your agency",
+      "yearFounded": "Year Founded",
+      "yearFoundedPlaceholder": "2020",
+      "licenseNumber": "License / Registration Number",
+      "licenseNumberPlaceholder": "REA-12345"
+    },
+    "contact": {
+      "title": "Contact Information",
+      "description": "How clients can reach you",
+      "email": "Email",
+      "emailPlaceholder": "info@agency.com",
+      "phone": "Phone",
+      "phonePlaceholder": "+30 210 1234567",
+      "website": "Website",
+      "websitePlaceholder": "https://www.agency.com"
+    },
+    "address": {
+      "title": "Physical Address",
+      "description": "Your agency's office location",
+      "street": "Street Address",
+      "streetPlaceholder": "123 Main Street",
+      "city": "City",
+      "cityPlaceholder": "Athens",
+      "region": "Region",
+      "regionPlaceholder": "Attica",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "10431",
+      "country": "Country",
+      "countryPlaceholder": "GR"
+    },
+    "social": {
+      "title": "Social Media Links",
+      "description": "Connect your social media profiles",
+      "facebook": "Facebook",
+      "facebookPlaceholder": "https://facebook.com/your-agency",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "https://instagram.com/your-agency",
+      "linkedin": "LinkedIn",
+      "linkedinPlaceholder": "https://linkedin.com/company/your-agency",
+      "twitter": "Twitter / X",
+      "twitterPlaceholder": "https://twitter.com/your-agency"
+    },
+    "contactForm": {
+      "enableTitle": "Enable Contact Form",
+      "enableDescription": "Allow visitors to contact you directly through your profile page",
+      "fieldsTitle": "Form Fields",
+      "fieldsDescription": "Configure which fields appear on your contact form",
+      "noFields": "No fields configured. Add some fields below.",
+      "removeField": "Remove field",
+      "addCustomField": "Add Custom Field",
+      "fieldType": "Field Type",
+      "fieldLabel": "Field Label",
+      "fieldLabelPlaceholder": "e.g., Property Interest",
+      "requiredField": "Required field",
+      "required": "Required",
+      "addField": "Add Field",
+      "saveSettings": "Save Contact Form Settings",
+      "types": {
+        "text": "Text",
+        "email": "Email",
+        "phone": "Phone",
+        "textarea": "Text Area",
+        "select": "Dropdown",
+        "checkbox": "Checkbox"
+      }
+    },
+    "saveProfile": "Save Profile",
+    "saveSettings": "Save Settings",
+    "toast": {
+      "saved": "Profile Saved",
+      "savedPrivate": "Your agency profile is hidden.",
+      "savedSecure": "Your agency profile is visible to registered users only.",
+      "savedPublic": "Your agency profile is now live and visible to everyone!",
+      "savedDefault": "Profile updated",
+      "errorSave": "Failed to save profile",
+      "settingsSaved": "Settings saved",
+      "contactFormError": "Failed to save contact form settings"
+    }
   }
 }

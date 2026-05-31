@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ type NewTaskFormProps = {
 export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("crm");
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -92,18 +94,18 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
   });
 
   const contactType = [
-    { name: "Customer", id: "Customer" },
-    { name: "Partner", id: "Partner" },
-    { name: "Vendor", id: "Vendor" },
+    { name: t("contacts.legacyForm.contactType.Customer"), id: "Customer" },
+    { name: t("contacts.legacyForm.contactType.Partner"), id: "Partner" },
+    { name: t("contacts.legacyForm.contactType.Vendor"), id: "Vendor" },
   ];
 
   const onSubmit = async (data: NewAccountFormValues) => {
     setIsLoading(true);
     try {
       await axios.put(`/api/crm/contacts/${data.id}`, data);
-      toast.success("Success", { description: "Contact updated successfully", isTranslationKey: false });
+      toast.success("success", { description: t("contacts.legacyForm.toast.updateSuccess") });
     } catch (error: any) {
-      toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
+      toast.error("error", { description: error?.response?.data });
     } finally {
       setIsLoading(false);
       router.refresh();
@@ -129,7 +131,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
   ) ?? [];
 
   if (!users || !accounts || !initialData)
-    return <div>Something went wrong, there is no data for form</div>;
+    return <div>{t("contacts.legacyForm.noData")}</div>;
 
   //console.log(accounts, "accounts");
   return (
@@ -155,9 +157,9 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
               name="first_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First name</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.firstName")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="John" {...field} />
+                    <Input disabled={isLoading} placeholder={t("contacts.legacyForm.placeholders.firstName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -168,9 +170,9 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
               name="last_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Last name</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.lastName")}</FormLabel>
                   <FormControl>
-                    <Input disabled={isLoading} placeholder="Doe" {...field} />
+                    <Input disabled={isLoading} placeholder={t("contacts.legacyForm.placeholders.lastName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -181,11 +183,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
               name="mobile_phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile phone</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.mobilePhone")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="+11 1236 77 55"
+                      placeholder={t("contacts.legacyForm.placeholders.phone")}
                       {...field}
                     />
                   </FormControl>
@@ -199,11 +201,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
               name="office_phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Office phone</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.officePhone")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="+11 1236 77 55"
+                      placeholder={t("contacts.legacyForm.placeholders.phone")}
                       {...field}
                     />
                   </FormControl>
@@ -216,11 +218,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.email")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="john@domain.com"
+                      placeholder={t("contacts.legacyForm.placeholders.email")}
                       {...field}
                     />
                   </FormControl>
@@ -233,11 +235,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
               name="personal_email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Personal email</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.personalEmail")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="littlejohny@gmail.com"
+                      placeholder={t("contacts.legacyForm.placeholders.personalEmail")}
                       {...field}
                     />
                   </FormControl>
@@ -250,11 +252,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
               name="website"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Website</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.website")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="https://www.domain.com"
+                      placeholder={t("contacts.legacyForm.placeholders.website")}
                       {...field}
                     />
                   </FormControl>
@@ -262,7 +264,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                 </FormItem>
               )}
             />
-            <h3>Birthday - (optional)</h3>
+            <h3>{t("contacts.legacyForm.labels.birthday")}</h3>
             <div className="flex space-x-3 w-full mx-auto">
               <FormField
                 control={form.control}
@@ -271,7 +273,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   <FormItem className="flex flex-col">
                     <div className="flex space-x-2 w-32">
                       <Select onValueChange={field.onChange}>
-                        <SelectTrigger>Year</SelectTrigger>
+                        <SelectTrigger>{t("contacts.legacyForm.birthday.year")}</SelectTrigger>
                         <SelectContent className="flex overflow-y-auto h-56">
                           {yearArray.map((yearOption) => (
                             <SelectItem
@@ -295,7 +297,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   <FormItem className="flex flex-col">
                     <div className="flex space-x-2 w-28">
                       <Select onValueChange={field.onChange}>
-                        <SelectTrigger>Month</SelectTrigger>
+                        <SelectTrigger>{t("contacts.legacyForm.birthday.month")}</SelectTrigger>
                         <SelectContent>
                           {/* Replace this with the range of months you want to allow */}
                           {Array.from({ length: 12 }, (_, i) => i + 1).map(
@@ -322,7 +324,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   <FormItem className="flex flex-col">
                     <div className="flex space-x-2">
                       <Select onValueChange={field.onChange}>
-                        <SelectTrigger>Day</SelectTrigger>
+                        <SelectTrigger>{t("contacts.legacyForm.birthday.day")}</SelectTrigger>
                         <SelectContent>
                           {/* Replace this with the range of months you want to allow */}
                           {Array.from({ length: 31 }, (_, i) => i + 1).map(
@@ -348,11 +350,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("contacts.legacyForm.labels.description")}</FormLabel>
                   <FormControl>
                     <Textarea
                       disabled={isLoading}
-                      placeholder="Useful information about the contact"
+                      placeholder={t("contacts.legacyForm.placeholders.description")}
                       {...field}
                     />
                   </FormControl>
@@ -367,14 +369,14 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="assigned_to"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Assigned user</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.assignedUser")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose an user " />
+                            <SelectValue placeholder={t("contacts.legacyForm.placeholders.chooseUser")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="h-96 overflow-y-auto">
@@ -388,7 +390,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                           } */}
                           <Input
                             type="text"
-                            placeholder="Search in users ..."
+                            placeholder={t("contacts.legacyForm.placeholders.searchUsers")}
                             onChange={(e) => setSearchTerm(e.target.value)}
                           />
                           {filteredData.map((item: any) => (
@@ -407,14 +409,14 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="assigned_account"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Assign an Account</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.assignAccount")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose assigned account " />
+                            <SelectValue placeholder={t("contacts.legacyForm.placeholders.chooseAccount")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="flex overflow-y-auto h-56">
@@ -437,11 +439,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="position"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Position</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.position")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="CTO"
+                          placeholder={t("contacts.legacyForm.placeholders.position")}
                           {...field}
                         />
                       </FormControl>
@@ -456,7 +458,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">
-                          Is contact active?
+                          {t("contacts.legacyForm.labels.isContactActive")}
                         </FormLabel>
                       </div>
                       <FormControl>
@@ -473,14 +475,14 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Assigned user</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.contactType")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose contact type " />
+                            <SelectValue placeholder={t("contacts.legacyForm.placeholders.chooseContactType")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="flex overflow-y-auto h-56">
@@ -502,11 +504,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="social_twitter"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Twitter</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.twitter")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.twitter.com/john"
+                          placeholder={t("contacts.legacyForm.placeholders.twitter")}
                           {...field}
                         />
                       </FormControl>
@@ -519,11 +521,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="social_facebook"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Facebook</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.facebook")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.facebook.com/john"
+                          placeholder={t("contacts.legacyForm.placeholders.facebook")}
                           {...field}
                         />
                       </FormControl>
@@ -536,11 +538,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="social_linkedin"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Linkedin</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.linkedin")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.linkedin.com/john"
+                          placeholder={t("contacts.legacyForm.placeholders.linkedin")}
                           {...field}
                         />
                       </FormControl>
@@ -553,11 +555,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="social_skype"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Skype</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.skype")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.skype.com/john"
+                          placeholder={t("contacts.legacyForm.placeholders.skype")}
                           {...field}
                         />
                       </FormControl>
@@ -570,11 +572,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="social_youtube"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>YouTube</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.youtube")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.youtube.com/@oikion"
+                          placeholder={t("contacts.legacyForm.placeholders.youtube")}
                           {...field}
                         />
                       </FormControl>
@@ -587,11 +589,11 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
                   name="social_tiktok"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>TikTok</FormLabel>
+                      <FormLabel>{t("contacts.legacyForm.labels.tiktok")}</FormLabel>
                       <FormControl>
                         <Input
                           disabled={isLoading}
-                          placeholder="https://www.domain.com"
+                          placeholder={t("contacts.legacyForm.placeholders.tiktok")}
                           {...field}
                         />
                       </FormControl>
@@ -607,10 +609,10 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
           <Button disabled={isLoading} type="submit">
             {isLoading ? (
               <span className="flex items-center animate-pulse">
-                Saving data ...
+                {t("contacts.legacyForm.buttons.saving")}
               </span>
             ) : (
-              "Update contact"
+              t("contacts.legacyForm.buttons.update")
             )}
           </Button>
         </div>

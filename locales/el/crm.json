@@ -523,6 +523,210 @@
         "displayName": "Εμφανιζόμενο Όνομα",
         "status": "Κατάσταση"
       }
+    },
+    "legacyForm": {
+      "labels": {
+        "firstName": "Όνομα",
+        "lastName": "Επώνυμο",
+        "mobilePhone": "Κινητό τηλέφωνο",
+        "officePhone": "Τηλέφωνο γραφείου",
+        "email": "Email",
+        "personalEmail": "Προσωπικό email",
+        "website": "Ιστοσελίδα",
+        "birthday": "Γενέθλια - (προαιρετικό)",
+        "description": "Περιγραφή",
+        "assignedUser": "Ανατεθειμένος χρήστης",
+        "assignClient": "Ανάθεση Πελάτη",
+        "assignAccount": "Ανάθεση Λογαριασμού",
+        "position": "Θέση",
+        "isContactActive": "Είναι ενεργή η επαφή;",
+        "contactType": "Τύπος επαφής",
+        "twitter": "Twitter",
+        "facebook": "Facebook",
+        "linkedin": "Linkedin",
+        "skype": "Skype",
+        "youtube": "YouTube",
+        "tiktok": "TikTok"
+      },
+      "placeholders": {
+        "firstName": "Γιάννης",
+        "lastName": "Παπαδόπουλος",
+        "phone": "+30 210 1234567",
+        "email": "giannis@domain.com",
+        "personalEmail": "giannakis@gmail.com",
+        "website": "https://www.domain.com",
+        "description": "Χρήσιμες πληροφορίες για την επαφή",
+        "chooseUser": "Επιλέξτε χρήστη",
+        "searchUsers": "Αναζήτηση χρηστών ...",
+        "chooseAccount": "Επιλέξτε ανατεθειμένο λογαριασμό",
+        "position": "Γενικός Διευθυντής",
+        "chooseContactType": "Επιλέξτε τύπο επαφής",
+        "twitter": "https://www.twitter.com/giannis",
+        "facebook": "https://www.facebook.com/giannis",
+        "linkedin": "https://www.linkedin.com/giannis",
+        "skype": "https://www.skype.com/giannis",
+        "youtube": "https://www.youtube.com/@oikion",
+        "tiktok": "https://www.domain.com"
+      },
+      "birthday": {
+        "year": "Έτος",
+        "month": "Μήνας",
+        "day": "Ημέρα"
+      },
+      "contactType": {
+        "Customer": "Πελάτης",
+        "Partner": "Συνεργάτης",
+        "Vendor": "Προμηθευτής"
+      },
+      "buttons": {
+        "saving": "Αποθήκευση δεδομένων ...",
+        "create": "Δημιουργία επαφής",
+        "update": "Ενημέρωση επαφής"
+      },
+      "toast": {
+        "createSuccess": "Η επαφή δημιουργήθηκε με επιτυχία",
+        "updateSuccess": "Η επαφή ενημερώθηκε με επιτυχία"
+      },
+      "noData": "Κάτι πήγε στραβά, δεν υπάρχουν δεδομένα για τη φόρμα"
+    }
+  },
+  "accounts": {
+    "form": {
+      "steps": {
+        "basic": {
+          "title": "Βασικές Πληροφορίες",
+          "description": "Όνομα πελάτη, στοιχεία επικοινωνίας, τύπος και κατάσταση"
+        },
+        "company": {
+          "title": "Στοιχεία Εταιρείας",
+          "description": "Αριθμός εταιρείας, ΑΦΜ, ιστοσελίδα και φαξ"
+        },
+        "billing": {
+          "title": "Διεύθυνση Χρέωσης",
+          "description": "Στοιχεία διεύθυνσης χρέωσης"
+        },
+        "properties": {
+          "title": "Ακίνητα",
+          "description": "Συνδέστε ακίνητα με αυτόν τον πελάτη"
+        },
+        "additional": {
+          "title": "Πρόσθετες Πληροφορίες",
+          "description": "Περιγραφή, ανάθεση και άλλα στοιχεία"
+        }
+      },
+      "labels": {
+        "clientName": "Όνομα Πελάτη *",
+        "email": "Email",
+        "phone": "Τηλέφωνο",
+        "clientType": "Τύπος Πελάτη",
+        "status": "Κατάσταση",
+        "companyId": "Αριθμός Εταιρείας",
+        "vatNumber": "Αριθμός ΦΠΑ",
+        "website": "Ιστοσελίδα",
+        "fax": "Φαξ",
+        "streetAddress": "Οδός",
+        "selectProperties": "Επιλογή Ακινήτων",
+        "description": "Περιγραφή / Σημειώσεις",
+        "assignedTo": "Ανατέθηκε σε *",
+        "memberOf": "Μέλος του"
+      },
+      "placeholders": {
+        "clientName": "Γιάννης Παπαδόπουλος ή Επωνυμία Εταιρείας",
+        "email": "giannis@domain.com",
+        "phone": "+30 210 1234567",
+        "selectType": "Επιλέξτε τύπο",
+        "selectStatus": "Επιλέξτε κατάσταση",
+        "companyId": "Αριθμός μητρώου εταιρείας",
+        "vatNumber": "ΑΦΜ",
+        "website": "https://example.com",
+        "fax": "+30 210 1234567",
+        "streetAddress": "Οδός Κεντρική 123",
+        "description": "Πρόσθετες σημειώσεις για τον πελάτη",
+        "assignUser": "Επιλέξτε χρήστη για ανάθεση του πελάτη",
+        "memberOf": "Μητρικός οργανισμός ή όμιλος"
+      },
+      "clientType": {
+        "BUYER": "Αγοραστής",
+        "SELLER": "Πωλητής",
+        "RENTER": "Ενοικιαστής",
+        "INVESTOR": "Επενδυτής",
+        "REFERRAL_PARTNER": "Συνεργάτης Σύστασης"
+      },
+      "clientStatus": {
+        "LEAD": "Lead",
+        "ACTIVE": "Ενεργός",
+        "INACTIVE": "Ανενεργός",
+        "CONVERTED": "Μετατράπηκε",
+        "LOST": "Χάθηκε"
+      },
+      "properties": {
+        "instructions": "Επιλέξτε ακίνητα για σύνδεση με αυτόν τον πελάτη. Μπορείτε να συνδέσετε ακίνητα και αργότερα.",
+        "loading": "Φόρτωση ακινήτων...",
+        "none": "Δεν υπάρχουν διαθέσιμα ακίνητα. Δημιουργήστε πρώτα ακίνητα."
+      },
+      "validation": {
+        "clientNameMin": "Το όνομα πελάτη πρέπει να έχει τουλάχιστον 2 χαρακτήρες",
+        "emailInvalid": "Μη έγκυρη διεύθυνση email",
+        "urlInvalid": "Μη έγκυρη διεύθυνση URL",
+        "emailOrPhoneRequired": "Απαιτείται email ή αριθμός τηλεφώνου"
+      },
+      "buttons": {
+        "previous": "Προηγούμενο",
+        "next": "Επόμενο",
+        "creating": "Δημιουργία...",
+        "create": "Δημιουργία Πελάτη"
+      },
+      "toast": {
+        "createSuccess": "Ο πελάτης δημιουργήθηκε με επιτυχία",
+        "genericError": "Κάτι πήγε στραβά. Παρακαλώ δοκιμάστε ξανά."
+      }
+    }
+  },
+  "tasks": {
+    "form": {
+      "labels": {
+        "newTaskName": "Όνομα νέας εργασίας",
+        "taskTitle": "Τίτλος Εργασίας",
+        "taskDescription": "Περιγραφή εργασίας",
+        "taskContent": "Περιγραφή Εργασίας",
+        "taskDueDate": "Προθεσμία εργασίας",
+        "dueDate": "Προθεσμία",
+        "assignedTo": "Ανατέθηκε σε",
+        "assignedToLong": "Ανατέθηκε Σε",
+        "chooseTaskPriority": "Επιλέξτε προτεραιότητα εργασίας",
+        "priority": "Προτεραιότητα"
+      },
+      "placeholders": {
+        "taskName": "Εισάγετε όνομα εργασίας",
+        "taskTitle": "Εισάγετε τίτλο εργασίας",
+        "taskDescription": "Εισάγετε περιγραφή εργασίας",
+        "pickDate": "Επιλέξτε ημερομηνία",
+        "selectAssignedUser": "Επιλέξτε ανατεθειμένο χρήστη",
+        "selectTaskPriority": "Επιλέξτε προτεραιότητα εργασιών",
+        "selectPriority": "Επιλέξτε προτεραιότητα"
+      },
+      "validation": {
+        "titleMin": "Ο τίτλος πρέπει να έχει τουλάχιστον 3 χαρακτήρες",
+        "descriptionMin": "Η περιγραφή πρέπει να έχει τουλάχιστον 3 χαρακτήρες",
+        "selectUser": "Παρακαλώ επιλέξτε ανατεθειμένο χρήστη"
+      },
+      "buttons": {
+        "close": "Κλείσιμο",
+        "create": "Δημιουργία",
+        "cancel": "Άκυρο",
+        "updateTask": "Ενημέρωση Εργασίας"
+      },
+      "toast": {
+        "createSuccess": "Νέα εργασία: {title}, δημιουργήθηκε με επιτυχία",
+        "updateSuccess": "Η εργασία ενημερώθηκε με επιτυχία",
+        "updateError": "Αποτυχία ενημέρωσης εργασίας"
+      }
+    },
+    "priority": {
+      "low": "Χαμηλή",
+      "medium": "Μεσαία",
+      "high": "Υψηλή",
+      "critical": "Κρίσιμη"
     }
   }
 }

@@ -7,6 +7,7 @@ import * as z from "zod";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Link } from "@/navigation";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -90,38 +91,38 @@ const LANGUAGE_OPTIONS = [
 const VISIBILITY_OPTIONS = [
   {
     value: "PRIVATE",
-    label: "Private",
-    description: "Hidden from everyone",
+    labelKey: "visibility.private.label",
+    descriptionKey: "visibility.private.description",
     icon: Lock,
     color: "text-destructive",
     bgColor: "bg-destructive/10",
   },
   {
     value: "SECURE",
-    label: "Secure",
-    description: "Only registered users can view",
+    labelKey: "visibility.secure.label",
+    descriptionKey: "visibility.secure.description",
     icon: Shield,
     color: "text-warning",
     bgColor: "bg-warning/10",
   },
   {
     value: "PUBLIC",
-    label: "Public",
-    description: "Anyone can view",
+    labelKey: "visibility.public.label",
+    descriptionKey: "visibility.public.description",
     icon: Globe,
     color: "text-success",
     bgColor: "bg-success/10",
   },
-];
+] as const;
 
-const FIELD_TYPE_OPTIONS: { value: ContactFormFieldType; label: string }[] = [
-  { value: "text", label: "Text" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "textarea", label: "Text Area" },
-  { value: "select", label: "Dropdown" },
-  { value: "checkbox", label: "Checkbox" },
-];
+const FIELD_TYPE_OPTIONS = [
+  { value: "text", labelKey: "contactForm.types.text" },
+  { value: "email", labelKey: "contactForm.types.email" },
+  { value: "phone", labelKey: "contactForm.types.phone" },
+  { value: "textarea", labelKey: "contactForm.types.textarea" },
+  { value: "select", labelKey: "contactForm.types.select" },
+  { value: "checkbox", labelKey: "contactForm.types.checkbox" },
+] as const satisfies readonly { value: ContactFormFieldType; labelKey: string }[];
 
 export function ProfileEditTab({
   profile,
@@ -136,6 +137,7 @@ export function ProfileEditTab({
   const [newCertification, setNewCertification] = useState("");
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("profile.editor");
 
   // Contact form settings state
   const [contactFormEnabled, setContactFormEnabled] = useState(false);
@@ -205,17 +207,17 @@ export function ProfileEditTab({
       await axios.post("/api/profile/social", payload);
 
       const visibilityMsg: Record<string, string> = {
-        PRIVATE: "Your profile is hidden.",
-        SECURE: "Your profile is visible to registered users only.",
-        PUBLIC: "Your profile is now live and visible to everyone!",
+        PRIVATE: t("toast.savedPrivate"),
+        SECURE: t("toast.savedSecure"),
+        PUBLIC: t("toast.savedPublic"),
       };
 
-      toast.success("Profile Saved", { description: visibilityMsg[data.visibility] || "Profile updated", isTranslationKey: false });
+      toast.success(t("toast.saved"), { description: visibilityMsg[data.visibility] || t("toast.savedDefault"), isTranslationKey: false });
 
       router.refresh();
       onSave?.();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to update profile. Please try again.", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.errorSave"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -278,13 +280,13 @@ export function ProfileEditTab({
         fields: contactFormFields,
       });
       if (result.success) {
-        toast.success("Contact Form Updated", { description: contactFormEnabled ? "Contact form is now enabled." : "Contact form has been disabled.", isTranslationKey: false });
+        toast.success(t("toast.contactFormUpdated"), { description: contactFormEnabled ? t("toast.contactFormEnabled") : t("toast.contactFormDisabled"), isTranslationKey: false });
         router.refresh();
       } else {
-        toast.error("Error", { description: result.error || "Failed to update contact form settings.", isTranslationKey: false });
+        toast.error(t("toast.error"), { description: result.error || t("toast.contactFormError"), isTranslationKey: false });
       }
     } catch (error) {
-      toast.error("Error", { description: "Failed to update contact form settings.", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: t("toast.contactFormError"), isTranslationKey: false });
     } finally {
       setIsSavingContactForm(false);
     }
@@ -339,19 +341,19 @@ export function ProfileEditTab({
       <TabsList className="inline-grid grid-cols-4 mb-6">
         <TabsTrigger value="profile">
           <User className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Profile</span>
+          <span className="hidden sm:inline">{t("tabs.profile")}</span>
         </TabsTrigger>
         <TabsTrigger value="properties">
           <Home className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Showcase</span>
+          <span className="hidden sm:inline">{t("tabs.showcase")}</span>
         </TabsTrigger>
         <TabsTrigger value="contact">
           <Mail className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Contact Form</span>
+          <span className="hidden sm:inline">{t("tabs.contactForm")}</span>
         </TabsTrigger>
         <TabsTrigger value="social">
           <Share2 className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Social</span>
+          <span className="hidden sm:inline">{t("tabs.social")}</span>
         </TabsTrigger>
       </TabsList>
 
@@ -361,8 +363,8 @@ export function ProfileEditTab({
             {/* Visibility */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Profile Visibility</CardTitle>
-                <CardDescription>Control who can see your profile</CardDescription>
+                <CardTitle className="text-base">{t("visibility.title")}</CardTitle>
+                <CardDescription>{t("visibility.description")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <FormField
@@ -397,9 +399,9 @@ export function ProfileEditTab({
                                   <Icon className={`h-4 w-4 ${option.color}`} />
                                 </div>
                                 <div>
-                                  <div className="font-medium text-sm">{option.label}</div>
+                                  <div className="font-medium text-sm">{t(option.labelKey)}</div>
                                   <div className="text-xs text-muted-foreground">
-                                    {option.description}
+                                    {t(option.descriptionKey)}
                                   </div>
                                 </div>
                               </div>
@@ -416,8 +418,8 @@ export function ProfileEditTab({
             {/* Profile URL - Read Only, based on username */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Profile URL</CardTitle>
-                <CardDescription>Your public profile address based on your username</CardDescription>
+                <CardTitle className="text-base">{t("profileUrl.title")}</CardTitle>
+                <CardDescription>{t("profileUrl.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center">
@@ -432,9 +434,9 @@ export function ProfileEditTab({
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Your profile URL is based on your username. To change it, update your username in{" "}
+                  {t("profileUrl.hint")}{" "}
                   <Link href="/app/profile" className="text-primary hover:underline inline-flex items-center gap-1">
-                    account settings
+                    {t("profileUrl.accountSettings")}
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 </p>
@@ -444,7 +446,7 @@ export function ProfileEditTab({
             {/* Contact & Bio */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Contact Information</CardTitle>
+                <CardTitle className="text-base">{t("contact.title")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -453,12 +455,12 @@ export function ProfileEditTab({
                     name="publicEmail"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Public Email</FormLabel>
+                        <FormLabel>{t("contact.publicEmail")}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             type="email"
-                            placeholder="your@email.com"
+                            placeholder={t("contact.publicEmailPlaceholder")}
                             disabled={isLoading}
                           />
                         </FormControl>
@@ -471,11 +473,11 @@ export function ProfileEditTab({
                     name="publicPhone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Public Phone</FormLabel>
+                        <FormLabel>{t("contact.publicPhone")}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="+30 210 1234567"
+                            placeholder={t("contact.publicPhonePlaceholder")}
                             disabled={isLoading}
                           />
                         </FormControl>
@@ -490,17 +492,17 @@ export function ProfileEditTab({
                   name="bio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Bio</FormLabel>
+                      <FormLabel>{t("contact.bio")}</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
-                          placeholder="Tell potential clients about yourself..."
+                          placeholder={t("contact.bioPlaceholder")}
                           rows={4}
                           disabled={isLoading}
                         />
                       </FormControl>
                       <FormDescription>
-                        {(field.value?.length || 0)}/1000 characters
+                        {t("contact.bioCharacters", { count: field.value?.length || 0 })}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -512,7 +514,7 @@ export function ProfileEditTab({
                   name="yearsExperience"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Years of Experience</FormLabel>
+                      <FormLabel>{t("contact.yearsExperience")}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -538,11 +540,11 @@ export function ProfileEditTab({
             {/* Specializations & Languages */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Expertise</CardTitle>
+                <CardTitle className="text-base">{t("expertise.title")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Specializations</label>
+                  <label className="text-sm font-medium mb-2 block">{t("expertise.specializations")}</label>
                   <div className="flex flex-wrap gap-2">
                     {SPECIALIZATION_OPTIONS.map((spec) => {
                       const selected = form.watch("specializations")?.includes(spec);
@@ -563,7 +565,7 @@ export function ProfileEditTab({
                 <Separator />
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Languages</label>
+                  <label className="text-sm font-medium mb-2 block">{t("expertise.languages")}</label>
                   <div className="flex flex-wrap gap-2">
                     {LANGUAGE_OPTIONS.map((lang) => {
                       const selected = form.watch("languages")?.includes(lang);
@@ -584,7 +586,7 @@ export function ProfileEditTab({
                 <Separator />
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Service Areas</label>
+                  <label className="text-sm font-medium mb-2 block">{t("expertise.serviceAreas")}</label>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {form.watch("serviceAreas")?.map((area) => (
                       <Badge key={area} variant="secondary" className="gap-1">
@@ -600,7 +602,7 @@ export function ProfileEditTab({
                     <Input
                       value={newServiceArea}
                       onChange={(e) => setNewServiceArea(e.target.value)}
-                      placeholder="e.g., Κολωνάκι"
+                      placeholder={t("expertise.serviceAreaPlaceholder")}
                       className="max-w-xs"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -610,7 +612,7 @@ export function ProfileEditTab({
                       }}
                       disabled={isLoading}
                     />
-                    <Button type="button" variant="outline" size="icon" aria-label="Add service area" onClick={addServiceArea}>
+                    <Button type="button" variant="outline" size="icon" aria-label={t("expertise.addServiceArea")} onClick={addServiceArea}>
                       <Plus className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
@@ -619,7 +621,7 @@ export function ProfileEditTab({
                 <Separator />
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Certifications</label>
+                  <label className="text-sm font-medium mb-2 block">{t("expertise.certifications")}</label>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {form.watch("certifications")?.map((cert) => (
                       <Badge key={cert} variant="secondary" className="gap-1">
@@ -635,7 +637,7 @@ export function ProfileEditTab({
                     <Input
                       value={newCertification}
                       onChange={(e) => setNewCertification(e.target.value)}
-                      placeholder="e.g., Licensed Agent"
+                      placeholder={t("expertise.certificationPlaceholder")}
                       className="max-w-sm"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -645,7 +647,7 @@ export function ProfileEditTab({
                       }}
                       disabled={isLoading}
                     />
-                    <Button type="button" variant="outline" size="icon" aria-label="Add certification" onClick={addCertification}>
+                    <Button type="button" variant="outline" size="icon" aria-label={t("expertise.addCertification")} onClick={addCertification}>
                       <Plus className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
@@ -659,7 +661,9 @@ export function ProfileEditTab({
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm text-muted-foreground">
-                  Manage your showcase properties from the <strong>Showcase</strong> tab above.
+                  {t.rich("showcaseTabHint", {
+                    showcaseTab: () => <strong>{t("tabs.showcase")}</strong>,
+                  })}
                 </p>
               </CardContent>
             </Card>
@@ -670,14 +674,14 @@ export function ProfileEditTab({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center justify-between">
-                  <span>Enable Contact Form</span>
+                  <span>{t("contactForm.enableTitle")}</span>
                   <Switch
                     checked={contactFormEnabled}
                     onCheckedChange={setContactFormEnabled}
                   />
                 </CardTitle>
                 <CardDescription>
-                  Allow visitors to contact you directly through your profile page
+                  {t("contactForm.enableDescription")}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -687,15 +691,15 @@ export function ProfileEditTab({
                 {/* Current Fields */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Form Fields</CardTitle>
+                    <CardTitle className="text-base">{t("contactForm.fieldsTitle")}</CardTitle>
                     <CardDescription>
-                      Configure which fields appear on your contact form
+                      {t("contactForm.fieldsDescription")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {contactFormFields.length === 0 ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
-                        No fields configured. Add some fields below.
+                        {t("contactForm.noFields")}
                       </p>
                     ) : (
                       <div className="space-y-2">
@@ -723,13 +727,13 @@ export function ProfileEditTab({
                                   onChange={() => toggleFieldRequired(field.id)}
                                   className="h-3 w-3"
                                 />
-                                Required
+                                {t("contactForm.required")}
                               </label>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                aria-label="Remove field"
+                                aria-label={t("contactForm.removeField")}
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                 onClick={() => removeField(field.id)}
                               >
@@ -746,12 +750,12 @@ export function ProfileEditTab({
                 {/* Add New Field */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Add Custom Field</CardTitle>
+                    <CardTitle className="text-base">{t("contactForm.addCustomField")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="sm:col-span-1">
-                        <label className="text-sm font-medium mb-1 block">Field Type</label>
+                        <label className="text-sm font-medium mb-1 block">{t("contactForm.fieldType")}</label>
                         <Select
                           value={newFieldType}
                           onValueChange={(v) => setNewFieldType(v as ContactFormFieldType)}
@@ -762,18 +766,18 @@ export function ProfileEditTab({
                           <SelectContent>
                             {FIELD_TYPE_OPTIONS.map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
+                                {t(opt.labelKey)}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="text-sm font-medium mb-1 block">Field Label</label>
+                        <label className="text-sm font-medium mb-1 block">{t("contactForm.fieldLabel")}</label>
                         <Input
                           value={newFieldLabel}
                           onChange={(e) => setNewFieldLabel(e.target.value)}
-                          placeholder="e.g., Property Interest"
+                          placeholder={t("contactForm.fieldLabelPlaceholder")}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault();
@@ -791,7 +795,7 @@ export function ProfileEditTab({
                           onChange={(e) => setNewFieldRequired(e.target.checked)}
                           className="h-4 w-4"
                         />
-                        <span className="text-sm">Required field</span>
+                        <span className="text-sm">{t("contactForm.requiredField")}</span>
                       </label>
                       <Button
                         type="button"
@@ -800,7 +804,7 @@ export function ProfileEditTab({
                         onClick={addCustomField}
                         disabled={!newFieldLabel.trim()}
                       >
-                        Add Field
+                        {t("contactForm.addField")}
                       </Button>
                     </div>
                   </CardContent>
@@ -814,7 +818,7 @@ export function ProfileEditTab({
                     onClick={handleSaveContactFormSettings}
                     disabled={isSavingContactForm}
                   >
-                    Save Contact Form Settings
+                    {t("contactForm.saveSettings")}
                   </Button>
                 </div>
               </>
@@ -828,7 +832,7 @@ export function ProfileEditTab({
                   onClick={handleSaveContactFormSettings}
                   disabled={isSavingContactForm}
                 >
-                  Save Settings
+                  {t("saveSettings")}
                 </Button>
               </div>
             )}
@@ -837,8 +841,8 @@ export function ProfileEditTab({
           <TabsContent value="social" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Social Media Links</CardTitle>
-                <CardDescription>Add links to your social media profiles</CardDescription>
+                <CardTitle className="text-base">{t("social.title")}</CardTitle>
+                <CardDescription>{t("social.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -847,11 +851,11 @@ export function ProfileEditTab({
                     name="linkedin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>LinkedIn</FormLabel>
+                        <FormLabel>{t("social.linkedin")}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="https://linkedin.com/in/..."
+                            placeholder={t("social.linkedinPlaceholder")}
                             disabled={isLoading}
                           />
                         </FormControl>
@@ -864,11 +868,11 @@ export function ProfileEditTab({
                     name="instagram"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Instagram</FormLabel>
+                        <FormLabel>{t("social.instagram")}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="https://instagram.com/..."
+                            placeholder={t("social.instagramPlaceholder")}
                             disabled={isLoading}
                           />
                         </FormControl>
@@ -881,11 +885,11 @@ export function ProfileEditTab({
                     name="twitter"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Twitter / X</FormLabel>
+                        <FormLabel>{t("social.twitter")}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="https://twitter.com/..."
+                            placeholder={t("social.twitterPlaceholder")}
                             disabled={isLoading}
                           />
                         </FormControl>
@@ -898,11 +902,11 @@ export function ProfileEditTab({
                     name="facebook"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Facebook</FormLabel>
+                        <FormLabel>{t("social.facebook")}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="https://facebook.com/..."
+                            placeholder={t("social.facebookPlaceholder")}
                             disabled={isLoading}
                           />
                         </FormControl>
@@ -919,7 +923,7 @@ export function ProfileEditTab({
           <div className="flex justify-end pt-6 border-t mt-6">
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Profile
+              {t("saveProfile")}
             </Button>
           </div>
         </form>
