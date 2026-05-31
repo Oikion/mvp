@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use server";
 import { Prisma } from "@prisma/client";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";

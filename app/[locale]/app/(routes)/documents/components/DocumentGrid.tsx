@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import type { JsonValue } from "@prisma/client/runtime/library";

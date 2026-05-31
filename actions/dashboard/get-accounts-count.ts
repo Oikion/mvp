@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId } from "@/lib/get-current-user";

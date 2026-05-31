@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use server";
 
 import { prismadb } from "@/lib/prisma";

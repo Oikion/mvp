@@ -1,4 +1,3 @@
-// @ts-nocheck
 // TODO: Fix type errors
 /**
  * Export History Tracking Service

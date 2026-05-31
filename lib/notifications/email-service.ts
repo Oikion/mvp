@@ -1,4 +1,3 @@
-// @ts-nocheck
 // TODO: Fix type errors
 /**
  * Email Notification Service

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // TODO: Fix Prisma enum type casting for body fields
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";

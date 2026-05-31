@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { NextResponse } from "next/server";

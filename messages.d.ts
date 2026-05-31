@@ -33,7 +33,6 @@ import type authEn from "./locales/en/auth.json";
 import type signInEn from "./locales/en/signIn.json";
 import type referralsEn from "./locales/en/referrals.json";
 import type messagesEn from "./locales/en/messages.json";
-import type mandatesEn from "./locales/en/mandates.json";
 import type requestsEn from "./locales/en/requests.json";
 import type networkEn from "./locales/en/network.json";
 import type matchmakingEn from "./locales/en/matchmaking.json";
@@ -93,7 +92,6 @@ type AppMessages = typeof commonEn &
     signIn: typeof signInEn;
     referrals: typeof referralsEn;
     messages: typeof messagesEn;
-    mandates: typeof mandatesEn;
     requests: typeof requestsEn;
     network: typeof networkEn;
     matchmaking: typeof matchmakingEn;

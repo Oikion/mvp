@@ -1,4 +1,3 @@
-// @ts-nocheck
 // TODO: Fix type errors
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";

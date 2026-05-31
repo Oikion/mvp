@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use server";
 
 import { prismaForOrg } from "@/lib/tenant";

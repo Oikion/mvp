@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { prismadb } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";

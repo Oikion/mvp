@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { ContactStatus, ContactSource, PersonType, Language, ItemVisibility } from "@prisma/client";

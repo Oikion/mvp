@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from "react";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@clerk/nextjs/server";

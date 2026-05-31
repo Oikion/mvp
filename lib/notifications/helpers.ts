@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Notification Helpers
  * Convenience functions for common notification scenarios

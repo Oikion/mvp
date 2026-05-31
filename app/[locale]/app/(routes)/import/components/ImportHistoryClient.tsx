@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useTranslations, useFormatter } from "next-intl";

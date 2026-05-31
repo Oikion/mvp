@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import {
   STAGING_COOKIE_MAX_AGE,

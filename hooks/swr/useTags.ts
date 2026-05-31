@@ -1,4 +1,3 @@
-// @ts-nocheck
 // TODO: Fix type errors
 import useSWR, { mutate } from "swr";
 import { useCallback } from "react";
