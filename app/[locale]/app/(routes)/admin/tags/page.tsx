@@ -17,7 +17,7 @@ const AdminTagsPage = async () => {
     if (!isAdmin) {
       return (
         <Container
-          title={t("tags.title")}
+          title={t("tags.title" as Parameters<typeof t>[0])}
           description={adminT("accessDenied")}
         >
           <div className="flex w-full h-full items-center justify-center">
@@ -30,7 +30,7 @@ const AdminTagsPage = async () => {
     if (!orgId) {
       return (
         <Container
-          title={t("tags.title")}
+          title={t("tags.title" as Parameters<typeof t>[0])}
           description={adminT("noOrganizationContext")}
         >
           <div className="flex w-full h-full items-center justify-center">
@@ -51,8 +51,8 @@ const AdminTagsPage = async () => {
 
     return (
       <Container
-        title={t("tags.title")}
-        description={t("tags.description")}
+        title={t("tags.title" as Parameters<typeof t>[0])}
+        description={t("tags.description" as Parameters<typeof t>[0])}
       >
         <TagsAdminClient 
           initialTags={initialTags} 

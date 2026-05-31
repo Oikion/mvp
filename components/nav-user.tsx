@@ -80,6 +80,7 @@ export function NavUser({
   }
   const pathname = usePathname()
   const t = useTranslations()
+  const { toast } = useAppToast()
   const [isChangingLanguage, setIsChangingLanguage] = useState(false)
 
   // Dynamically generate languages list from available locales
@@ -154,7 +155,7 @@ export function NavUser({
         || error?.message 
         || t("Navigation.languageChangeFailed")
       
-      toast.error(t, { description: errorMessage, isTranslationKey: false })
+      toast.error(t("common.error"), { description: errorMessage, isTranslationKey: false })
       setIsChangingLanguage(false)
     }
   }

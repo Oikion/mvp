@@ -1,5 +1,5 @@
-// TODO: Fix Prisma enum type casting for body fields
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
@@ -84,6 +84,7 @@ function mapLegacyClientToContact(f: Record<string, any>) {
 function mapContactToLegacy(c: Record<string, any>) {
   return {
     ...c,
+    id: c.id,
     client_name: c.displayName ?? null,
     primary_email: c.email ?? null,
     primary_phone: c.primaryPhone ?? null,
@@ -162,13 +163,13 @@ export async function POST(req: Request) {
     } = validationResult.data;
 
     // Generate friendly ID
-    const friendlyId = await generateFriendlyId(prismadb, "Clients", organizationId);
+    const friendlyId = await generateFriendlyId(prismadb, "Contact", organizationId);
 
     // Validate assigned_to is a real Users.id to prevent FK violations
     const validatedAssignedTo = await validateAssignedTo(assigned_to);
 
     const newClient = await prismadb.contact.create({
-      data: await encryptContactForOrg(
+      data: (await encryptContactForOrg(
         mapLegacyClientToContact({
           friendlyId,
           createdBy: user.id,
@@ -210,7 +211,7 @@ export async function POST(req: Request) {
           assigned_to: validatedAssignedTo,
         }),
         organizationId
-      ),
+      )) as Prisma.ContactUncheckedCreateInput,
     });
 
     await invalidateCache(["clients:list", "dashboard:accounts-count", assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
@@ -224,7 +225,7 @@ export async function POST(req: Request) {
         creatorId: user.id,
         creatorName: user.name || user.email || "Someone",
         organizationId,
-        assignedToId: assigned_to,
+        assignedToId: assigned_to ?? undefined,
       });
 
       // Dispatch webhook for external integrations

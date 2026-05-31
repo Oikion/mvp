@@ -149,7 +149,7 @@ export async function PATCH(req: Request) {
       updateData.dashboardConfig = {
         ...normalized,
         updatedAt: new Date().toISOString(),
-      } as Prisma.InputJsonValue;
+      } as unknown as Prisma.InputJsonValue;
     }
 
     // Ensure at least one field is being updated

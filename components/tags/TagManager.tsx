@@ -213,7 +213,7 @@ export function TagManager({
     return acc;
   }, {} as Record<string, Tag[]>);
 
-  const allCategories = [...new Set([...categories, ...Object.keys(tagsByCategory)])].filter(
+  const allCategories = Array.from(new Set([...categories, ...Object.keys(tagsByCategory)])).filter(
     (c) => c !== "Uncategorized"
   );
 

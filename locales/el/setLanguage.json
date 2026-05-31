@@ -5,6 +5,6 @@
   "languageRequired": "Παρακαλούμε επιλέξτε γλώσσα.",
   "changingLanguage": "Αλλαγή γλώσσας Oikion",
   "languageChangedTo": "Η γλώσσα χρήστη άλλαξε σε: {language}",
-  "selectLanguagePlaceholder": "Επιλέξτε γλώσσα"
+  "selectLanguagePlaceholder": "Επιλέξτε γλώσσα",
+  "languageChanged": "Η γλώσσα άλλαξε"
 }
-

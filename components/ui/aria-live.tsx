@@ -1,4 +1,3 @@
-// TODO: Fix type errors
 "use client";
 
 import * as React from "react";
@@ -35,7 +34,7 @@ import { cn } from "@/lib/utils";
 
 export type AriaPoliteness = "polite" | "assertive" | "off";
 
-export interface AriaLiveProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface AriaLiveProps extends React.HTMLAttributes<HTMLOutputElement> {
   /**
    * How urgently the screen reader should announce changes
    * - polite: Waits for user to finish current task (default)

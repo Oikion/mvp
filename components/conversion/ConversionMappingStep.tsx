@@ -276,8 +276,8 @@ export function ConversionMappingStep({
                                   disabled={isUsed}
                                 >
                                   <span className="flex items-center gap-2">
-                                    {tImport.has(`fields.${field.key}`) 
-                                      ? tImport(`fields.${field.key}`) 
+                                    {tImport.has(`fields.${field.key}` as Parameters<typeof tImport>[0]) 
+                                      ? tImport(`fields.${field.key}` as Parameters<typeof tImport>[0]) 
                                       : field.key}
                                     {field.required && (
                                       <Badge variant="destructive" className="text-[10px] px-1">

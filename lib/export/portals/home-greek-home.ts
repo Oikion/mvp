@@ -6,7 +6,13 @@
  * Uses English element names with support for Greek content.
  */
 
-import type { PortalTemplate, FieldMapping, PropertyData } from "./index";
+import type {
+  PortalTemplate,
+  FieldMapping,
+  PropertyData,
+  ValidationError,
+  ValidationWarning,
+} from "./index";
 import {
   PROPERTY_TYPE_GREEK,
   TRANSACTION_TYPE_GREEK,
@@ -450,8 +456,8 @@ export const HOME_GREEK_HOME_TEMPLATE: PortalTemplate = {
     maxImages: 50,
     requiredFields: ["property_name", "price", "square_feet", "property_type", "address_city", "description"],
     customValidation: (property: PropertyData) => {
-      const errors = [];
-      const warnings = [];
+      const errors: ValidationError[] = [];
+      const warnings: ValidationWarning[] = [];
       
       // Recommend coordinates for better listing visibility
       if (!property.latitude || !property.longitude) {

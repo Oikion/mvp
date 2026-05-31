@@ -247,7 +247,7 @@ export function ReferralActionDialog({
                         : "destructive"
                     }
                   >
-                    {t(`status.${referral.status.toLowerCase()}`)}
+                    {t(`status.${referral.status.toLowerCase()}` as Parameters<typeof t>[0])}
                   </Badge>
                 </div>
               </div>
@@ -359,7 +359,7 @@ export function ReferralActionDialog({
                     : "destructive"
                 }
               >
-                {t(`status.${referral.status.toLowerCase()}`)}
+                {t(`status.${referral.status.toLowerCase()}` as Parameters<typeof t>[0])}
               </Badge>
             </div>
 

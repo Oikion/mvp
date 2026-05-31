@@ -539,7 +539,7 @@ export function ExportButton({
               destination,
               filename,
               rowCount: Array.isArray(entityData) ? entityData.length : 1,
-              entityData,
+              entityData: Array.isArray(entityData) ? entityData[0] : entityData,
             });
           } catch (historyError) {
             console.error("[EXPORT_HISTORY_ERROR]", historyError);
@@ -649,7 +649,7 @@ export function ExportButton({
             destination: portalInfo?.name,
             filename,
             rowCount: propertyIds.length || totalRows || 0,
-            entityData,
+            entityData: Array.isArray(entityData) ? entityData[0] : entityData,
           });
         } catch (historyError) {
           console.error("[EXPORT_HISTORY_ERROR]", historyError);

@@ -9,6 +9,7 @@
  */
 
 import { prismadb } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import type { ExportEntityType } from "@prisma/client";
 import { getChangeDetectionFields } from "./templates";
 import type { ExportTemplateType } from "./templates";
@@ -72,11 +73,11 @@ export interface ChangeDetectionResult {
 
 const DEFAULT_CHANGE_FIELDS: Record<ExportEntityType, string[]> = {
   PROPERTY: ["price", "property_status", "square_feet", "bedrooms", "description"],
-  CLIENT: ["client_status", "budget_min", "budget_max", "primary_email", "primary_phone"],
+  CONTACT: ["client_status", "budget_min", "budget_max", "primary_email", "primary_phone"],
   CALENDAR: ["title", "startTime", "endTime", "status"],
   REPORT: [],
   BULK_PROPERTIES: ["price", "property_status"],
-  BULK_CLIENTS: ["client_status"],
+  BULK_CONTACTS: ["client_status"],
 };
 
 // Field labels for display
@@ -225,7 +226,7 @@ export async function recordExport(params: RecordExportParams): Promise<ExportHi
       destination,
       filename,
       rowCount,
-      dataSnapshot,
+      dataSnapshot: dataSnapshot === null ? Prisma.JsonNull : (dataSnapshot as Prisma.InputJsonValue),
       changeFields,
     },
   });

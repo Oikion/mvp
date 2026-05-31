@@ -1,4 +1,3 @@
-// TODO: Fix type errors
 import { NextRequest } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
@@ -9,6 +8,33 @@ import {
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
 import { createReferralCode, formatReferralUrl } from "@/lib/referrals/create-referral-code";
+import { clerkClient } from "@clerk/nextjs/server";
+
+/**
+ * Verify an internal user id belongs to a Clerk organization.
+ * Users model has no organizationId — Clerk manages membership externally.
+ * Returns the user (id/name/email) if a member, otherwise null.
+ */
+async function findOrgUser(
+  userId: string,
+  organizationId: string
+): Promise<{ id: string; name: string | null; email: string } | null> {
+  const clerk = await clerkClient();
+  const memberships = await clerk.organizations.getOrganizationMembershipList({
+    organizationId,
+    limit: 200,
+  });
+  const memberClerkIds = memberships.data
+    .map((m) => m.publicUserData?.userId)
+    .filter(Boolean) as string[];
+
+  if (memberClerkIds.length === 0) return null;
+
+  return prismadb.users.findFirst({
+    where: { id: userId, clerkUserId: { in: memberClerkIds } },
+    select: { id: true, name: true, email: true },
+  });
+}
 
 /**
  * GET /api/v1/referrals/code
@@ -21,13 +47,7 @@ export const GET = withExternalApi(
     const userId = url.searchParams.get("userId") || context.createdById;
 
     // Verify user belongs to the organization
-    const user = await prismadb.users.findFirst({
-      where: {
-        id: userId,
-        organizationId: context.organizationId,
-      },
-      select: { id: true, name: true, email: true },
-    });
+    const user = await findOrgUser(userId, context.organizationId);
 
     if (!user) {
       return createApiErrorResponse("User not found or does not belong to this organization", 404);
@@ -124,13 +144,7 @@ export const POST = withExternalApi(
     }
 
     // Verify user belongs to the organization
-    const user = await prismadb.users.findFirst({
-      where: {
-        id: userId,
-        organizationId: context.organizationId,
-      },
-      select: { id: true, name: true, email: true },
-    });
+    const user = await findOrgUser(userId, context.organizationId);
 
     if (!user) {
       return createApiErrorResponse("User not found or does not belong to this organization", 404);
@@ -219,13 +233,7 @@ export const PUT = withExternalApi(
     }
 
     // Verify user belongs to the organization
-    const user = await prismadb.users.findFirst({
-      where: {
-        id: userId,
-        organizationId: context.organizationId,
-      },
-      select: { id: true, name: true, email: true },
-    });
+    const user = await findOrgUser(userId, context.organizationId);
 
     if (!user) {
       return createApiErrorResponse("User not found or does not belong to this organization", 404);

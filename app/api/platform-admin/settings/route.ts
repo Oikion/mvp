@@ -44,7 +44,7 @@ export async function GET() {
     }
 
     // Check platform admin access
-    const isAdmin = await isPlatformAdmin(userId);
+    const isAdmin = await isPlatformAdmin();
     if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     }
 
     // Check platform admin access
-    const isAdmin = await isPlatformAdmin(userId);
+    const isAdmin = await isPlatformAdmin();
     if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -198,7 +198,7 @@ export async function DELETE(request: Request) {
     }
 
     // Check platform admin access
-    const isAdmin = await isPlatformAdmin(userId);
+    const isAdmin = await isPlatformAdmin();
     if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

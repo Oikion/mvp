@@ -55,7 +55,7 @@ function createQuickAddSchema(t: (key: string) => string) {
         .min(1, t("CrmForm.validation.nameRequired"))
         .max(255),
       category: z.enum(CATEGORIES, {
-        required_error: t("CrmForm.validation.personTypeRequired"),
+        error: t("CrmForm.validation.personTypeRequired"),
       }),
       email: z.string().optional(),
       primaryPhone: z.string().max(50).optional(),

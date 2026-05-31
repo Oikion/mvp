@@ -114,7 +114,7 @@ export function DataRequestsDataTable({
         variant="outline"
         className={statusColors[status] || ""}
       >
-        {t(`status.${status}`)}
+        {t(`status.${status}` as Parameters<typeof t>[0])}
       </Badge>
     );
   };

@@ -36,7 +36,7 @@ export async function getSharedClient(clientId: string) {
   // friendlyId ambiguity attacks across orgs.
   const share = await prismadb.sharedEntity.findFirst({
     where: {
-      entityType: "CLIENT",
+      entityType: "CONTACT",
       entityId: resolvedClient.id,
       sharedWithId: currentUser.id,
     },
@@ -138,7 +138,7 @@ export async function hasClientShareAccess(clientId: string): Promise<boolean> {
 
   const share = await prismadb.sharedEntity.findFirst({
     where: {
-      entityType: "CLIENT",
+      entityType: "CONTACT",
       entityId: resolvedClient.id,
       sharedWithId: currentUser.id,
     },

@@ -183,6 +183,6 @@
       "name": "Documents",
       "description": "Recent documents and files"
     }
-  }
+  },
+  "deleteFailed": "Failed to delete"
 }
-

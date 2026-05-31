@@ -99,6 +99,13 @@
     "sendError": "Failed to send message. Please try again.",
     "maxCommentsReached": "Maximum messages reached for this feedback",
     "back": "Back"
+  },
+  "success": {
+    "title": "Feedback submitted",
+    "description": "Thank you for your feedback. We appreciate your help in making Oikion better!"
+  },
+  "error": {
+    "title": "Submission failed",
+    "description": "Something went wrong. Please try again later."
   }
 }
-

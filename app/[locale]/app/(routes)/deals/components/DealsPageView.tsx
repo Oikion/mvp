@@ -364,7 +364,7 @@ export default function DealsPageView({
 
                   {/* Right: Action Buttons */}
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <PermissionGate action="deal:create">
+                    <PermissionGate permission="canCreate">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -375,7 +375,7 @@ export default function DealsPageView({
                       </Button>
                     </PermissionGate>
 
-                    <PermissionGate action="deal:create">
+                    <PermissionGate permission="canCreate">
                       <Button size="sm" onClick={handleNewDeal}>
                         <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                         {commonT("new")} {t("title")}

@@ -338,7 +338,7 @@ export function ReferralsTab() {
                             : "destructive"
                         }
                       >
-                        {t(`status.${referral.status.toLowerCase()}`)}
+                        {t(`status.${referral.status.toLowerCase()}` as Parameters<typeof t>[0])}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium">
@@ -396,7 +396,7 @@ export function ReferralsTab() {
                             : "destructive"
                         }
                       >
-                        {t(`payoutStatus.${payout.status.toLowerCase()}`)}
+                        {t(`payoutStatus.${payout.status.toLowerCase()}` as Parameters<typeof t>[0])}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">

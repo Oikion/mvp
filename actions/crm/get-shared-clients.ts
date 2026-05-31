@@ -37,7 +37,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
   const shares = await prismadb.sharedEntity.findMany({
     where: {
       sharedWithId: currentUser.id,
-      entityType: "CLIENT",
+      entityType: "CONTACT",
     },
     include: {
       Users_SharedEntity_sharedByIdToUsers: {
@@ -85,6 +85,10 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
   for (const share of shares) {
     const client = decryptedById.get(share.entityId);
     if (!client) continue;
+    // The sharer relation is SetNull on departure; skip orphaned shares so the
+    // non-nullable sharedBy contract on SharedClientData holds.
+    const sharedBy = share.Users_SharedEntity_sharedByIdToUsers;
+    if (!sharedBy) continue;
     results.push({
       id: client.id,
       friendlyId: client.friendlyId ?? "",
@@ -97,7 +101,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
       sharedAt: share.createdAt,
       permissions: share.permissions,
       message: share.message,
-      sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
+      sharedBy,
     });
   }
   return results;

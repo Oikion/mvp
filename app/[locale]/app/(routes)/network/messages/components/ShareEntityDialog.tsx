@@ -35,7 +35,7 @@ import {
   type EntitySearchResult,
 } from "@/hooks/swr/useUnifiedEntitySearch";
 
-export type EntityType = "property" | "client" | "document" | "event" | "mandate";
+export type EntityType = "contact" | "property" | "document" | "event" | "request" | "deal";
 
 export interface SharedEntity {
   id: string;

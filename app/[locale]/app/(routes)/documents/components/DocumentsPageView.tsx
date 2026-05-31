@@ -182,7 +182,7 @@ export default function DocumentsPageView({
                 leftIcon={<Upload className="h-4 w-4" />}
                 onClick={() => setMassUploadOpen(true)}
               >
-                {commonT("import")}
+                {commonT("importLabel")}
               </Button>
               <MassUploadModal
                 open={massUploadOpen}

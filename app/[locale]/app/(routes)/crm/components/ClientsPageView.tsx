@@ -300,7 +300,7 @@ export default function ClientsPageView({
                     asChild
                   >
                     <Link href={`/${locale}/app/crm/import`}>
-                      {commonT("import")}
+                      {commonT("importLabel")}
                     </Link>
                   </Button>
                   <Sheet open={open} onOpenChange={() => setOpen(false)}>

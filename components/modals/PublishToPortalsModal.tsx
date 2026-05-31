@@ -204,7 +204,7 @@ export function PublishToPortalsModal({
       setSelectedPortals(prev => prev.filter(id => !enabledPortalIds.includes(id)));
     } else {
       // Select all from this category
-      setSelectedPortals(prev => [...new Set([...prev, ...enabledPortalIds])]);
+      setSelectedPortals(prev => Array.from(new Set([...prev, ...enabledPortalIds])));
     }
   };
 

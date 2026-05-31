@@ -16,7 +16,7 @@ export function TagsAdminClient({
   initialTags,
   initialCategories,
 }: TagsAdminClientProps) {
-  const t = useTranslations("common.tags");
+  const t = useTranslations("common.tags" as Parameters<typeof useTranslations>[0]);
   const { tags, isLoading, mutate } = useTags();
   const { categories } = useTagCategories();
   const { createTag, updateTag, deleteTag } = useTagMutations();

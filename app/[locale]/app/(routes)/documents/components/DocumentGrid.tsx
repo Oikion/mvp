@@ -1,6 +1,8 @@
 "use client";
 
-import type { JsonValue } from "@prisma/client/runtime/library";
+import type { Prisma } from "@prisma/client";
+
+type JsonValue = Prisma.JsonValue;
 import { DocumentCard } from "./DocumentCard";
 import { type MentionData } from "./MentionDisplay";
 import { useRouter } from "@/navigation";

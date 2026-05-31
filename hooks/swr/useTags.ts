@@ -343,11 +343,13 @@ export function useEntityTagMutations(entityType: EntityType, entityId: string) 
 export function useTagCategories() {
   const { tags } = useTags();
 
-  const categories = [...new Set(
-    tags
-      .map((t) => t.category)
-      .filter(Boolean)
-  )] as string[];
+  const categories = Array.from(
+    new Set(
+      tags
+        .map((t) => t.category)
+        .filter((category): category is string => Boolean(category))
+    )
+  );
 
   return {
     categories,

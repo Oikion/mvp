@@ -101,7 +101,7 @@ export default function EventCreateFormContent({
   // Use mutation hook for create
   const { createEvent, isCreating } = useCreateEvent();
 
-  const eventFormSchema = createEventFormSchema(t);
+  const eventFormSchema = createEventFormSchema(t as unknown as (key: string) => string);
   type EventFormValues = z.infer<typeof eventFormSchema>;
 
   const form = useForm<EventFormValues>({
@@ -152,7 +152,7 @@ export default function EventCreateFormContent({
         location: data.location,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
-        contactIds: data.contactIds,
+        clientIds: data.contactIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
         reminderMinutes: data.reminderMinutes,

@@ -6,7 +6,13 @@
  * real estate portals. Supports Greek language with proper encoding.
  */
 
-import type { PortalTemplate, FieldMapping, PropertyData } from "./index";
+import type {
+  PortalTemplate,
+  FieldMapping,
+  PropertyData,
+  ValidationError,
+  ValidationWarning,
+} from "./index";
 import {
   PROPERTY_TYPE_GREEK,
   TRANSACTION_TYPE_GREEK,
@@ -427,8 +433,8 @@ export const SPITOGATOS_TEMPLATE: PortalTemplate = {
     maxImages: 30,
     requiredFields: ["property_name", "price", "square_feet", "property_type", "address_city"],
     customValidation: (property: PropertyData) => {
-      const errors = [];
-      const warnings = [];
+      const errors: ValidationError[] = [];
+      const warnings: ValidationWarning[] = [];
       
       // Check price is reasonable
       if (property.price && property.price < 1000) {

@@ -181,6 +181,9 @@
     "allFailed": "Όλες οι μεταφορτώσεις απέτυχαν",
     "partialSuccess": "{success} μεταφορτώθηκαν, {failed} απέτυχαν",
     "allFilesMustHaveNames": "Όλα τα αρχεία πρέπει να έχουν ονόματα"
+  },
+  "pageDropZone": {
+    "dropFilesHere": "Αφήστε τα αρχεία εδώ",
+    "uploadMultipleFiles": "Μεταφορτώστε πολλά αρχεία ταυτόχρονα"
   }
 }
-

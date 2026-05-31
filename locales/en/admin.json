@@ -162,5 +162,9 @@
   "promotedToAdmin": "Promoted to admin",
   "promoteError": "Failed to promote",
   "demotedFromAdmin": "Demoted from admin",
-  "demoteError": "Failed to demote"
+  "demoteError": "Failed to demote",
+  "selectMemberRequired": "Please select a member",
+  "transferSuccess": "Ownership transferred successfully",
+  "transferError": "Failed to transfer ownership",
+  "cannotEditOwnerRole": "Cannot edit the owner's role"
 }

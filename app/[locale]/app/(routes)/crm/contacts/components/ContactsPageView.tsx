@@ -257,7 +257,7 @@ export default function ContactsPageView({
                       className="h-4 w-4 mr-1"
                       aria-hidden="true"
                     />
-                    {commonT("import")}
+                    {commonT("importLabel")}
                   </Link>
                 </Button>
                 <Button size="sm" onClick={() => setWizardOpen(true)}>

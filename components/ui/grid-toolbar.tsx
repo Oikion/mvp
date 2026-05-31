@@ -215,8 +215,8 @@ export function GridToolbar({
                 setTimeout(() => setIsRefreshing(false), 600);
               }
             }}
-            aria-label={t("refresh")}
-            title={t("refresh")}
+            aria-label={t("buttons.refresh")}
+            title={t("buttons.refresh")}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
           </Button>

@@ -40,7 +40,7 @@ const createQuickAddClientSchema = (
   z
     .object({
       client_name: z.string().min(1, t("CrmForm.validation.nameRequired")),
-      person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"], { required_error: t("CrmForm.validation.personTypeRequired") }),
+      person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"], { error: t("CrmForm.validation.personTypeRequired") }),
       primary_email: z.string().optional(),
       primary_phone: z.string().optional(),
       assigned_to: z.string().optional(),
@@ -79,7 +79,10 @@ export function QuickAddClient({
   const locale = useLocale();
   const tCommon = useTranslations("common");
 
-  const quickAddClientSchema = createQuickAddClientSchema(t, tCommon);
+  const quickAddClientSchema = createQuickAddClientSchema(
+    t as unknown as (key: string) => string,
+    tCommon as unknown as (key: string) => string
+  );
   type QuickAddClientFormValues = z.infer<typeof quickAddClientSchema>;
 
   const form = useForm<QuickAddClientFormValues>({

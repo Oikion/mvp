@@ -2,7 +2,7 @@
   "new": "New",
   "saved": "Saved",
   "quickAdd": "Quick Add",
-  "import": "Import",
+  "importLabel": "Import",
   "learnMore": "Learn more",
   "deletedUser": "Deleted User",
   "tryIt": "Try it",
@@ -915,5 +915,18 @@
     "betaTitle": "You're helping build something great",
     "betaDescription": "Oikion is an early-access platform, actively being developed for Greek real estate professionals. We know unexpected errors are frustrating — your continued use and feedback are what allow us to build the best platform for real estate agents. Thank you for your patience and support.",
     "contactSupport": "If this error persists, please contact support with the Error ID."
+  },
+  "deleteSuccess": "Deleted successfully",
+  "tags": {
+    "title": "Tags",
+    "description": "Manage your organization's tags",
+    "created": "Tag created",
+    "createError": "Failed to create tag",
+    "updated": "Tag updated",
+    "updateError": "Failed to update tag",
+    "deleted": "Tag deleted",
+    "deleteError": "Failed to delete tag",
+    "noTags": "No tags",
+    "addTags": "Add tags"
   }
 }

@@ -220,8 +220,10 @@ export function matchQuickPreferences(
         break;
       case "renovated":
       case "newBuild":
-        isMatched = property.condition?.toLowerCase().includes("excellent") || 
-                    property.condition?.toLowerCase().includes("very_good");
+        isMatched = Boolean(
+          property.condition?.toLowerCase().includes("excellent") ||
+            property.condition?.toLowerCase().includes("very_good")
+        );
         break;
       default:
         // Check in amenities or description

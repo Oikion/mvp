@@ -1,5 +1,6 @@
-// TODO: Fix type errors
 "use client"
+
+import * as React from "react"
 
 /**
  * @deprecated This Radix UI Toaster component is no longer used.
@@ -41,7 +42,13 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toasts.map(function ({ id, title, description, action, ...props }: {
+        id: string;
+        title?: React.ReactNode;
+        description?: React.ReactNode;
+        action?: React.ReactNode;
+        [key: string]: unknown;
+      }) {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">

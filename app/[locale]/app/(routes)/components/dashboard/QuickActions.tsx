@@ -81,12 +81,12 @@ export const QuickActions: React.FC = () => {
                   >
                     <Link href={action.href}>
                       {action.icon}
-                      <span className="sr-only">{t(`quickAction.${action.key}`)}</span>
+                      <span className="sr-only">{t(`quickAction.${action.key}` as Parameters<typeof t>[0])}</span>
                     </Link>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{t(`quickAction.${action.key}`)}</p>
+                  <p>{t(`quickAction.${action.key}` as Parameters<typeof t>[0])}</p>
                 </TooltipContent>
               </Tooltip>
             ))}

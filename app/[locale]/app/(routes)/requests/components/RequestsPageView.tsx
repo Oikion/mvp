@@ -250,7 +250,7 @@ export default function RequestsPageView({
               <Button variant="outline" size="sm" asChild>
                 <Link href="/app/import/add">
                   <FileSpreadsheet className="h-4 w-4 mr-1" aria-hidden="true" />
-                  {tCommon("import")}
+                  {tCommon("importLabel")}
                 </Link>
               </Button>
               <Button size="sm" onClick={() => setWizardOpen(true)}>

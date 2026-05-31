@@ -1,4 +1,3 @@
-// TODO: Fix type errors
 /**
  * Email Notification Service
  * Handles sending email notifications based on user preferences
@@ -69,6 +68,8 @@ const categoryToPreference: Record<NotificationCategory, PreferenceCategory> = {
   ACCOUNT_TASK_UPDATED: "crm",
   CLIENT_CREATED: "crm",
   CLIENT_ASSIGNED: "crm",
+  CONTACT_CREATED: "crm",
+  CONTACT_ASSIGNED: "crm",
   PROPERTY_CREATED: "crm",
   PROPERTY_ASSIGNED: "crm",
   PROPERTY_UPDATED: "crm",
@@ -164,7 +165,12 @@ async function getUserNotificationSettings(userId: string) {
     return await prismadb.userNotificationSettings.upsert({
       where: { userId },
       update: {},
-      create: { userId, unsubscribeToken: token },
+      create: {
+        id: crypto.randomUUID(),
+        userId,
+        unsubscribeToken: token,
+        updatedAt: new Date(),
+      },
     });
   }
 
@@ -511,6 +517,52 @@ function getSubjectLine(
       en: "Access request for a shared item",
       el: "Αίτηση πρόσβασης σε κοινόχρηστο στοιχείο",
       cz: "Žádost o přístup ke sdílené položce",
+    },
+
+    // Contact (v2.0 — replaces CLIENT_*)
+    CONTACT_CREATED: {
+      en: "New contact added",
+      el: "Νέα επαφή προστέθηκε",
+      cz: "Nový kontakt přidán",
+    },
+    CONTACT_ASSIGNED: {
+      en: "Contact assigned to you",
+      el: "Επαφή ανατέθηκε σε εσάς",
+      cz: "Kontakt vám byl přiřazen",
+    },
+
+    // Messaging
+    MESSAGE_RECEIVED: {
+      en: `${data.actorName || "Someone"} sent you a message`,
+      el: `Ο/Η ${data.actorName || "Κάποιος"} σας έστειλε ένα μήνυμα`,
+      cz: `${data.actorName || "Někdo"} vám poslal zprávu`,
+    },
+    MESSAGE_MENTION: {
+      en: `${data.actorName || "Someone"} mentioned you in a message`,
+      el: `Ο/Η ${data.actorName || "Κάποιος"} σας ανέφερε σε ένα μήνυμα`,
+      cz: `${data.actorName || "Někdo"} vás zmínil ve zprávě`,
+    },
+    CHANNEL_INVITE: {
+      en: `${data.actorName || "Someone"} invited you to a channel`,
+      el: `Ο/Η ${data.actorName || "Κάποιος"} σας προσκάλεσε σε ένα κανάλι`,
+      cz: `${data.actorName || "Někdo"} vás pozval do kanálu`,
+    },
+    CHANNEL_MESSAGE: {
+      en: "New message in a channel",
+      el: "Νέο μήνυμα σε κανάλι",
+      cz: "Nová zpráva v kanálu",
+    },
+
+    // Contact form & organization
+    CONTACT_FORM_SUBMISSION: {
+      en: "New contact form submission",
+      el: "Νέα υποβολή φόρμας επικοινωνίας",
+      cz: "Nové odeslání kontaktního formuláře",
+    },
+    ORGANIZATION_INVITE: {
+      en: "You have been invited to an organization",
+      el: "Έχετε προσκληθεί σε έναν οργανισμό",
+      cz: "Byli jste pozváni do organizace",
     },
   };
 

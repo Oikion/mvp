@@ -126,7 +126,8 @@
     "linkedEntities": "Συνδεδεμένες Οντότητες",
     "failedToCreateEvent": "Αποτυχία δημιουργίας συμβάντος",
     "advanced": "Προχωρημένα",
-    "timezone": "Ζώνη ώρας"
+    "timezone": "Ζώνη ώρας",
+    "linkContacts": "Σύνδεση Επαφών"
   },
   "locationSearch": {
     "placeholder": "Αναζήτηση ελληνικών διευθύνσεων...",

@@ -125,12 +125,12 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
     
     if (isProperties) {
       return {
-        label: getPropertyStatusLabel(status, tCommon),
+        label: getPropertyStatusLabel(status, tCommon as unknown as (key: string) => string),
         variant: getPropertyStatusVariant(status),
       };
     } else {
       return {
-        label: getClientStatusLabel(status, tCommon),
+        label: getClientStatusLabel(status, tCommon as unknown as (key: string) => string),
         variant: getClientStatusVariant(status),
       };
     }

@@ -67,7 +67,8 @@
     "pinnedSection": "Pinned",
     "pinToTop": "Pin to top",
     "unpin": "Unpin",
-    "pinLimitReached": "Maximum 5 pins"
+    "pinLimitReached": "Maximum 5 pins",
+    "chatGPT": "ChatGPT"
   },
   "Navigation": {
     "upgradeToPro": "Upgrade to Pro",
@@ -128,4 +129,3 @@
     }
   }
 }
-

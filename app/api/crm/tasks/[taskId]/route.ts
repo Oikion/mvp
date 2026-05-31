@@ -43,13 +43,6 @@ export async function GET(
             avatar: true,
           },
         },
-        Clients: {
-          select: {
-            id: true,
-            client_name: true,
-            primary_email: true,
-          },
-        },
         CalendarEvent: {
           select: {
             id: true,
@@ -83,7 +76,34 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(task);
+    // `account` stores a linked Contact id but has no Prisma relation defined.
+    // Resolve it manually (org-scoped) to build the `crm_accounts` payload.
+    const linkedContact = task.account
+      ? await prismadb.contact.findFirst({
+          where: { id: task.account, organizationId },
+          select: {
+            id: true,
+            friendlyId: true,
+            displayName: true,
+            email: true,
+          },
+        })
+      : null;
+
+    return NextResponse.json({
+      ...task,
+      assigned_user: task.Users,
+      crm_accounts: linkedContact
+        ? {
+            id: linkedContact.id,
+            friendlyId: linkedContact.friendlyId,
+            client_name: linkedContact.displayName,
+            primary_email: linkedContact.email,
+          }
+        : null,
+      calendarEvent: task.CalendarEvent,
+      comments: task.crm_Accounts_Tasks_Comments,
+    });
   } catch (error: unknown) {
     console.error('[GET_TASK]', error);
     return NextResponse.json(

@@ -109,5 +109,11 @@
       "enabledDesc": "Ορατό στους συνεργάτες του Polis για matchmaking.",
       "disabledDesc": "Δεν κοινοποιείται στο Polis."
     }
-  }
+  },
+  "myConnections": "Οι συνδέσεις μου",
+  "pending": "Σε εκκρεμότητα",
+  "sent": "Απεσταλμένα",
+  "search": "Αναζήτηση",
+  "loading": "Φόρτωση…",
+  "loadMore": "Φόρτωση περισσότερων"
 }

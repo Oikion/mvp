@@ -1,4 +1,3 @@
-// TODO: Fix type errors
 "use client";
 
 import { useState, useEffect } from "react";
@@ -109,8 +108,8 @@ export function FloatingQuickAddButtons() {
             open={clientOpen}
             onOpenChange={setClientOpen}
             organizationUsers={users}
-            onContinueToFull={(clientId) => {
-              toast.success(tCommon, { description: tCommon, isTranslationKey: false });
+            onContinueToFull={() => {
+              toast.success(tCommon("clientCreated"), { isTranslationKey: false });
               // Could navigate to edit page here if needed
             }}
           />
@@ -134,7 +133,7 @@ export function FloatingQuickAddButtons() {
             onOpenChange={setPropertyOpen}
             users={users}
             onContinueToFull={(propertyId) => {
-              toast.success(tCommon, { description: tCommon, isTranslationKey: false });
+              toast.success(tCommon("propertyCreated"), { isTranslationKey: false });
               // Could navigate to edit page here if needed
             }}
           />

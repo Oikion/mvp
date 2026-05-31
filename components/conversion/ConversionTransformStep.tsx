@@ -296,8 +296,8 @@ export function ConversionTransformStep({
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-3">
                       <span className="font-medium">
-                        {tImport.has(`fields.${targetField}`) 
-                          ? tImport(`fields.${targetField}`) 
+                        {tImport.has(`fields.${targetField}` as Parameters<typeof tImport>[0]) 
+                          ? tImport(`fields.${targetField}` as Parameters<typeof tImport>[0]) 
                           : targetField}
                       </span>
                       <Badge variant="secondary" className="text-xs">

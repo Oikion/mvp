@@ -101,7 +101,7 @@ export default function PropertiesPageView({
   const statusOptions = useMemo(() => {
     return statuses.map((status) => ({
       ...status,
-      label: t(`PropertyForm.status.${status.value}`),
+      label: t(`PropertyForm.status.${status.value}` as Parameters<typeof t>[0]),
     }));
   }, [t]);
 
@@ -293,7 +293,7 @@ export default function PropertiesPageView({
                     asChild
                   >
                     <Link href={`/${locale}/app/mls/import`}>
-                      {commonT("import")}
+                      {commonT("importLabel")}
                     </Link>
                   </Button>
                   <Sheet open={open} onOpenChange={() => setOpen(false)}>

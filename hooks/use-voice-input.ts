@@ -1,4 +1,3 @@
-// TODO: Fix type errors
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -216,9 +215,9 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
         }
         hasSpokenRef.current = true;
         setIsSpeaking(true);
-        
+
         // Reset silence timeout on each result
-        resetSilenceTimeout();
+        startSilenceTimeout(finalTranscript + interimTranscript);
       }
     };
 
@@ -396,10 +395,56 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
   };
 }
 
-// Type declarations for browsers
+// Type declarations for the Web Speech API (not part of the standard TS DOM lib).
 declare global {
+  interface SpeechRecognitionAlternative {
+    readonly transcript: string;
+    readonly confidence: number;
+  }
+
+  interface SpeechRecognitionResult {
+    readonly isFinal: boolean;
+    readonly length: number;
+    item(index: number): SpeechRecognitionAlternative;
+    [index: number]: SpeechRecognitionAlternative;
+  }
+
+  interface SpeechRecognitionResultList {
+    readonly length: number;
+    item(index: number): SpeechRecognitionResult;
+    [index: number]: SpeechRecognitionResult;
+  }
+
+  interface SpeechRecognitionEvent extends Event {
+    readonly resultIndex: number;
+    readonly results: SpeechRecognitionResultList;
+  }
+
+  interface SpeechRecognitionErrorEvent extends Event {
+    readonly error: string;
+    readonly message: string;
+  }
+
+  interface SpeechRecognition extends EventTarget {
+    lang: string;
+    continuous: boolean;
+    interimResults: boolean;
+    maxAlternatives: number;
+    onstart: (() => void) | null;
+    onresult: ((event: SpeechRecognitionEvent) => void) | null;
+    onspeechend: (() => void) | null;
+    onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+    onend: (() => void) | null;
+    start(): void;
+    stop(): void;
+    abort(): void;
+  }
+
+  // eslint-disable-next-line no-var
+  var SpeechRecognition: { new (): SpeechRecognition };
+
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: { new (): SpeechRecognition };
+    webkitSpeechRecognition: { new (): SpeechRecognition };
   }
 }

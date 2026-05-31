@@ -61,7 +61,7 @@ export function OwnershipTransfer() {
 
   const handleTransfer = async () => {
     if (!selectedUserId) {
-      toast.error(t("selectMemberRequired") || "Please select a member", { isTranslationKey: false });
+      toast.error(t("selectMemberRequired" as Parameters<typeof t>[0]) || "Please select a member", { isTranslationKey: false });
       return;
     }
 
@@ -80,7 +80,7 @@ export function OwnershipTransfer() {
 
       const result = await response.json();
 
-      toast.success(t("transferSuccess") || "Ownership transferred", { description: result.message, isTranslationKey: false });
+      toast.success(t("transferSuccess" as Parameters<typeof t>[0]) || "Ownership transferred", { description: result.message, isTranslationKey: false });
 
       setOpen(false);
       setConfirmStep(false);
@@ -89,7 +89,7 @@ export function OwnershipTransfer() {
       // Refresh the page to reflect new role
       router.refresh();
     } catch (error: any) {
-      toast.error(t("transferError") || "Transfer failed", { description: error.message, isTranslationKey: false });
+      toast.error(t("transferError" as Parameters<typeof t>[0]) || "Transfer failed", { description: error.message, isTranslationKey: false });
     } finally {
       setIsTransferring(false);
     }

@@ -181,6 +181,9 @@
     "allFailed": "All uploads failed",
     "partialSuccess": "{success} uploaded, {failed} failed",
     "allFilesMustHaveNames": "All files must have names"
+  },
+  "pageDropZone": {
+    "dropFilesHere": "Drop files here",
+    "uploadMultipleFiles": "Upload multiple files at once"
   }
 }
-

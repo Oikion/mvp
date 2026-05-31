@@ -1,14 +1,12 @@
-// TODO: Fix type errors
 import { NextResponse } from "next/server";
-import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 
 export async function POST(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  
+
   try {
     const currentUser = await getCurrentUser();
-    
+
     const userId = params.userId;
 
     if (!userId) {
@@ -26,39 +24,13 @@ export async function POST(req: Request, props: { params: Promise<{ userId: stri
         status: 401,
       });
     }
-    
-    const checkIfExist = await prismadb.openAi_keys.findFirst({
-      where: {
-        user: userId,
-      },
-    });
-    
-    if (checkIfExist !== null) {
-      const updateNotion = await prismadb.openAi_keys.update({
-        where: {
-          id: checkIfExist.id,
-        },
-        data: {
-          api_key: secretKey,
-          organization_id: organizationId,
-        },
-      });
-      return NextResponse.json(updateNotion, {
-        status: 200,
-      });
-    } else {
-      const setOpenAiKey = await prismadb.openAi_keys.create({
-        data: {
-          api_key: secretKey,
-          organization_id: organizationId,
-          user: userId,
-        },
-      });
 
-      return NextResponse.json(setOpenAiKey, {
-        status: 200,
-      });
-    }
+    // The `openAi_keys` storage model was removed from the schema; this
+    // integration is no longer available. Auth/ownership checks are retained
+    // above so the endpoint stays consistent with the rest of the API surface.
+    return new NextResponse("OpenAI key storage is not available", {
+      status: 501,
+    });
   } catch (error) {
     console.log("[USER_UPDATE_OPENAIKEY]", error);
     return new NextResponse("Initial error", { status: 500 });

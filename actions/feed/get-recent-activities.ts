@@ -151,7 +151,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         avatar: assignedUser.avatar || undefined,
       } : undefined,
       entityId: client.id,
-      entityFriendlyId: client.friendlyId,
+      entityFriendlyId: client.friendlyId ?? undefined,
       metadata: {
         status: client.status,
       },

@@ -39,7 +39,7 @@ import {
   GitBranch,
   Loader2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { advanceDealStage, setDealStage } from "@/actions/deals";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { SendForSigningModal } from "@/components/signing/SendForSigningModal";

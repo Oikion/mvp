@@ -203,4 +203,4 @@ export {
   dialogContentVariants,
 };
 
-export type { DialogContentProps, DialogContentSize };
+export type { DialogContentProps };

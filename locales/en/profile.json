@@ -1,9 +1,48 @@
 {
   "title": "Profile Settings",
   "publicProfile": {
-    "title": "Public Profile",
-    "description": "Preview and manage your public agent profile",
-    "noUserData": "No user data."
+    "nav": {
+      "signIn": "Sign In",
+      "dashboard": "Dashboard"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "agents": "Agents",
+      "agencies": "Agencies"
+    },
+    "hero": {
+      "yearsExperience": "{count} years experience",
+      "properties": "Properties",
+      "followers": "Followers",
+      "founded": "Founded"
+    },
+    "sections": {
+      "contact": "Contact",
+      "serviceAreas": "Service Areas",
+      "languages": "Languages",
+      "certifications": "Certifications",
+      "aboutMe": "About Me",
+      "aboutAgency": "About Us",
+      "properties": "Properties",
+      "location": "Location",
+      "license": "License",
+      "noContactInfo": "No contact information added",
+      "noProperties": "No properties available at the moment.",
+      "noPropertiesOwner": "You haven't added any properties to your showcase yet.",
+      "addProperties": "Add Properties",
+      "viewMyProperties": "View My Properties",
+      "viewAllProperties": "View all properties"
+    },
+    "share": {
+      "share": "Share",
+      "copied": "Link copied",
+      "copyFailed": "Failed to copy link"
+    },
+    "footer": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "learnMore": "Learn more"
+    }
   },
   "tabs": {
     "profileInfo": "Profile Info",
@@ -357,50 +396,6 @@
       "submit": "Send Inquiry"
     }
   },
-  "publicProfile": {
-    "nav": {
-      "signIn": "Sign In",
-      "dashboard": "Dashboard"
-    },
-    "breadcrumb": {
-      "home": "Home",
-      "agents": "Agents",
-      "agencies": "Agencies"
-    },
-    "hero": {
-      "yearsExperience": "{count} years experience",
-      "properties": "Properties",
-      "followers": "Followers",
-      "founded": "Founded"
-    },
-    "sections": {
-      "contact": "Contact",
-      "serviceAreas": "Service Areas",
-      "languages": "Languages",
-      "certifications": "Certifications",
-      "aboutMe": "About Me",
-      "aboutAgency": "About Us",
-      "properties": "Properties",
-      "location": "Location",
-      "license": "License",
-      "noContactInfo": "No contact information added",
-      "noProperties": "No properties available at the moment.",
-      "noPropertiesOwner": "You haven't added any properties to your showcase yet.",
-      "addProperties": "Add Properties",
-      "viewMyProperties": "View My Properties",
-      "viewAllProperties": "View all properties"
-    },
-    "share": {
-      "share": "Share",
-      "copied": "Link copied",
-      "copyFailed": "Failed to copy link"
-    },
-    "footer": {
-      "privacy": "Privacy",
-      "terms": "Terms",
-      "learnMore": "Learn more"
-    }
-  },
   "inAppProfile": {
     "follow": "Follow",
     "followPending": "Pending",
@@ -414,5 +409,26 @@
     "viewPublicProfile": "View Public Profile",
     "report": "Report",
     "mutualConnections": "{count, plural, one {# mutual connection} other {# mutual connections}}"
+  },
+  "contactForm": {
+    "title": "Contact ",
+    "name": "Full Name",
+    "namePlaceholder": "Your full name",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "message": "Message",
+    "messagePlaceholder": "Your message...",
+    "sending": "Sending...",
+    "send": "Send",
+    "successMessage": "Message sent successfully",
+    "errorMessage": "Failed to send message",
+    "thankYou": "Thank you",
+    "confirmationMessage": "We will get back to you soon.",
+    "sendAnother": "Send another message"
+  },
+  "agencyProfile": {
+    "title": "Agency Profile",
+    "description": "Manage your agency's public profile",
+    "agencyOnly": "This page is only available for agency workspaces."
   }
 }

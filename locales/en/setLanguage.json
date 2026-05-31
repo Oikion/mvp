@@ -5,6 +5,6 @@
   "languageRequired": "Please select a language.",
   "changingLanguage": "Changing Oikion language",
   "languageChangedTo": "You change user language to: {language}",
-  "selectLanguagePlaceholder": "Select language"
+  "selectLanguagePlaceholder": "Select language",
+  "languageChanged": "Language changed"
 }
-

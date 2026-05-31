@@ -198,13 +198,13 @@ const FeedbackForm = ({ setOpen, initialFeedbackType, initialFeedback }: Feedbac
         clearLogs();
       }
       
-      toast.success(t("success.title"), { description: t("success.description"), isTranslationKey: false });
+      toast.success(t("success.title" as Parameters<typeof t>[0]), { description: t("success.description" as Parameters<typeof t>[0]), isTranslationKey: false });
       form.reset();
       setAttachments([]);
       setOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error(t("error.title"), { description: t("error.description"), isTranslationKey: false });
+      toast.error(t("error.title" as Parameters<typeof t>[0]), { description: t("error.description" as Parameters<typeof t>[0]), isTranslationKey: false });
     } finally {
       setLoading(false);
     }

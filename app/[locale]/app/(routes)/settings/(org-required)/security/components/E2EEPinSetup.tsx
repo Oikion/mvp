@@ -36,7 +36,7 @@ export function E2EEPinSetup() {
   const [success, setSuccess] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
 
-  const pinStrength = getPinStrength(pin, t);
+  const pinStrength = getPinStrength(pin, t as unknown as (key: string) => string);
   const pinsMatch = pin.length >= 6 && pin === confirmPin;
   const canSubmit = pinsMatch && !isSubmitting;
 

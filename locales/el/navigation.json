@@ -67,7 +67,8 @@
     "pinnedSection": "Καρφιτσωμένα",
     "pinToTop": "Καρφίτσωσε στην κορυφή",
     "unpin": "Ξεκαρφίτσωσε",
-    "pinLimitReached": "Μέγιστο 5 καρφιτσώματα"
+    "pinLimitReached": "Μέγιστο 5 καρφιτσώματα",
+    "chatGPT": "ChatGPT"
   },
   "Navigation": {
     "upgradeToPro": "Αναβάθμιση σε Pro",
@@ -128,4 +129,3 @@
     }
   }
 }
-

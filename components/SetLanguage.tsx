@@ -46,7 +46,7 @@ const languages = availableLocales.map((locale) => ({
 
 const FormSchema = (t: (key: string) => string) => z.object({
   language: z.string({
-    required_error: t("setLanguage.languageRequired"),
+    error: t("setLanguage.languageRequired"),
   }),
 });
 
@@ -61,7 +61,7 @@ export function SetLanguage({ userId }: Props) {
   const { toast } = useAppToast();
 
   const form = useForm<z.infer<ReturnType<typeof FormSchema>>>({
-    resolver: zodResolver(FormSchema(t)),
+    resolver: zodResolver(FormSchema(t as unknown as (key: string) => string)),
   });
 
   const [isLoading, setIsLoading] = useState(false);

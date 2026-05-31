@@ -1,4 +1,3 @@
-// TODO: Fix type errors
 "use client";
 
 import { useState } from "react";
@@ -44,18 +43,18 @@ export function ResetWorkspaceDialog({ trigger }: ResetWorkspaceDialogProps) {
       const result = await resetPersonalWorkspace();
 
       if (result.error) {
-        toast.error(tCommon, { description: result.error, isTranslationKey: false });
+        toast.error(tCommon("error"), { description: result.error, isTranslationKey: false });
         return;
       }
 
-      toast.success(tCommon, { description: t, isTranslationKey: false });
+      toast.success(t("resetSuccess"), { isTranslationKey: false });
 
       setOpen(false);
       setConfirmText("");
       router.refresh();
     } catch (error) {
       console.error("Error resetting workspace:", error);
-      toast.error(tCommon, { description: tCommon, isTranslationKey: false });
+      toast.error(tCommon("error"), { isTranslationKey: false });
     } finally {
       setIsResetting(false);
     }

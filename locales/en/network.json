@@ -109,5 +109,11 @@
       "enabledDesc": "Visible to your Polis peers for matching.",
       "disabledDesc": "Not shared with Polis."
     }
-  }
+  },
+  "myConnections": "My connections",
+  "pending": "Pending",
+  "sent": "Sent",
+  "search": "Search",
+  "loading": "Loading…",
+  "loadMore": "Load more"
 }

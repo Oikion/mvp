@@ -324,7 +324,7 @@ export default function DealView({ deal }: DealViewProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <PermissionGate action="deal:update">
+          <PermissionGate permission="canEdit">
             <Button
               variant="outline"
               size="sm"
@@ -334,7 +334,7 @@ export default function DealView({ deal }: DealViewProps) {
               {t("detail.edit")}
             </Button>
           </PermissionGate>
-          <PermissionGate action="deal:delete">
+          <PermissionGate permission="canDelete">
             <Button
               variant="outline"
               size="sm"
@@ -365,7 +365,7 @@ export default function DealView({ deal }: DealViewProps) {
         {/* Left column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Pipeline */}
-          <PermissionGate action="deal:advance_stage">
+          <PermissionGate permission="canEdit">
             <DealStagePipeline
               dealId={deal.id}
               currentStage={deal.stage}
@@ -376,7 +376,7 @@ export default function DealView({ deal }: DealViewProps) {
           </PermissionGate>
 
           {/* Parties */}
-          <PermissionGate action="deal:manage_parties">
+          <PermissionGate permission="canEdit">
             <DealPartiesPanel
               dealId={deal.id}
               parties={deal.dealParties ?? []}

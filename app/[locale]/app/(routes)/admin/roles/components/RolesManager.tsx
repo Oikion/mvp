@@ -77,7 +77,7 @@ export function RolesManager() {
 
   const handleSave = async () => {
     if (selectedRole === OrgRole.OWNER) {
-      toast.error(t("cannotEditOwnerRole") || "Cannot edit owner role", { isTranslationKey: false });
+      toast.error(t("cannotEditOwnerRole" as Parameters<typeof t>[0]) || "Cannot edit owner role", { isTranslationKey: false });
       return;
     }
 

@@ -1,4 +1,3 @@
-// TODO: Fix type errors
 "use client";
 
 import { useState } from "react";
@@ -43,14 +42,14 @@ export function WorkspaceToggle() {
       if (checked) {
         // Switching to Personal Workspace
         if (!personalOrgId) {
-          toast.error(t, { description: t, isTranslationKey: false });
+          toast.error(t("personalNotFound"), { isTranslationKey: false });
           return;
         }
         await setActive({ organization: personalOrgId });
       } else {
         // Switching to Agency
         if (!agencyOrg?.organization.id) {
-          toast.error(t, { description: t, isTranslationKey: false });
+          toast.error(t("agencyNotFound"), { isTranslationKey: false });
           return;
         }
         await setActive({ organization: agencyOrg.organization.id });
@@ -65,7 +64,7 @@ export function WorkspaceToggle() {
       router.refresh();
     } catch (error) {
       console.error("Error switching workspace:", error);
-      toast.error(t, { description: t, isTranslationKey: false });
+      toast.error(t("switchError"), { isTranslationKey: false });
     } finally {
       setIsSwitching(false);
     }

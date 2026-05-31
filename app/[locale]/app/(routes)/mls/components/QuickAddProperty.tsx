@@ -36,7 +36,7 @@ import {
 
 const createQuickAddSchema = (t: (key: string) => string, tCommon: (key: string) => string) => z.object({
   property_name: z.string().min(1, t("PropertyForm.validation.propertyNameRequired")),
-  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"], { required_error: t("PropertyForm.validation.propertyTypeRequired") }),
+  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"], { error: t("PropertyForm.validation.propertyTypeRequired") }),
   property_type_other: z.string().optional(),
   transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE", "AUCTION"]).optional(),
   municipality: z.string().optional(),
@@ -65,7 +65,10 @@ export function QuickAddProperty({ open, onOpenChange, users, onSuccess, onConti
   const t = useTranslations("mls");
   const tCommon = useTranslations("common");
 
-  const quickAddSchema = createQuickAddSchema(t, tCommon);
+  const quickAddSchema = createQuickAddSchema(
+    t as unknown as (key: string) => string,
+    tCommon as unknown as (key: string) => string
+  );
   type QuickAddFormValues = z.infer<typeof quickAddSchema>;
 
   const form = useForm<QuickAddFormValues>({

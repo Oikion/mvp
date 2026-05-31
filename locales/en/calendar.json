@@ -126,7 +126,8 @@
     "linkedEntities": "Linked Entities",
     "failedToCreateEvent": "Failed to create event",
     "advanced": "Advanced",
-    "timezone": "Timezone"
+    "timezone": "Timezone",
+    "linkContacts": "Link Contacts"
   },
   "locationSearch": {
     "placeholder": "Search Greek addresses...",

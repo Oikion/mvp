@@ -1,9 +1,48 @@
 {
   "title": "Ρυθμίσεις Προφίλ",
   "publicProfile": {
-    "title": "Δημόσιο Προφίλ",
-    "description": "Προεπισκόπηση και διαχείριση του δημόσιου προφίλ σας",
-    "noUserData": "Δεν υπάρχουν δεδομένα χρήστη."
+    "nav": {
+      "signIn": "Σύνδεση",
+      "dashboard": "Πίνακας Ελέγχου"
+    },
+    "breadcrumb": {
+      "home": "Αρχική",
+      "agents": "Πράκτορες",
+      "agencies": "Γραφεία"
+    },
+    "hero": {
+      "yearsExperience": "{count} χρόνια εμπειρίας",
+      "properties": "Ακίνητα",
+      "followers": "Ακόλουθοι",
+      "founded": "Ίδρυση"
+    },
+    "sections": {
+      "contact": "Επικοινωνία",
+      "serviceAreas": "Περιοχές Εξυπηρέτησης",
+      "languages": "Γλώσσες",
+      "certifications": "Πιστοποιήσεις",
+      "aboutMe": "Σχετικά με εμένα",
+      "aboutAgency": "Σχετικά με εμάς",
+      "properties": "Ακίνητα",
+      "location": "Τοποθεσία",
+      "license": "Άδεια",
+      "noContactInfo": "Δεν έχουν προστεθεί στοιχεία επικοινωνίας",
+      "noProperties": "Δεν υπάρχουν διαθέσιμα ακίνητα αυτή τη στιγμή.",
+      "noPropertiesOwner": "Δεν έχετε προσθέσει ακίνητα στη βιτρίνα σας ακόμα.",
+      "addProperties": "Προσθήκη Ακινήτων",
+      "viewMyProperties": "Τα Ακίνητά μου",
+      "viewAllProperties": "Δείτε όλα τα ακίνητα"
+    },
+    "share": {
+      "share": "Κοινοποίηση",
+      "copied": "Ο σύνδεσμος αντιγράφηκε",
+      "copyFailed": "Αποτυχία αντιγραφής συνδέσμου"
+    },
+    "footer": {
+      "privacy": "Απόρρητο",
+      "terms": "Όροι",
+      "learnMore": "Μάθετε περισσότερα"
+    }
   },
   "tabs": {
     "profileInfo": "Πληροφορίες Προφίλ",
@@ -357,50 +396,6 @@
       "submit": "Αποστολή Αιτήματος"
     }
   },
-  "publicProfile": {
-    "nav": {
-      "signIn": "Σύνδεση",
-      "dashboard": "Πίνακας Ελέγχου"
-    },
-    "breadcrumb": {
-      "home": "Αρχική",
-      "agents": "Πράκτορες",
-      "agencies": "Γραφεία"
-    },
-    "hero": {
-      "yearsExperience": "{count} χρόνια εμπειρίας",
-      "properties": "Ακίνητα",
-      "followers": "Ακόλουθοι",
-      "founded": "Ίδρυση"
-    },
-    "sections": {
-      "contact": "Επικοινωνία",
-      "serviceAreas": "Περιοχές Εξυπηρέτησης",
-      "languages": "Γλώσσες",
-      "certifications": "Πιστοποιήσεις",
-      "aboutMe": "Σχετικά με εμένα",
-      "aboutAgency": "Σχετικά με εμάς",
-      "properties": "Ακίνητα",
-      "location": "Τοποθεσία",
-      "license": "Άδεια",
-      "noContactInfo": "Δεν έχουν προστεθεί στοιχεία επικοινωνίας",
-      "noProperties": "Δεν υπάρχουν διαθέσιμα ακίνητα αυτή τη στιγμή.",
-      "noPropertiesOwner": "Δεν έχετε προσθέσει ακίνητα στη βιτρίνα σας ακόμα.",
-      "addProperties": "Προσθήκη Ακινήτων",
-      "viewMyProperties": "Τα Ακίνητά μου",
-      "viewAllProperties": "Δείτε όλα τα ακίνητα"
-    },
-    "share": {
-      "share": "Κοινοποίηση",
-      "copied": "Ο σύνδεσμος αντιγράφηκε",
-      "copyFailed": "Αποτυχία αντιγραφής συνδέσμου"
-    },
-    "footer": {
-      "privacy": "Απόρρητο",
-      "terms": "Όροι",
-      "learnMore": "Μάθετε περισσότερα"
-    }
-  },
   "inAppProfile": {
     "follow": "Ακολούθηση",
     "followPending": "Εκκρεμεί",
@@ -414,5 +409,26 @@
     "viewPublicProfile": "Δημόσιο Προφίλ",
     "report": "Αναφορά",
     "mutualConnections": "{count, plural, one {# κοινή σύνδεση} other {# κοινές συνδέσεις}}"
+  },
+  "contactForm": {
+    "title": "Επικοινωνία με ",
+    "name": "Ονοματεπώνυμο",
+    "namePlaceholder": "Το ονοματεπώνυμό σας",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "message": "Μήνυμα",
+    "messagePlaceholder": "Το μήνυμά σας...",
+    "sending": "Αποστολή...",
+    "send": "Αποστολή",
+    "successMessage": "Το μήνυμα στάλθηκε με επιτυχία",
+    "errorMessage": "Αποτυχία αποστολής μηνύματος",
+    "thankYou": "Ευχαριστούμε",
+    "confirmationMessage": "Θα επικοινωνήσουμε σύντομα μαζί σας.",
+    "sendAnother": "Αποστολή νέου μηνύματος"
+  },
+  "agencyProfile": {
+    "title": "Προφίλ Πρακτορείου",
+    "description": "Διαχειριστείτε το δημόσιο προφίλ του πρακτορείου σας",
+    "agencyOnly": "Αυτή η σελίδα είναι διαθέσιμη μόνο για χώρους εργασίας πρακτορείων."
   }
 }
