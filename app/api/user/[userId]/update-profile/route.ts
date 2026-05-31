@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { isUserInOrg } from "@/lib/org-members";
 import { createClerkClient } from "@clerk/backend";
 
 interface UpdateProfileRequest {
@@ -31,12 +32,17 @@ export async function PUT(
       );
     }
 
-    // Only allow users to update their own profile, or admins
-    if (currentUser.id !== params.userId && !currentUser.is_admin) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+    // Self-service is allowed. The admin branch additionally requires the target
+    // to be in the caller's org (is_admin is org-relative; Users has no
+    // organizationId — otherwise an admin could rewrite cross-tenant profiles).
+    if (currentUser.id !== params.userId) {
+      if (!currentUser.is_admin) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      const organizationId = await getCurrentOrgId();
+      if (!(await isUserInOrg(params.userId, organizationId))) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     // Validate firstName

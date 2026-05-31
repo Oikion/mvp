@@ -203,8 +203,11 @@ export async function GET(req: Request) {
     // If includeTasks is true, also fetch tasks that should appear on calendar
     let tasks: any[] = [];
     if (includeTasks) {
+      // Scope tasks to the caller's org. `user` (Users.id) can belong to
+      // multiple orgs, so filtering by user alone would leak cross-org tasks.
       const taskWhere: any = {
         dueDateAt: { not: null },
+        organizationId: currentOrgId,
       };
 
       if (userId && (currentUser.is_account_admin || currentUser.is_admin)) {

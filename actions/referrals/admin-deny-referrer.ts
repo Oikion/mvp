@@ -1,6 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
+import { requirePlatformAdmin } from "@/lib/platform-admin";
 import resendHelper from "@/lib/resend";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
@@ -8,6 +9,10 @@ export async function denyReferrer(
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Server actions are individually addressable RPC endpoints — gate this one
+    // (mirrors approveReferrer). Without it, anyone could deny arbitrary applicants.
+    await requirePlatformAdmin();
+
     // Get user details
     const user = await prismadb.users.findUnique({
       where: { id: userId },

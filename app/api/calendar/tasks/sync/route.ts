@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/get-current-user';
+import { getCurrentUser, getCurrentOrgIdSafe } from '@/lib/get-current-user';
 import { prismadb } from '@/lib/prisma';
 import {
   canSyncTasksToCalendar,
@@ -13,6 +13,10 @@ import {
 export async function POST(req: Request) {
   try {
     await getCurrentUser(); // Verify authentication
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const body = await req.json();
     const { taskId, eventId } = body;
 
@@ -32,9 +36,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify event exists
-    const event = await prismadb.calendarEvent.findUnique({
-      where: { id: eventId },
+    // Verify event exists AND belongs to the caller's org (prevent linking a
+    // task to a cross-org calendar event).
+    const event = await prismadb.calendarEvent.findFirst({
+      where: { id: eventId, organizationId },
     });
 
     if (!event) {
@@ -69,14 +74,18 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const currentUser = await getCurrentUser();
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { searchParams } = new URL(req.url);
     const taskId = searchParams.get('taskId');
     const userId = searchParams.get('userId');
 
     if (taskId) {
-      // Get event for specific task
-      const task = await prismadb.crm_Accounts_Tasks.findUnique({
-        where: { id: taskId },
+      // Get event for specific task (org-scoped)
+      const task = await prismadb.crm_Accounts_Tasks.findFirst({
+        where: { id: taskId, organizationId },
         include: {
           CalendarEvent: true,
         },
@@ -101,9 +110,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ event: task.CalendarEvent });
     }
 
-    // Get all tasks with calendar events
+    // Get all tasks with calendar events — ALWAYS scoped to the caller's org
+    // (without this, an admin with no userId filter would receive tasks from
+    // every organization).
     const where: any = {
       calendarEventId: { not: null },
+      organizationId,
     };
 
     if (userId) {

@@ -140,3 +140,27 @@ export async function getOrgMembersFromDb(
   };
 }
 
+/**
+ * Verify a user (by DB Users.id) is a member of the given organization.
+ *
+ * The Users model has NO organizationId column, so any cross-user admin/owner
+ * operation that targets a `userId` route param MUST call this to prevent
+ * cross-tenant IDOR (deleting / resetting / promoting users in other orgs).
+ *
+ * Pass `organizationId` explicitly (e.g. from getCurrentOrgId()) or omit to use
+ * the caller's active org. Membership is resolved via Clerk (cached 60s).
+ */
+export async function isUserInOrg(
+  targetUserId: string,
+  organizationId?: string
+): Promise<boolean> {
+  if (!targetUserId) return false;
+  const target = await prismadb.users.findUnique({
+    where: { id: targetUserId },
+    select: { clerkUserId: true },
+  });
+  if (!target?.clerkUserId) return false;
+  const { clerkUserIds } = await fetchOrgMemberships(organizationId);
+  return clerkUserIds.includes(target.clerkUserId);
+}
+

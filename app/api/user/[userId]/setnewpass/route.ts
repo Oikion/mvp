@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { isUserInOrg } from "@/lib/org-members";
 import { hash } from "bcryptjs";
 
 export async function PUT(req: Request, props: { params: Promise<{ userId: string }> }) {
@@ -16,8 +17,17 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
     return new NextResponse("No user ID provided", { status: 400 });
   }
 
-  if (user.id !== params.userId && !user.is_admin) {
-    return new NextResponse("Forbidden", { status: 403 });
+  // Self-service is allowed. The admin branch additionally requires the target
+  // to be in the caller's org (is_admin is org-relative and Users has no
+  // organizationId — otherwise any org admin could reset cross-tenant passwords).
+  if (user.id !== params.userId) {
+    if (!user.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+    const organizationId = await getCurrentOrgId();
+    if (!(await isUserInOrg(params.userId, organizationId))) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
   }
 
   if (!password || !cpassword) {
