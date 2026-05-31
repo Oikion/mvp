@@ -72,9 +72,9 @@ export async function POST(req: NextRequest) {
       if (!item.id) continue;
 
       if (item.status === "cancelled") {
-        // Event deleted in Google — archive in Oikion
+        // Event deleted in Google — archive in Oikion (org-scoped defense-in-depth)
         await prismadb.calendarEvent.updateMany({
-          where: { googleEventId: item.id },
+          where: { googleEventId: item.id, organizationId: conn.organizationId },
           data: { archivedAt: new Date(), googleEventId: null },
         });
       } else {

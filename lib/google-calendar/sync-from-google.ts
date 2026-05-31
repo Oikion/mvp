@@ -50,7 +50,7 @@ export async function pullEventFromGoogle(
   } catch (err: unknown) {
     // 404 = event deleted on Google — archive our copy
     if ((err as { code?: number }).code === 404) {
-      await archiveEventByGoogleId(googleEventId);
+      await archiveEventByGoogleId(googleEventId, organizationId);
     }
     return;
   }
@@ -129,9 +129,9 @@ export async function pullEventFromGoogle(
   });
 }
 
-async function archiveEventByGoogleId(googleEventId: string): Promise<void> {
+async function archiveEventByGoogleId(googleEventId: string, organizationId: string): Promise<void> {
   await prismadb.calendarEvent.updateMany({
-    where: { googleEventId },
+    where: { googleEventId, organizationId },
     data: { archivedAt: new Date(), googleEventId: null },
   });
 }
@@ -179,7 +179,7 @@ export async function syncAllEventsFromGoogle(
 
       if (item.status === "cancelled") {
         await prismadb.calendarEvent.updateMany({
-          where: { googleEventId: item.id },
+          where: { googleEventId: item.id, organizationId },
           data: { archivedAt: new Date(), googleEventId: null },
         });
         deleted++;
