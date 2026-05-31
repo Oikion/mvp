@@ -270,12 +270,6 @@
         "role": "Growth Lead",
         "skills": ["Go-to-Market", "Brand Strategy", "Market Research"],
         "philosophy": "If the product is good, you do not need to oversell it. Just show people what it does."
-      },
-      "manos": {
-        "name": "Manos",
-        "role": "Outreach Lead",
-        "skills": ["Business Development", "Market Expansion", "Agent Relations"],
-        "philosophy": "I have sat on the other side of this screen. Every feature we build comes from a real problem I have lived through."
       }
     },
     "quote": "We are not building software. We are building the tools that make good agents great.",

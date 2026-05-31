@@ -10,18 +10,16 @@ import { useGSAP } from '@gsap/react'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
-const TEAM_MEMBERS = ['stavros', 'ermis', 'manos'] as const
+const TEAM_MEMBERS = ['stavros', 'ermis'] as const
 
 const MEMBER_IMAGES: Record<(typeof TEAM_MEMBERS)[number], string> = {
   stavros: 'https://rsxe0cpd8wmi3uxj.public.blob.vercel-storage.com/website/team/Stavros.png',
   ermis: 'https://rsxe0cpd8wmi3uxj.public.blob.vercel-storage.com/website/team/Ermis.png',
-  manos: 'https://rsxe0cpd8wmi3uxj.public.blob.vercel-storage.com/website/team/Manos.png',
 }
 
 const MEMBER_LINKEDIN: Record<(typeof TEAM_MEMBERS)[number], string> = {
   stavros: 'https://www.linkedin.com/in/stavros-apostolou-a72a9b216/',
   ermis: 'https://www.linkedin.com/in/ermis-papadopoulos-2850a02aa/',
-  manos: 'https://www.linkedin.com/in/emmanuel-tzampazakis-11b50b21a/',
 }
 
 export function TeamSection() {
@@ -113,7 +111,7 @@ export function TeamSection() {
         </div>
 
         {/* Team member cards */}
-        <div className="team-grid grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-16 md:mb-20">
+        <div className="team-grid grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-16 md:mb-20">
           {TEAM_MEMBERS.map(memberId => (
             <article
               key={memberId}
