@@ -91,7 +91,7 @@ export function CompleteStep({
 
       {/* Result Stats */}
       {result && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className={imported > 0 ? "border-success/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">

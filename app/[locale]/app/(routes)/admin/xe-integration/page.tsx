@@ -215,16 +215,16 @@ export default function XeIntegrationPage() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="settings" className="space-y-4">
-        <TabsList className="inline-grid grid-cols-3">
-          <TabsTrigger value="settings">
+        <TabsList className="flex w-full overflow-x-auto sm:inline-grid sm:grid-cols-3">
+          <TabsTrigger value="settings" className="shrink-0">
             <Settings className="h-4 w-4 shrink-0" />
             {locale === "el" ? "Ρυθμίσεις" : "Settings"}
           </TabsTrigger>
-          <TabsTrigger value="agents">
+          <TabsTrigger value="agents" className="shrink-0">
             <Users className="h-4 w-4 shrink-0" />
             {locale === "el" ? "Πράκτορες" : "Agents"}
           </TabsTrigger>
-          <TabsTrigger value="history">
+          <TabsTrigger value="history" className="shrink-0">
             <History className="h-4 w-4 shrink-0" />
             {locale === "el" ? "Ιστορικό" : "History"}
           </TabsTrigger>

@@ -182,20 +182,20 @@ export function MatchmakingDashboard({
 
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="inline-grid grid-cols-4">
-              <TabsTrigger value="overview">
+            <TabsList className="flex w-full overflow-x-auto sm:inline-grid sm:grid-cols-4">
+              <TabsTrigger value="overview" className="shrink-0">
                 <BarChart3 className="h-4 w-4 shrink-0" />
                 {t("dashboard.tabs.overview")}
               </TabsTrigger>
-              <TabsTrigger value="matches">
+              <TabsTrigger value="matches" className="shrink-0">
                 <FileText className="h-4 w-4 shrink-0" />
                 {t("dashboard.tabs.matches")}
               </TabsTrigger>
-              <TabsTrigger value="unmatched">
+              <TabsTrigger value="unmatched" className="shrink-0">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 {t("dashboard.tabs.unmatched")}
               </TabsTrigger>
-              <TabsTrigger value="hot">
+              <TabsTrigger value="hot" className="shrink-0">
                 <Flame className="h-4 w-4 shrink-0" />
                 {t("dashboard.tabs.hot")}
               </TabsTrigger>

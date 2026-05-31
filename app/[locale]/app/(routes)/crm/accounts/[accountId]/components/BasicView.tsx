@@ -66,7 +66,7 @@ export async function BasicView({ data }: OppsViewProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 w-full gap-5 ">
+          <div className="grid grid-cols-1 sm:grid-cols-2 w-full gap-5 ">
             <div>
               <div className="-mx-2 flex items-start space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">
                 <CoinsIcon className="mt-px h-5 w-5" />
@@ -239,7 +239,7 @@ export async function BasicView({ data }: OppsViewProps) {
           </div>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-2 gap-3 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle>Billing Address</CardTitle>
@@ -359,7 +359,7 @@ export async function BasicView({ data }: OppsViewProps) {
         <CardTitle>{data.name}</CardTitle>
         <CardDescription>ID:{data.id}</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-1">
+      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-1">
         <pre>{JSON.stringify(data, null, 2)}</pre>
         <div>
           <div className="-mx-2 flex items-start space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">

@@ -235,11 +235,11 @@ export default function PlatformAdminSettingsPage() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue={categories[0]?.id || "security"}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex w-full overflow-x-auto sm:grid sm:grid-cols-4">
           {categories.map((category) => {
             const Icon = CATEGORY_ICONS[category.id] || Settings;
             return (
-              <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-2">
+              <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-2 shrink-0">
                 <Icon className="h-4 w-4" />
                 {category.name}
               </TabsTrigger>

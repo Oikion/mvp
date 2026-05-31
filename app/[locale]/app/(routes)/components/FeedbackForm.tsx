@@ -359,7 +359,7 @@ const FeedbackForm = ({ setOpen, initialFeedbackType, initialFeedback }: Feedbac
                 </div>
 
                 <TooltipProvider delayDuration={200}>
-                  <div className="grid grid-cols-4 gap-3 pt-2 border-t">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t">
                     {/* Screenshot */}
                     <Tooltip>
                       <TooltipTrigger asChild>

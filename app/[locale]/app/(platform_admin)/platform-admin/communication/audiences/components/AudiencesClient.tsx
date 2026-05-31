@@ -330,7 +330,7 @@ export function AudiencesClient({ audiences, knownAudienceIds }: AudiencesClient
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="add-first-name">First Name</Label>
                 <Input

@@ -30,7 +30,7 @@ function BuilderSkeleton() {
       </div>
       {/* Canvas skeleton */}
       <div className="flex-1 flex items-center justify-center bg-muted/30 p-8">
-        <Skeleton className="w-[595px] h-[842px]" />
+        <Skeleton className="w-[595px] max-w-full h-[842px]" />
       </div>
     </div>
   );

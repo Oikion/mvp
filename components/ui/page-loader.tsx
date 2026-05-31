@@ -130,7 +130,7 @@ export function PageLoader({ variant = "cards", cardCount = 6 }: PageLoaderProps
               <div className="h-10 w-full rounded bg-muted/60 shimmer" />
             </div>
           ))}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[0, 1].map((i) => (
               <div key={i} className="space-y-2">
                 <div className="h-4 w-20 rounded bg-muted/60 shimmer" />

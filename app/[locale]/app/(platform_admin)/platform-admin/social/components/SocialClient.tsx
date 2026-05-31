@@ -533,7 +533,7 @@ export function SocialClient({
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Posted:</span>{" "}
                 {previewPost?.postedAt
@@ -549,7 +549,7 @@ export function SocialClient({
             </div>
             <div>
               <h4 className="font-semibold text-sm mb-2">Engagement</h4>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="text-center p-3 bg-muted rounded-lg">
                   <Heart className="h-5 w-5 mx-auto text-destructive mb-1" />
                   <p className="text-lg font-bold">{previewPost?.likes}</p>

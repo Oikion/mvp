@@ -209,7 +209,7 @@ export function FeedbackDetailDialog({
           </SheetHeader>
 
           <Tabs defaultValue="content" className="flex-1 overflow-hidden flex flex-col">
-            <TabsList className="grid grid-cols-4 mx-6 mt-4 w-[calc(100%-3rem)]">
+            <TabsList className="flex w-[calc(100%-3rem)] overflow-x-auto sm:grid sm:grid-cols-4 mx-6 mt-4">
               <TabsTrigger value="content">
                 {t("feedback.tabs.content")}
               </TabsTrigger>
@@ -238,7 +238,7 @@ export function FeedbackDetailDialog({
               {/* Content Tab */}
               <TabsContent value="content" className="space-y-6 pb-6">
                 {/* User Info */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-muted-foreground flex items-center gap-2">
                       <User className="h-4 w-4" />
@@ -434,7 +434,7 @@ export function FeedbackDetailDialog({
 
               {/* Technical Tab */}
               <TabsContent value="technical" className="space-y-6 pb-6">
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {/* Browser Info */}
                   <div className="space-y-4">
                     <Label className="text-muted-foreground flex items-center gap-2">

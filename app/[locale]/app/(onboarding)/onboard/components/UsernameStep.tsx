@@ -173,7 +173,7 @@ export function UsernameStep({
             <div className="space-y-4">
               {/* First and Last Name - only show if not already collected during registration */}
               {!userHasName && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">{dict.firstNameLabel}</Label>
                     <Input

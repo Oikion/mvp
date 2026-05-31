@@ -1140,7 +1140,7 @@ function ReviewStepLegacy({
 
       {/* Per-entity summary cards (unified import) */}
       {entityCounts && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {entityCounts.contacts > 0 && (
             <Card>
               <CardContent className="pt-6 text-center">

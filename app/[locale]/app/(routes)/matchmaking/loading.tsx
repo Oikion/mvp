@@ -26,7 +26,7 @@ export default function MatchmakingLoading() {
         </div>
 
         {/* Tabs */}
-        <div className="inline-grid grid-cols-4 gap-1 h-10 items-center justify-center rounded-lg bg-sidebar-accent p-1">
+        <div className="flex w-full overflow-x-auto sm:inline-grid sm:grid-cols-4 gap-1 h-10 items-center justify-center rounded-lg bg-sidebar-accent p-1">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="flex items-center justify-center gap-2 px-3 py-1.5">
               <Skeleton className="h-4 w-4" />

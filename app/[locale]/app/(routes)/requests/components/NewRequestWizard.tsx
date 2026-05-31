@@ -313,7 +313,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
             <FormField control={form.control} name="locationDisplayName" render={({ field }) => (
               <FormItem><FormLabel>{t("wizard.fields.locationDisplayName")}</FormLabel><FormControl><Input placeholder={t("wizard.fields.locationPlaceholder")} {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
             )} />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="municipality" render={({ field }) => (
                 <FormItem><FormLabel>{t("wizard.fields.municipality")}</FormLabel><FormControl><Input placeholder={t("wizard.fields.municipalityPlaceholder")} {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -321,7 +321,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
                 <FormItem><FormLabel>{t("wizard.fields.region")}</FormLabel><FormControl><Input placeholder={t("wizard.fields.regionPlaceholder")} {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="surfaceMin" render={({ field }) => (
                 <FormItem><FormLabel>{t("wizard.fields.surfaceMin")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -329,7 +329,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
                 <FormItem><FormLabel>{t("wizard.fields.surfaceMax")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="plotSizeMin" render={({ field }) => (
                 <FormItem><FormLabel>{t("wizard.fields.plotSizeMin")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -343,7 +343,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
       case 3:
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="budgetMin" render={({ field }) => (
                 <FormItem><FormLabel>{t("wizard.fields.budgetMin")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -351,7 +351,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
                 <FormItem><FormLabel>{t("wizard.fields.budgetMax")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="bedroomsMin" render={({ field }) => (
                 <FormItem><FormLabel>{t("wizard.fields.bedroomsMin")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -365,7 +365,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
                 <FormItem><FormLabel>{t("wizard.fields.bathroomsMax")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="floorMin" render={({ field }) => (
                 <FormItem><FormLabel>{t("wizard.fields.floorMin")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -379,7 +379,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
                 <FormLabel className="!mt-0">{t("wizard.fields.groundFloorOnly")}</FormLabel>
               </FormItem>
             )} />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="constructionYearMin" render={({ field }) => (
                 <FormItem><FormLabel>{t("wizard.fields.constructionYearMin")}</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />

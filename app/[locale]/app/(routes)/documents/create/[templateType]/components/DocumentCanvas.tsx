@@ -55,7 +55,7 @@ export function DocumentCanvas({
   };
 
   return (
-    <div className="flex justify-center w-full">
+    <div className="flex justify-center w-full overflow-x-auto">
       {/* A4 Paper Container - 210mm x 297mm at 96dpi = ~794px x 1123px */}
       <div
         className={cn(

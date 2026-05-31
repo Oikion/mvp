@@ -145,7 +145,7 @@ export function ShimmerForm() {
           <ShimmerSkeleton className="h-10 w-full" />
         </div>
       ))}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[1, 2].map((i) => (
           <div key={i} className="space-y-2">
             <ShimmerSkeleton className="h-4 w-20" />

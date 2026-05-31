@@ -388,7 +388,7 @@ export function XeSyncHistoryTable() {
           ) : selectedDetail ? (
             <div className="space-y-4">
               {/* Summary */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="text-center p-4 rounded-lg bg-muted">
                   <p className="text-2xl font-bold">{selectedDetail.totalItems}</p>
                   <p className="text-sm text-muted-foreground">

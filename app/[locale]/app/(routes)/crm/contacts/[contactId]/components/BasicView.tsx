@@ -197,7 +197,7 @@ export async function BasicView({ data }: OppsViewProps) {
           </div>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-2 gap-3 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle>Contacts</CardTitle>

@@ -150,9 +150,9 @@ export function RolesManager() {
 
       {/* Role Tabs */}
       <Tabs value={selectedRole} onValueChange={(v) => setSelectedRole(v as OrgRole)}>
-        <TabsList className="inline-grid grid-cols-4">
+        <TabsList className="flex w-full overflow-x-auto sm:inline-grid sm:grid-cols-4">
           {roles.map((role) => (
-            <TabsTrigger key={role} value={role}>
+            <TabsTrigger key={role} value={role} className="shrink-0">
               {getRoleDisplayName(role)}
               {role === OrgRole.OWNER && (
                 <Badge variant="secondary" className="ml-2 text-xs">

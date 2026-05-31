@@ -118,7 +118,7 @@ export function NetworkPageClient({
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4" data-tour="network-feed">
-      <TabsList className="grid w-full max-w-2xl grid-cols-6">
+      <TabsList className="flex w-full overflow-x-auto sm:grid sm:w-full sm:max-w-2xl sm:grid-cols-6">
         <TabsTrigger value="agents" className="gap-1.5">
           <Users className="h-4 w-4 shrink-0" aria-hidden />
           <span className="hidden sm:inline">{t("agents")}</span>

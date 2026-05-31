@@ -184,7 +184,7 @@ function EntitySummaryCard({
 function ValidationSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[0, 1, 2].map((i) => (
           <Card key={i}>
             <CardContent className="pt-6">
@@ -305,7 +305,7 @@ export function ValidationStep({
   return (
     <div className="space-y-6">
       {/* ── Summary stat cards ── */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           icon={<Info className="h-5 w-5 text-muted-foreground" aria-hidden="true" />}
           iconBg="bg-muted"

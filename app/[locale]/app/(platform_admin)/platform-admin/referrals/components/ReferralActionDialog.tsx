@@ -209,7 +209,7 @@ export function ReferralActionDialog({
         {/* View Details */}
         {actionType === "view" && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="text-muted-foreground">{t("dialog.referrer")}</Label>
                 <div className="flex items-center gap-2 mt-1">
@@ -234,7 +234,7 @@ export function ReferralActionDialog({
 
             <Separator />
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="text-muted-foreground">{t("dialog.status")}</Label>
                 <div className="mt-1">
@@ -260,7 +260,7 @@ export function ReferralActionDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="text-muted-foreground">{t("dialog.totalEarnings")}</Label>
                 <div className="flex items-center gap-1 mt-1">
@@ -277,7 +277,7 @@ export function ReferralActionDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="text-muted-foreground">{t("dialog.referralDate")}</Label>
                 <div className="flex items-center gap-1 mt-1">

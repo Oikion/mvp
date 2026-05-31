@@ -360,7 +360,7 @@ export function GenerateDocumentModal({
           <ScrollArea className="flex-1 pr-4 -mr-4">
             <div className="space-y-6 pb-4">
               {/* Entity Selection */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("selectProperty")}</Label>
                   <Select

@@ -362,7 +362,7 @@ export function BlogClient({
                 <p className="text-muted-foreground">{previewPost.excerpt}</p>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Created:</span>{" "}
                 {previewPost && format(new Date(previewPost.createdAt), "PPpp")}

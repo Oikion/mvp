@@ -57,7 +57,7 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
   if (!isHydrated) {
     return (
       <div className="w-full">
-        <div className="inline-grid grid-cols-6 mb-8 h-10 items-center justify-center rounded-lg bg-sidebar-accent p-1">
+        <div className="flex w-full overflow-x-auto sm:inline-grid sm:grid-cols-6 mb-8 h-10 items-center justify-center rounded-lg bg-sidebar-accent p-1">
           {/* Skeleton tab list */}
         </div>
       </div>
@@ -66,7 +66,7 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
 
   return (
     <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="inline-grid grid-cols-6 mb-8">
+      <TabsList className="flex w-full overflow-x-auto sm:inline-grid sm:grid-cols-6 mb-8">
         <TabsTrigger value="profile">
           <User className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Profile</span>

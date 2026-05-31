@@ -67,7 +67,7 @@ const AccountsTasksView = ({ data, account }: TasksViewProps) => {
               >
                 +
               </Button>
-              <SheetContent className="min-w-[500px] space-y-2">
+              <SheetContent className="w-full sm:min-w-[500px] space-y-2">
                 <SheetHeader>
                   <SheetTitle>Create new Task</SheetTitle>
                 </SheetHeader>

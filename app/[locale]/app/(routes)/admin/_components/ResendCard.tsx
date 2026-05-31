@@ -59,7 +59,7 @@ const ResendCard = async () => {
   });
 
   return (
-    <Card className="min-w-[350px] max-w-[450px]">
+    <Card className="w-full sm:min-w-[350px] max-w-[450px]">
       <CardHeader className="text-lg">
         <CardTitle>Resend.com - API Key</CardTitle>
         <CardDescription className="text-xs">

@@ -50,7 +50,7 @@ export function AccountActions({ account }: AccountActionsProps) {
       </DropdownMenu>
 
       <Sheet open={editOpen} onOpenChange={handleOpenChange}>
-        <SheetContent className="min-w-[540px] overflow-y-auto">
+        <SheetContent className="w-full sm:min-w-[540px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Edit Account</SheetTitle>
           </SheetHeader>

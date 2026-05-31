@@ -318,7 +318,7 @@ export function SendForSigningModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   {t("modal.addExternalSigner")}
                 </p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <Label className="text-xs">{t("modal.nameLabel")}</Label>
                     <Input

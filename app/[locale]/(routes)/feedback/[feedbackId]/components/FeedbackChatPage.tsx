@@ -250,7 +250,7 @@ export function FeedbackChatPage({
                 <p className="text-xs font-semibold text-muted-foreground uppercase">
                   {t("history.technicalDetails")}
                 </p>
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {feedback.url && (
                     <div className="flex items-center gap-2">
                       <Globe className="h-3 w-3 text-muted-foreground" />

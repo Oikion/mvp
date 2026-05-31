@@ -12,7 +12,7 @@ const SupportComponent = () => {
         <HelpCircle className="cursor-pointer w-4 h-4" />
       </PopoverTrigger>
       <PopoverContent
-        className="flex flex-col space-y-2 mt-3 min-w-[400px]"
+        className="flex flex-col space-y-2 mt-3 w-full sm:min-w-[400px]"
         align={"end"}
       >
         <div className="flex w-full justify-between items-center gap-2">

@@ -60,7 +60,7 @@ export function DashboardSkeleton() {
 
       {/* Stats Charts + Recent Properties */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 auto-rows-fr">
-        <div className="lg:col-span-4 grid gap-4 grid-cols-2">
+        <div className="lg:col-span-4 grid gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="rounded-xl border bg-card p-6 flex flex-col">
                 <Skeleton className="h-6 w-32 mb-4" />
                 <Skeleton className="flex-1 min-h-[180px] w-full" />

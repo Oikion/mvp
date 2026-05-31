@@ -333,7 +333,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
 
             {/* Individual name fields */}
             <ConditionalFormSection condition={!isCompany}>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -418,7 +418,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
         return (
           <div className="space-y-4">
             {/* Phone row */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="primaryPhone"
@@ -465,7 +465,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
             </ConditionalFormSection>
 
             {/* Email row */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="email"
@@ -495,7 +495,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
             </div>
 
             {/* Messaging apps */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="whatsapp"
@@ -554,7 +554,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
       case 3:
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="taxId"
@@ -607,7 +607,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
             {/* Company-only fields */}
             <ConditionalFormSection condition={!!isCompany}>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="companyGemi"
@@ -670,7 +670,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
                     </FormControl>
                   </FormItem>
                 )} />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField control={form.control} name="billingCity" render={({ field }) => (
                     <FormItem>
                       <FormControl>
@@ -687,7 +687,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
                     </FormItem>
                   )} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField control={form.control} name="billingMunicipality" render={({ field }) => (
                     <FormItem>
                       <FormControl>
@@ -729,7 +729,7 @@ export function NewContactWizard({ users, onFinish }: Readonly<Props>) {
                       </FormControl>
                     </FormItem>
                   )} />
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FormField control={form.control} name="shippingCity" render={({ field }) => (
                       <FormItem>
                         <FormControl>

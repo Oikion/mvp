@@ -198,7 +198,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
               </FormItem>
             )} />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="property_status" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("PropertyForm.fields.status")}</FormLabel>
@@ -269,7 +269,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           <TabsContent value="surfaces" className="space-y-4 mt-4">
             {isResidentialOrCommercial ? (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField control={form.control} name="size_net_sqm" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("PropertyForm.fields.sizeNetSqm")}</FormLabel>
@@ -295,7 +295,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
                     </FormItem>
                   )} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField control={form.control} name="floor" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("PropertyForm.fields.floor")}</FormLabel>
@@ -338,7 +338,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
                     <FormMessage />
                   </FormItem>
                 )} />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField control={form.control} name="inside_city_plan" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("PropertyForm.fields.insideCityPlan")}</FormLabel>
@@ -388,7 +388,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           {/* Tab 4: Characteristics */}
           <TabsContent value="characteristics" className="space-y-4 mt-4">
             {isResidentialOrCommercial && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="bedrooms" render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("PropertyForm.fields.bedrooms")}</FormLabel>
@@ -415,7 +415,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
                 )} />
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="heating_type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("PropertyForm.fields.heatingType")}</FormLabel>
@@ -459,7 +459,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
 
           {/* Tab 5: Condition */}
           <TabsContent value="condition" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="year_built" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("PropertyForm.fields.yearBuilt")}</FormLabel>
@@ -485,7 +485,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
                 </FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="condition" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("PropertyForm.fields.condition")}</FormLabel>
@@ -518,7 +518,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
 
           {/* Tab 6: Legal */}
           <TabsContent value="legal" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="building_permit_no" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("PropertyForm.fields.buildingPermitNo")}</FormLabel>
@@ -560,7 +560,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
                 <FormMessage />
               </FormItem>
             )} />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="etaireia_diaxeirisis" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("PropertyForm.fields.etaireiaDiaxeirisis")}</FormLabel>
@@ -613,7 +613,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
                 <FormMessage />
               </FormItem>
             )} />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="furnished" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("PropertyForm.fields.furnished")}</FormLabel>
@@ -640,7 +640,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
 
           {/* Tab 8: Pricing */}
           <TabsContent value="pricing" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="price" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("PropertyForm.fields.price")} (€)</FormLabel>
@@ -677,7 +677,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
               </FormItem>
             )} />
             {transactionType === "RENTAL" && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="accepts_pets" render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>

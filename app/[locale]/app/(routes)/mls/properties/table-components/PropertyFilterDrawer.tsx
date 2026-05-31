@@ -176,7 +176,7 @@ export function PropertyFilterDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="flex flex-col w-[380px] sm:w-[420px] sm:max-w-[420px] p-0"
+        className="flex flex-col w-full sm:w-[420px] sm:max-w-[420px] p-0"
       >
         {/* Header */}
         <SheetHeader className="px-6 py-4 border-b shrink-0">

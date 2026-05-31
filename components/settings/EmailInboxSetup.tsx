@@ -159,7 +159,7 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
             </DialogHeader>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="col-span-2 space-y-1.5">
                   <Label htmlFor="channelName">{t("channelNameLabel")}</Label>
                   <Input id="channelName" placeholder={t("channelNamePlaceholder")} {...form.register("channelName")} />
@@ -183,7 +183,7 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
 
               <hr />
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="imapHost">{t("imapHostLabel")}</Label>
                   <Input id="imapHost" placeholder={t("imapHostPlaceholder")} {...form.register("imapHost")} />
@@ -242,7 +242,7 @@ export function EmailInboxSetup({ inboxes, onCreated, onDeleted }: EmailInboxSet
               </div>
 
               {smtpSendVia === "SMTP_DIRECT" && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="smtpHost">{t("smtpHostLabel")}</Label>
                     <Input id="smtpHost" placeholder={t("smtpHostPlaceholder")} {...form.register("smtpHost")} />
