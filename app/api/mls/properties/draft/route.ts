@@ -325,7 +325,9 @@ export async function POST(req: Request) {
     let errorDetails: any = null;
     
     if (error instanceof Error) {
-      errorMessage = error.message;
+      // Keep the generic client-facing default; do NOT surface raw error.message
+      // for unknown errors (only the friendly Prisma-code messages below). Full
+      // error is logged server-side. Dev-only details remain for local debugging.
       if (process.env.NODE_ENV === "development") {
         errorDetails = {
           message: error.message,

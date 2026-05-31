@@ -99,7 +99,12 @@ export async function POST(req: Request) {
         }),
       });
 
-      return NextResponse.json(newUser, { status: 200 });
+      // SECURITY: never return the full user row — it contains the bcrypt
+      // password hash and other sensitive fields. Return a minimal safe shape.
+      return NextResponse.json(
+        { id: newUser.id, email: newUser.email, name: newUser.name },
+        { status: 200 }
+      );
     }
   } catch (error) {
     return new NextResponse("Initial error", { status: 500 });

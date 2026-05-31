@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { clerkClient } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications/notification-service";
@@ -8,13 +9,33 @@ import sendEmail from "@/lib/sendmail";
 import AgentContactFormSubmission from "@/emails/notifications/AgentContactFormSubmission";
 import { render } from "@react-email/render";
 
+// Public, unauthenticated endpoint — validate + bound the submission to prevent
+// abuse (oversized payloads, junk fields). Known fields are typed; dynamic
+// custom form fields are allowed via catchall but capped in size and count.
+const contactFormSchema = z
+  .object({
+    email: z.string().email().max(320).optional(),
+    name: z.string().max(200).optional(),
+    full_name: z.string().max(200).optional(),
+    firstName: z.string().max(200).optional(),
+    message: z.string().max(5000).optional(),
+    privacyConsent: z.boolean().optional(),
+  })
+  .catchall(z.union([z.string().max(5000), z.number(), z.boolean(), z.null()]))
+  .refine((obj) => Object.keys(obj).length <= 40, { message: "Too many fields" });
+
 export async function POST(
   req: Request,
   props: { params: Promise<{ slug: string }> }
 ) {
   try {
     const { slug } = await props.params;
-    const body = await req.json();
+    const rawBody = await req.json();
+    const parsed = contactFormSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid submission" }, { status: 400 });
+    }
+    const body = parsed.data;
 
     // Find the user by username (slug)
     const user = await prismadb.users.findFirst({

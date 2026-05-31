@@ -297,11 +297,9 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("[CRM_EXPORT_ERROR]", error);
 
+    // Do not leak internal error details to the client (logged above with tag).
     return NextResponse.json(
-      {
-        error: "Export failed",
-        message: error instanceof Error ? error.message : "An unexpected error occurred"
-      },
+      { error: "Export failed" },
       { status: 500 }
     );
   }
