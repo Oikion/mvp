@@ -83,9 +83,6 @@ export const GET = withExternalApi(
         Users: {
           select: { id: true, name: true, email: true },
         },
-        Clients: {
-          select: { id: true, client_name: true },
-        },
       },
     });
 
@@ -102,7 +99,8 @@ export const GET = withExternalApi(
           priority: task.priority,
           dueDate: task.dueDateAt?.toISOString(),
           assignedTo: task.Users,
-          client: task.Clients,
+          // crm_Accounts_Tasks.account holds the linked Contact id (no relation defined yet)
+          client: task.account ? { id: task.account } : null,
           createdAt: task.createdAt?.toISOString(),
           updatedAt: task.updatedAt?.toISOString(),
         })),

@@ -34,7 +34,7 @@ export async function generateFinancialReport() {
         status: "COMPLETED",
       },
       include: {
-        Properties: {
+        property: {
           select: {
             property_name: true,
             address_street: true,
@@ -43,13 +43,13 @@ export async function generateFinancialReport() {
             property_type: true,
           },
         },
-        Clients: {
-          select: {
-            client_name: true,
-            primary_email: true,
-          },
+        // v2.0: the deal's client is a DealParty (buyer/tenant) Contact
+        dealParties: {
+          where: { role: { in: ["BUYER", "TENANT"] } },
+          select: { contact: { select: { displayName: true, email: true } } },
+          take: 1,
         },
-        Users_Deal_clientAgentIdToUsers: {
+        buyerAgent: {
           select: {
             name: true,
             email: true,
@@ -114,8 +114,8 @@ export async function generateFinancialReport() {
     > = {};
 
     completedDeals.forEach((deal) => {
-      if (deal.Users_Deal_clientAgentIdToUsers) {
-        const agent = deal.Users_Deal_clientAgentIdToUsers;
+      if (deal.buyerAgent) {
+        const agent = deal.buyerAgent;
         const agentId = agent.email || agent.name || "Unknown";
         if (!agentPerformance[agentId]) {
           agentPerformance[agentId] = {
@@ -191,12 +191,12 @@ export async function generateFinancialReport() {
         topAgents,
         recentDeals: completedDeals.slice(0, 20).map((deal) => ({
           id: deal.id,
-          propertyTitle: deal.Properties?.property_name || "Unknown Property",
-          propertyAddress: `${deal.Properties?.address_street || ""} ${deal.Properties?.address_city || ""}`.trim() || "Unknown Address",
-          clientName: deal.Clients?.client_name || "Unknown Client",
-          agentName: deal.Users_Deal_clientAgentIdToUsers?.name || "Unassigned",
+          propertyTitle: deal.property?.property_name || "Unknown Property",
+          propertyAddress: `${deal.property?.address_street || ""} ${deal.property?.address_city || ""}`.trim() || "Unknown Address",
+          clientName: deal.dealParties[0]?.contact?.displayName || "Unknown Client",
+          agentName: deal.buyerAgent?.name || "Unassigned",
           commission: deal.totalCommission ? Number(deal.totalCommission) : 0,
-          salePrice: deal.Properties?.salePrice || 0,
+          salePrice: deal.property?.salePrice || 0,
           closedAt: deal.closedAt,
           dealType: deal.dealType,
         })),

@@ -172,20 +172,14 @@ export async function PUT(
             avatar: true,
           },
         },
-        Clients: {
-          select: {
-            id: true,
-            client_name: true,
-            primary_email: true,
-          },
-        },
       },
     });
 
     return NextResponse.json({
       ...updatedTask,
       assigned_user: updatedTask.Users,
-      crm_accounts: updatedTask.Clients,
+      // crm_Accounts_Tasks.account holds the linked Contact id (no relation defined yet)
+      crm_accounts: updatedTask.account ? { id: updatedTask.account } : null,
     });
   } catch (error: unknown) {
     console.error('[UPDATE_TASK]', error);

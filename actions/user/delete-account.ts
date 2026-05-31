@@ -281,13 +281,10 @@ export async function deleteOrganization(
       });
 
       // =============================================================================
-      // Step 8: Delete legacy client-related data
+      // Step 8: Delete contacts (cascades to ContactComment/ContactProperty/
+      // ContactRelationship/RequestContact/CalendarEventContact)
       // =============================================================================
-      await tx.client_Contacts.deleteMany({
-        where: { organizationId },
-      });
-
-      await tx.clients.deleteMany({
+      await tx.contact.deleteMany({
         where: { organizationId },
       });
 

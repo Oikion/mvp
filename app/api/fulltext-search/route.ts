@@ -18,31 +18,24 @@ export async function POST(req: Request) {
 
     const db = prismaForOrg(organizationId);
 
-    //Search in modul CRM (Clients)
-    const resultsCrmClients = await db.clients.findMany({
+    // Search the unified Contact model. Companies surface as "clients" and
+    // individuals as "contacts" to preserve the legacy response shape.
+    // NOTE: displayName/email/notes are encrypted at rest, so substring search
+    // only matches plaintext fields (friendlyId). Full PII search would need a
+    // dedicated search-token index (out of scope here).
+    const resultsContacts = await db.contact.findMany({
       where: {
         OR: [
-          { description: { contains: search, mode: "insensitive" } },
-          { client_name: { contains: search, mode: "insensitive" } },
-          { primary_email: { contains: search, mode: "insensitive" } },
-          // add more fields as needed
-        ],
-      },
-      take: 5,
-    });
-
-    //Search in modul CRM (Client Contacts)
-    const resultsCrmContacts = await db.client_Contacts.findMany({
-      where: {
-        OR: [
-          { contact_last_name: { contains: search, mode: "insensitive" } },
-          { contact_first_name: { contains: search, mode: "insensitive" } },
+          { displayName: { contains: search, mode: "insensitive" } },
           { email: { contains: search, mode: "insensitive" } },
-          // add more fields as needed
+          { notes: { contains: search, mode: "insensitive" } },
+          { friendlyId: { contains: search, mode: "insensitive" } },
         ],
       },
-      take: 5,
+      take: 10,
     });
+    const resultsCrmClients = resultsContacts.filter((c) => c.isCompany);
+    const resultsCrmContacts = resultsContacts.filter((c) => !c.isCompany);
 
     //Search in local user database (scoped to current organization via Clerk)
     let resultsUser: { id: string; name: string | null; email: string; username: string | null }[] = [];

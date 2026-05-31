@@ -46,8 +46,8 @@ export const GET = withExternalApi(
         Users_Documents_created_by_userToUsers: {
           select: { id: true, name: true, email: true },
         },
-        Clients: {
-          select: { id: true, client_name: true },
+        Contacts: {
+          select: { id: true, displayName: true },
         },
         Properties: {
           select: { id: true, property_name: true },
@@ -77,7 +77,7 @@ export const GET = withExternalApi(
         viewsCount: document.viewsCount,
         lastViewedAt: document.lastViewedAt?.toISOString(),
         createdBy: document.Users_Documents_created_by_userToUsers,
-        linkedClients: document.Clients,
+        linkedClients: document.Contacts,
         linkedProperties: document.Properties,
         createdAt: document.createdAt?.toISOString(),
         updatedAt: document.updatedAt?.toISOString(),
