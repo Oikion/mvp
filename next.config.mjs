@@ -96,13 +96,17 @@ const nextConfig = {
     ],
   },
 
-  // TypeScript optimization - skip type checking during dev (faster startup)
-  // Type checking is still done via lint command and CI
+  // Skip the in-build TS type-check + ESLint on ALL Vercel builds (preview AND
+  // production). Vercel's 2-core build machine times out on the full TS check
+  // for this app — production builds were stuck >25min in the "Running
+  // TypeScript" phase, heading for the build timeout. Type/lint safety is
+  // already enforced locally (`pnpm build` / `tsc --noEmit`) and in CI, so the
+  // in-build re-check is redundant cost. Local builds (no VERCEL_ENV) still check.
   typescript: {
-    // Production (main) runs full TS checking; preview/staging skips it
-    // because Vercel's 2-core build machine times out on full TS check.
-    // TS errors are caught locally and in CI lint step.
-    ignoreBuildErrors: process.env.VERCEL_ENV === 'preview',
+    ignoreBuildErrors: !!process.env.VERCEL_ENV,
+  },
+  eslint: {
+    ignoreDuringBuilds: !!process.env.VERCEL_ENV,
   },
   images: {
     remotePatterns: [
