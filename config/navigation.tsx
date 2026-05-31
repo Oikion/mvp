@@ -149,9 +149,9 @@ export function getNavigationConfig({
       title: dict.navigation.ModuleMenu.requests?.title || "Requests",
       url: "/app/requests",
       icon: ClipboardListIcon,
-      isActive: isRouteActive(pathname, "/app/requests", locale) || isRouteActive(pathname, "/app/mandates", locale),
+      isActive: isRouteActive(pathname, "/app/requests", locale),
       moduleId: "crm" as ModuleId,
-      notificationKey: "mandates",
+      notificationKey: "requests",
     }] : []),
     // Deals module - deal pipeline
     ...(canAccess("deals") ? [{

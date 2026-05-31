@@ -63,7 +63,7 @@ export function FloatingQuickAddButtons() {
   const tCommon = useTranslations("common");
   const tCrm = useTranslations("crm");
   const tMls = useTranslations("mls");
-  const tMandates = useTranslations("mandates");
+  const tRequests = useTranslations("requests");
   const [clientOpen, setClientOpen] = useState(false);
   const [propertyOpen, setPropertyOpen] = useState(false);
   const [mandateOpen, setMandateOpen] = useState(false);
@@ -151,7 +151,7 @@ export function FloatingQuickAddButtons() {
               size="icon"
             >
               <Plus className="h-6 w-6" />
-              <span className="sr-only">{tMandates("QuickAdd.title")}</span>
+              <span className="sr-only">{tRequests("quickAdd.title")}</span>
             </Button>
           )}
           <QuickAddRequest
