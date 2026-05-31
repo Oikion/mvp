@@ -43,6 +43,11 @@ backup
 
 # worktrees
 .worktrees/
+.claude/worktrees/
+
+# transient tool output
+.playwright-mcp/
+*.orig
 
 # typescript
 *.tsbuildinfo
