@@ -2,6 +2,7 @@ import { prismadb } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
 import { getCurrentUser } from "@/lib/get-current-user";
+import { getOrgMembersFromDb } from "@/lib/org-members";
 
 //Get all users  for admin module
 export const getUsers = async () => {
@@ -21,26 +22,23 @@ export const getUsers = async () => {
   return data;
 };
 
-//Get active users for Selects in app etc
+//Get active users for Selects in app etc — scoped to the caller's org
 export const getActiveUsers = async () => {
   const { userId } = await auth();
   if (!userId) return [];
 
-  const data = await prismadb.users.findMany({
-    where: {
-      userStatus: "ACTIVE",
-    },
+  const { users } = await getOrgMembersFromDb({
     select: {
       id: true,
       name: true,
       email: true,
       avatar: true,
-    },
-    orderBy: {
-      created_on: "desc",
+      userStatus: true,
     },
   });
-  return data;
+
+  return (users as { id: string; name: string | null; email: string; avatar: string | null; userStatus: string }[])
+    .filter((user) => user.userStatus === "ACTIVE");
 };
 
 //Get new users by month for chart

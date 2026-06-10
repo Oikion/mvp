@@ -130,7 +130,7 @@ export async function inviteToEvent({ eventId, userIds }: InviteToEventParams): 
     console.error("[INVITE_TO_EVENT]", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to invite users to event",
+      error: "Failed to invite users to event",
     };
   }
 }
@@ -168,7 +168,7 @@ export async function removeEventInvitee(eventId: string, userId: string): Promi
     console.error("[REMOVE_EVENT_INVITEE]", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to remove invitee",
+      error: "Failed to remove invitee",
     };
   }
 }

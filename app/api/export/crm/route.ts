@@ -19,7 +19,8 @@ import {
 } from "@/lib/export";
 import { requireCanExport } from "@/lib/permissions/guards";
 import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
-import { decryptContactForOrg } from "@/lib/model-encryption";
+import { decryptContactWithDeks } from "@/lib/model-encryption";
+import { getOrgDeksForDecryption } from "@/lib/key-management";
 import { logPiiAccess } from "@/lib/pii-access-log";
 import { processBulkExportJob, type BulkExportPayload } from "@/lib/export/async-processor";
 
@@ -196,23 +197,22 @@ export async function GET(req: NextRequest) {
     // Inline export (small datasets)
     // ===========================================
     
-    // Decrypt encrypted contact fields before export
-    const decryptedClients = await Promise.all(
-      clients.map(async (c) => {
-        const dec = await decryptContactForOrg(c, orgId);
-        // fire-and-forget PII access log — EXPORT action for each decrypted contact
-        logPiiAccess({
-          userId: user.id,
-          organizationId: orgId,
-          entityType: "CONTACT",
-          entityId: c.id,
-          action: "EXPORT",
-          fields: ["displayName", "email", "primaryPhone", "notes"],
-          source: "GET /api/export/crm",
-        }).catch(() => {});
-        return dec;
-      })
-    );
+    // Decrypt encrypted contact fields before export — hoist DEK fetch once for O(1) key loads.
+    const deks = await getOrgDeksForDecryption(orgId);
+    const decryptedClients = clients.map((c) => {
+      const dec = decryptContactWithDeks(c, deks);
+      // fire-and-forget PII access log — EXPORT action for each decrypted contact
+      logPiiAccess({
+        userId: user.id,
+        organizationId: orgId,
+        entityType: "CONTACT",
+        entityId: c.id,
+        action: "EXPORT",
+        fields: ["displayName", "email", "primaryPhone", "notes"],
+        source: "GET /api/export/crm",
+      }).catch(() => {});
+      return dec;
+    });
 
     // Transform data for export
     const exportData = decryptedClients.map(client => ({

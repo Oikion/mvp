@@ -1,5 +1,6 @@
 "use server";
 
+import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 
 export interface TrackReferralInput {
@@ -20,6 +21,19 @@ export interface TrackReferralResult {
 export async function trackReferral(input: TrackReferralInput): Promise<TrackReferralResult> {
   try {
     const { referralCode, referredUserId } = input;
+
+    // A user may only register a referral for themselves
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) {
+      return { success: false, error: "Unauthorized" };
+    }
+    const referredUser = await prismadb.users.findUnique({
+      where: { id: referredUserId },
+      select: { clerkUserId: true },
+    });
+    if (!referredUser || referredUser.clerkUserId !== clerkUserId) {
+      return { success: false, error: "Unauthorized" };
+    }
 
     // Find the referral code
     const code = await prismadb.referralCode.findUnique({

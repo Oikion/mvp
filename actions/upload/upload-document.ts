@@ -1,5 +1,7 @@
 "use server";
 
+import { auth } from "@clerk/nextjs/server";
+import { isPlatformAdmin } from "@/lib/platform-admin";
 import { uploadToBlob, type BlobFolder } from "@/lib/vercel-blob";
 import {
   compressFile,
@@ -106,6 +108,18 @@ export async function uploadDocument(
     addRandomSuffix = true,
     userId,
   } = input;
+
+  // Tenancy guard: organizationId must match the caller's session org.
+  // Anonymous callers are only allowed platform-level feedback uploads;
+  // platform admins may upload on behalf of another org (feedback triage).
+  const { userId: authUserId, orgId: authOrgId } = await auth();
+  if (!authUserId && folder !== "feedback") {
+    throw new Error("Unauthorized");
+  }
+  const sessionOrg = authOrgId ?? (folder === "feedback" ? "platform" : null);
+  if (organizationId !== sessionOrg && !(await isPlatformAdmin())) {
+    throw new Error("Unauthorized");
+  }
 
   // Convert File to Buffer if needed
   let fileBuffer: Buffer;

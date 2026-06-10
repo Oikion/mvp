@@ -213,6 +213,22 @@ export async function decryptContactForOrg<T extends ContactWithEncryptedFields>
   return result as T;
 }
 
+// Bulk-decrypt variant — accepts pre-fetched DEKs to avoid a per-row getOrgDeksForDecryption round-trip.
+export function decryptContactWithDeks<T extends ContactWithEncryptedFields>(record: T, deks: Buffer[]): T {
+  const result = { ...record } as T & ContactWithEncryptedFields;
+  for (const field of CONTACT_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
+        result[field] as string | null | undefined,
+        deks,
+      );
+    }
+  }
+  if ("communicationNotes" in result) result.communicationNotes = decryptJsonWithKeys(result.communicationNotes, deks);
+  if ("addresses" in result) result.addresses = decryptJsonWithKeys(result.addresses, deks);
+  return result as T;
+}
+
 // ContactComment (content field) — delegates to Message helpers
 export async function encryptContactCommentForOrg<T extends MessageWithContent>(
   data: T,

@@ -275,7 +275,7 @@ export async function POST(req: Request) {
         });
         console.log(`[WEBHOOK] Created organization invite notification for user ${invitedUser.id}`);
       } else {
-        console.log(`[WEBHOOK] User with email ${data.email_address} not found in database. Skipping in-app notification.`);
+        console.log("[WEBHOOK] Invited user not found in database. Skipping in-app notification.");
       }
     } catch (error) {
       console.error("[WEBHOOK] Error handling organization invitation:", error);

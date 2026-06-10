@@ -535,7 +535,7 @@ async function sendExportReadyEmail(
       `,
     });
 
-    console.log("[DATA_EXPORT] Email sent to:", email);
+    console.log("[DATA_EXPORT] Download email sent");
   } catch (error) {
     // Log but don't fail the export
     console.error("[DATA_EXPORT] Failed to send email:", error);
