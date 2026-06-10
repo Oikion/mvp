@@ -20,8 +20,15 @@ export async function purgeEntity(
   try {
     switch (entityType) {
       case "property": {
+        // Verify org ownership + archived state BEFORE any destructive blob deletion
+        const property = await prismadb.properties.findFirst({
+          where: { id, organizationId, archivedAt: { not: null } },
+          select: { id: true },
+        });
+        if (!property) return { success: false, error: "Not found" };
+
         const images = await prismadb.propertyImage.findMany({
-          where: { propertyId: id },
+          where: { propertyId: id, organizationId },
           select: { url: true },
         });
         for (const img of images) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 import { prismadb } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,11 @@ export async function POST(req: NextRequest) {
         { error: "Organization context required" },
         { status: 400 }
       );
+    }
+
+    const check = await canPerformAction("property:update");
+    if (!check.allowed) {
+      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }
 
     const body = await req.json();

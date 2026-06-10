@@ -154,8 +154,8 @@ export async function cancelDataExport(requestId: string): Promise<ActionRespons
       return actionError("Export request not found or cannot be cancelled", "NOT_FOUND");
     }
 
-    await prismadb.dataExportRequest.delete({
-      where: { id: requestId },
+    await prismadb.dataExportRequest.deleteMany({
+      where: { id: requestId, organizationId, requestedById: userId, status: "PENDING" },
     });
 
     return actionSuccess();

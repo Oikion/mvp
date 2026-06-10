@@ -25,9 +25,9 @@ export async function deletePropertyImage(
     // Delete from blob storage
     await deleteFromBlob(image.url);
 
-    // Delete DB record
-    await prismadb.propertyImage.delete({
-      where: { id: imageId },
+    // Delete DB record (org-scoped to close the check/delete race)
+    await prismadb.propertyImage.deleteMany({
+      where: { id: imageId, organizationId: orgId },
     });
 
     // If deleted image was primary, promote next image (lowest position) to primary

@@ -35,7 +35,7 @@ export async function GET(
 
     // Proxy file through this auth-gated route.
     // TODO: when Vercel Blob private mode is configured, generate a presigned URL and redirect instead.
-    const blobRes = await fetch(document.document_file_url);
+    const blobRes = await fetch(document.document_file_url, { signal: AbortSignal.timeout(10_000) });
     if (!blobRes.ok) return NextResponse.json({ error: "File unavailable" }, { status: 502 });
 
     const content = await blobRes.arrayBuffer();

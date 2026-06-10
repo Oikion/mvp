@@ -32,6 +32,7 @@ const GUARDED_METHODS = new Set([
   "upsert",
   "count",
   "aggregate",
+  "groupBy",
 ]);
 
 const METHOD_ALIASES: Record<string, string> = {

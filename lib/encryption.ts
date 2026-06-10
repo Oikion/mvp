@@ -188,7 +188,11 @@ export function decryptWithKey(encrypted: string, key: Buffer): string {
     if (process.env.DISABLE_MASTER_KEY_FALLBACK === "true") {
       throw err;
     }
-    console.warn("[encryption] DEK decryption failed, falling back to master key", {
+    // In production this signals a potential cross-org decrypt attempt or key mismatch;
+    // log at ERROR so alerting fires. Use DISABLE_MASTER_KEY_FALLBACK=true once all data
+    // has been re-encrypted with per-org DEKs to eliminate the fallback entirely.
+    const log = process.env.NODE_ENV === "production" ? console.error : console.warn;
+    log("[encryption] DEK decryption failed, falling back to master key", {
       error: err instanceof Error ? err.message : String(err),
     });
     return decrypt(encrypted);
@@ -238,6 +242,8 @@ export function decryptWithKeys(encrypted: string, keys: Buffer[]): string {
   if (process.env.DISABLE_MASTER_KEY_FALLBACK === "true") {
     throw new Error("[encryption] decryptWithKeys: all DEK candidates failed and master key fallback is disabled");
   }
+  const log = process.env.NODE_ENV === "production" ? console.error : console.warn;
+  log("[encryption] decryptWithKeys: all DEK candidates failed, falling back to master key");
   try {
     return decrypt(encrypted);
   } catch {
